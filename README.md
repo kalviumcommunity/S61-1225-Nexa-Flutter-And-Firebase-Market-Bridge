@@ -1,0 +1,1 @@
+A Flutter–Firebase powered platform that provides farmers with transparent pricing and real-time market demand insights. Designed to bridge the information gap and help farmers make smarter, data-driven decisions.
