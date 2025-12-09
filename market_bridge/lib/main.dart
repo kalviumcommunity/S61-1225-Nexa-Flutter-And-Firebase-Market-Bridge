@@ -1,37 +1,24 @@
 import 'package:flutter/material.dart';
-
-// Import screens
-import 'screens/splash_screen.dart';
-import 'screens/login_screen.dart';
+import 'screens/responsive_home.dart';
 
 void main() {
-  runApp(const MarketBridgeApp());
+  runApp(const MyApp());
 }
 
-class MarketBridgeApp extends StatelessWidget {
-  const MarketBridgeApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'MarketBridge',
+      title: 'Market Bridge',
       debugShowCheckedModeBanner: false,
-
       theme: ThemeData(
-        primaryColor: Colors.green,
-        scaffoldBackgroundColor: Colors.white,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.green,
-          foregroundColor: Colors.white,
-        ),
+        primarySwatch: Colors.green,
+        fontFamily: 'Roboto',
+        scaffoldBackgroundColor: Colors.grey[100],
       ),
-
-      initialRoute: '/',
-
-      routes: {
-        '/': (context) => const SplashScreen(),
-        '/login': (context) => const LoginScreen(),
-      },
+      home: const ResponsiveHome(),
     );
   }
 }
