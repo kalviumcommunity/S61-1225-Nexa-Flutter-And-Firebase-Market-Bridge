@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "977175503820",
+    "project_id": "market-bridge-6ef72",
+    "storage_bucket": "market-bridge-6ef72.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:977175503820:android:4ff43c58d56bf407eb7369",
+        "android_client_info": {
+          "package_name": "com.example.market_bridge"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDwOKxPWoUWGDjOQA7S2443rtz3ST62EQM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
-import 'screens/responsive_home.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-void main() {
+import 'screens/phone_login_screen.dart'; // starting screen
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
 
@@ -11,14 +18,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Market Bridge',
       debugShowCheckedModeBanner: false,
+      title: 'Market Bridge',
       theme: ThemeData(
         primarySwatch: Colors.green,
         fontFamily: 'Roboto',
-        scaffoldBackgroundColor: Colors.grey[100],
       ),
-      home: const ResponsiveHome(),
+
+      home: const PhoneLoginScreen(),    // FIRST screen in your flow
     );
   }
 }
