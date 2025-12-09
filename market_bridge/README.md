@@ -80,8 +80,8 @@ lib/
 │
 ├── screens/                   # All UI screens
 │   ├── splash_screen.dart     # Splash screen
-│   └── login_screen.dart      # Login screen
-│
+│   ├── login_screen.dart      # Login screen       
+│   └── responsive_home.dart   # NEW – Responsive home screen
 ├── widgets/                   # Reusable UI components
 │   ├── primary_button.dart    # Custom reusable button
 │   └── product_card.dart      # Product card UI component
@@ -114,3 +114,73 @@ lib/
 - Responsive UI basics
 
 --
+
+# 📱 **Responsive UI – Sprint 2 Assignment Add-on**
+
+This section is added for the **Responsive Layout task** in Sprint-2.
+
+---
+
+## 🎯 What This Responsive Screen Demonstrates
+
+* Fully responsive UI using **MediaQuery** and **LayoutBuilder**
+* Phone → Tablet adaptation
+* Portrait → Landscape changes
+* Adaptive grid layout for market prices
+* Flexible spacing, padding, and text scaling
+* Matches the MarketBridge Figma-inspired home screen
+
+---
+
+## 🔧 Key Code Snippet – Detecting Screen Width
+
+```dart
+final screenWidth = MediaQuery.of(context).size.width;
+final isTablet = screenWidth > 600;
+```
+
+---
+
+## 🔧 Key Code Snippet – Using LayoutBuilder Breakpoints
+
+```dart
+LayoutBuilder(
+  builder: (context, constraints) {
+    final width = constraints.maxWidth;
+    final gridCount = width > 900 ? 4 : (width > 600 ? 2 : 1);
+    return ...;
+  },
+);
+```
+
+---
+
+## 🧩 What Was Implemented in `responsive_home.dart`
+
+* Header (menu + title + notifications)
+* Location card
+* “Today’s Market Prices” grid — responsive
+* Quick Actions section
+* Trending Demand card
+* View Market Details + See Buyer Demand buttons
+* Bottom Navigation Bar
+* Smooth scrolling + SafeArea support
+
+---
+
+## 🧠 Reflection (Required for Assignment)
+
+**Challenges faced:**
+
+* Managing layout overflow in landscape mode
+* Ensuring grid responsiveness for multiple breakpoints
+* Scaling fonts and padding for tablets
+
+**What I learned:**
+
+* `MediaQuery` helps detect device size dynamically
+* `LayoutBuilder` is perfect for adaptive grid designs
+* Flexible widgets (`Expanded`, `Wrap`, `GridView`) prevent UI breaking
+* Responsive UI improves usability across all devices
+
+---
