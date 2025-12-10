@@ -60,9 +60,12 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF2F2F2),
       appBar: AppBar(
         title: const Text("Verify OTP"),
-        backgroundColor: const Color(0xFF11823F),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
@@ -72,7 +75,7 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                  color: Colors.grey.shade200, borderRadius: BorderRadius.circular(12)),
+                  color: Colors.white, borderRadius: BorderRadius.circular(12)),
               child: Column(
                 children: [
                   const Icon(Icons.phone_android, size: 44, color: Colors.black54),
@@ -86,11 +89,18 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
             TextField(
               controller: otpController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: "Enter OTP",
-                border: OutlineInputBorder(),
+              textAlign: TextAlign.center,
+              decoration: InputDecoration(
+                hintText: "Enter 6-digit OTP",
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none,
+                ),
               ),
             ),
+
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,

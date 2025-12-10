@@ -17,6 +17,10 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
   String role = 'farmer';
   bool sending = false;
 
+  static const farmerGreen = Color(0xFF11823F);
+  static const buyerBlue = Color(0xFF2F6FED);
+  static const bgGrey = Color(0xFFF2F2F2);
+
   @override
   void dispose() {
     phoneController.dispose();
@@ -92,27 +96,40 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s)));
   }
 
-  Widget roleCard(String key, String label, IconData icon) {
+  Widget roleCard(String key, String label, String subtitle, IconData icon) {
     final selected = role == key;
+    final color = key == 'farmer' ? farmerGreen : buyerBlue;
+
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => role = key),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 160),
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 16),
           margin: const EdgeInsets.symmetric(horizontal: 6),
           decoration: BoxDecoration(
-            color: selected ? const Color(0xFF11823F) : Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.grey.shade300),
-            boxShadow: selected ? [BoxShadow(color: Colors.green.withOpacity(0.12), blurRadius: 6)] : null,
+            color: selected ? color : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: selected
+                ? [BoxShadow(color: color.withOpacity(0.35), blurRadius: 10)]
+                : [],
           ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 34, color: selected ? Colors.white : Colors.black54),
+              Icon(icon,
+                  size: 32,
+                  color: selected ? Colors.white : color),
               const SizedBox(height: 8),
-              Text(label, style: TextStyle(color: selected ? Colors.white : Colors.black87, fontWeight: FontWeight.w700), textAlign: TextAlign.center),
+              Text(label,
+                  style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: selected ? Colors.white : Colors.black)),
+              const SizedBox(height: 4),
+              Text(subtitle,
+                  style: TextStyle(
+                      fontSize: 12,
+                      color:
+                      selected ? Colors.white70 : Colors.grey.shade600)),
             ],
           ),
         ),
@@ -123,58 +140,113 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F6F6),
-      appBar: AppBar(title: const Text('Phone Verification'), backgroundColor: const Color(0xFF11823F)),
+      backgroundColor: bgGrey,
+
+      // ✅ APP BAR MATCHING FIGMA
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: const BackButton(color: Colors.black),
+        title: const Text(
+          'Phone Verification',
+          style: TextStyle(
+              color: Colors.black, fontWeight: FontWeight.w600),
+        ),
+      ),
+
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
+        padding: const EdgeInsets.all(20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Phone input
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6)]),
-              child: Row(
-                children: [
-                  // show +91 visually if user didn't type +
-                  if (!phoneController.text.startsWith('+')) const Text('+91', style: TextStyle(fontWeight: FontWeight.w700)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: phoneController,
-                      keyboardType: TextInputType.phone,
-                      decoration: const InputDecoration(
-                        hintText: 'Enter mobile (e.g., 9876543210 or +919876543210)',
-                        border: InputBorder.none,
-                      ),
-                      onChanged: (_) => setState(() {}),
-                    ),
+
+            // ✅ LABEL
+            const Text('Enter phone number',
+                style: TextStyle(
+                    fontSize: 14, color: Colors.black54)),
+
+            const SizedBox(height: 8),
+
+            // ✅ PHONE INPUT (FIGMA STYLE)
+            Row(
+              children: [
+                Container(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade400),
+                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.white,
                   ),
-                ],
-              ),
+                  child: const Text('+91',
+                      style: TextStyle(fontWeight: FontWeight.w600)),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextField(
+                    controller: phoneController,
+                    keyboardType: TextInputType.phone,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      hintText: 'Phone number',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ),
+              ],
             ),
 
-            const SizedBox(height: 18),
+            const SizedBox(height: 24),
 
-            Row(children: [
-              roleCard('farmer', 'Farmer\n(Sell Produce)', Icons.agriculture),
-              roleCard('buyer', 'Buyer\n(Buy Produce)', Icons.shopping_bag),
-            ]),
+            // ✅ ROLE LABEL
+            const Text('I am a:',
+                style: TextStyle(
+                    fontSize: 14, color: Colors.black54)),
+
+            const SizedBox(height: 12),
+
+            // ✅ ROLE CARDS
+            Row(
+              children: [
+                roleCard('farmer', 'Farmer', 'Sell Produce',
+                    Icons.agriculture),
+                roleCard('buyer', 'Buyer', 'Buy Produce',
+                    Icons.shopping_cart),
+              ],
+            ),
 
             const Spacer(),
 
+            // ✅ WEB HINT (UNCHANGED)
             if (kIsWeb)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: Text('Web requires Firebase reCAPTCHA setup to send real OTPs.', style: TextStyle(color: Colors.grey.shade600)),
+                child: Text(
+                  'Web requires Firebase reCAPTCHA setup to send real OTPs.',
+                  style: TextStyle(color: Colors.grey.shade600),
+                ),
               ),
 
+            // ✅ SEND OTP BUTTON
             SizedBox(
               width: double.infinity,
               height: 52,
               child: ElevatedButton(
                 onPressed: sending ? null : _sendOtp,
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF11823F), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-                child: sending ? const CircularProgressIndicator(color: Colors.white) : const Text('Send OTP', style: TextStyle(fontSize: 16)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                  role == 'farmer' ? farmerGreen : buyerBlue,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+                child: sending
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text('Send OTP',
+                    style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600,), ),
               ),
             ),
           ],
@@ -183,3 +255,4 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     );
   }
 }
+
