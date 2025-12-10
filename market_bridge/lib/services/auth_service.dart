@@ -5,52 +5,66 @@ import 'package:flutter/foundation.dart';
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  /// onCodeSent will be called when verificationId is available.
-  /// onError will be called on failure with a message.
-  Future<void> sendOTP(String phoneNumber, Function(String verificationId) onCodeSent,
-      {Function(String)? onError}) async {
-    // On web, Firebase requires a reCAPTCHA verifier and uses signInWithPhoneNumber.
+  /// Sends an OTP. onCodeSent called when verificationId is available.
+  /// onError called with an error string on failure.
+  Future<void> sendOTP(
+      String phoneNumber,
+      Function(String verificationId) onCodeSent, {
+        Function(String)? onError,
+      }) async {
     if (kIsWeb) {
-      onError?.call('Phone auth on web requires reCAPTCHA setup. See Firebase docs.');
-      throw UnsupportedError('Phone auth on web needs reCAPTCHA.');
+      final msg = 'Phone auth on web requires reCAPTCHA setup.';
+      print('[AuthService] web unsupported: $msg');
+      onError?.call(msg);
+      throw UnsupportedError(msg);
     }
+
+    print('[AuthService] verifyPhoneNumber start -> $phoneNumber');
 
     try {
       await _auth.verifyPhoneNumber(
         phoneNumber: phoneNumber,
         timeout: const Duration(seconds: 60),
         verificationCompleted: (PhoneAuthCredential credential) async {
-          // Android: auto sign-in with SMS auto-retrieval.
+          // This is called on Android when auto-retrieval works.
+          print('[AuthService] verificationCompleted: credential=$credential');
           try {
-            await _auth.signInWithCredential(credential);
-          } catch (_) {
-            // ignore auto sign-in failures
+            final res = await _auth.signInWithCredential(credential);
+            print('[AuthService] signInWithCredential succeeded: uid=${res.user?.uid}');
+          } catch (e) {
+            print('[AuthService] signInWithCredential FAILED: $e');
           }
         },
         verificationFailed: (FirebaseAuthException e) {
-          final msg = e.message ?? e.code;
-          onError?.call(msg);
+          final code = e.code;
+          final msg = e.message ?? e.toString();
+          print('[AuthService] verificationFailed -> code: $code message: $msg');
+          onError?.call('verificationFailed: $code - $msg');
         },
-        codeSent: (String verificationId, int? resendToken) {
+        codeSent: (String verificationId, int? resendToken) async {
+          print('[AuthService] codeSent -> verificationId: $verificationId resendToken: $resendToken');
           onCodeSent(verificationId);
         },
         codeAutoRetrievalTimeout: (String verificationId) {
-          // optional: you can notify UI that auto retrieval timed out
+          print('[AuthService] codeAutoRetrievalTimeout -> verificationId: $verificationId');
         },
       );
     } catch (e) {
-      onError?.call(e.toString());
+      print('[AuthService] verifyPhoneNumber threw: $e');
+      onError?.call('exception: $e');
       rethrow;
     }
   }
 
   Future<User?> verifyOTP(String verificationId, String smsCode) async {
     try {
-      final credential = PhoneAuthProvider.credential(verificationId: verificationId, smsCode: smsCode);
+      final credential = PhoneAuthProvider.credential(
+          verificationId: verificationId, smsCode: smsCode);
       final result = await _auth.signInWithCredential(credential);
+      print('[AuthService] verifyOTP success: uid=${result.user?.uid}');
       return result.user;
     } catch (e) {
-      print('verifyOTP failed: $e');
+      print('[AuthService] verifyOTP failed: $e');
       return null;
     }
   }
