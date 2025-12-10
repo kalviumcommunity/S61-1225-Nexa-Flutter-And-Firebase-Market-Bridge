@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
-import 'screens/phone_login_screen.dart'; // starting screen
+import 'screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,8 +24,8 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.green,
         fontFamily: 'Roboto',
       ),
-
-      home: const PhoneLoginScreen(),    // FIRST screen in your flow
+      home: const SplashScreen(),
+      // you can still use named routes if you prefer
     );
   }
 }
