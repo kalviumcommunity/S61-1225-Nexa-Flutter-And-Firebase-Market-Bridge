@@ -184,3 +184,173 @@ LayoutBuilder(
 * Responsive UI improves usability across all devices
 
 ---
+
+# Market Bridge 
+
+MarketBridge is a Flutter-based mobile application that connects farmers and buyers through a simple, clean, and responsive marketplace interface.
+
+# [Concept-2] Firebase Authentication & Firestore Integration – MarketBridge App
+
+This section of the MarketBridge project demonstrates Firebase integration with Flutter, focusing on:
+- Firebase Authentication (Signup / Login / Logout)
+- Firestore Database (CRUD operations & real-time sync)
+- Firebase setup & configuration inside a Flutter application
+
+This concept is part of **Kalvium – Sprint 2 (Firebase Integration)** and showcases how Firebase enables secure user login and cloud-based data storage while improving scalability and collaboration.
+
+---
+
+## Concept Overview
+
+This Firebase-powered module allows users to:
+- Sign up & log in securely using Firebase Authentication
+- Store and retrieve user details in Firestore
+- View instantly updated realtime data using listeners
+- Understand Firebase setup within a scalable Flutter project architecture
+
+---
+
+## Task Workflow (Implementation Flow)
+
+```
+
+Firebase Setup
+↓
+Add Authentication & Firestore packages
+↓
+Create Auth Service
+↓
+Signup & Login UI
+↓
+Firestore CRUD operations
+↓
+Real-time UI updates using StreamBuilder
+
+```
+
+---
+
+## Firebase Setup Instructions
+
+### 1. Create Firebase Project
+- Open Firebase Console
+- Create a new project → enable Google Analytics (optional)
+
+### 2. Add Android / iOS App
+Register app using the package name (example):
+
+com.example.firebase_setup
+
+Download config files and place into the project:
+
+google-services.json → android/app/
+GoogleService-Info.plist → ios/Runner/
+
+
+### 3. Install Dependencies
+
+Run:
+
+flutterfire configure
+
+Add to `pubspec.yaml`:
+```yaml
+dependencies:
+  firebase_core: ^3.0.0
+  firebase_auth: ^5.0.0
+  cloud_firestore: ^5.0.0
+```
+
+Then run: 
+
+flutter pub get
+
+### 4. Initialize Firebase inside main.dart
+
+void main() async {
+WidgetsFlutterBinding.ensureInitialized();
+await Firebase.initializeApp();
+runApp(MyApp());
+}
+
+### Firebase Authentication Implementation
+
+Created service file:
+
+lib/services/auth_service.dart
+
+### Core Authentication Logic
+
+import 'package:firebase_auth/firebase_auth.dart';
+
+class AuthService {
+Future<User?> signUp(String email, String password) async {
+try {
+final credential = await FirebaseAuth.instance
+.createUserWithEmailAndPassword(email: email, password: password);
+return credential.user;
+} catch (e) {
+print(e);
+return null;
+}
+}
+
+Future<User?> signIn(String email, String password) async {
+try {
+final credential = await FirebaseAuth.instance
+.signInWithEmailAndPassword(email: email, password: password);
+return credential.user;
+} catch (e) {
+print(e);
+return null;
+}
+}
+
+Future<void> logout() async {
+await FirebaseAuth.instance.signOut();
+}
+}
+
+### UI Screens Implemented
+
+lib/screens/signup_screen.dart
+lib/screens/login_screen.dart
+
+Includes input fields for:
+
+- Email
+- Password
+- Navigation between screens
+- Redirect to dashboard after login
+
+### Firestore Integration
+
+Created Firestore service:
+
+lib/services/firestore_service.dart
+
+## Testing Done
+
+| Test                    | Status                     |
+| ----------------------- | -------------------------- |
+| Signup account          | ✔ Successful               |
+| Login                   | ✔ Success & redirected     |
+| Write data to Firestore | ✔ Stored in cloud database |
+| Update / Delete data    | ✔ Working                  |
+| Real-time sync          | ✔ Auto updates             |
+
+
+### Reflection
+
+Successfully integrated:
+
+- Firebase Authentication
+- Firestore real-time database
+- Login and Signup UI
+- CRUD operations & realtime updates
+
+Future extensions:
+
+- Image upload using Firebase Storage
+- Role based access for Farmers & Buyers
+- Full marketplace product CRUD
