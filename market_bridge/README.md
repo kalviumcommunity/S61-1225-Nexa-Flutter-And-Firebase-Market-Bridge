@@ -354,3 +354,62 @@ Future extensions:
 - Image upload using Firebase Storage
 - Role based access for Farmers & Buyers
 - Full marketplace product CRUD
+
+
+## ⚙️ Flutter Environment Setup & First Emulator Run
+
+### ✅ Steps Followed
+
+**1. Flutter SDK Installation**
+
+* Downloaded Flutter SDK from the official Flutter website
+* Extracted and added `flutter/bin` to system PATH
+* Verified installation using:
+
+```bash
+flutter doctor
+```
+
+**2. Android Studio Setup**
+
+* Installed Android Studio
+* Installed Flutter & Dart plugins
+* Ensured Android SDK, Platform Tools, and AVD Manager were configured
+
+**3. Emulator Configuration**
+
+* Created an Android Virtual Device (Pixel, Android 13+)
+* Successfully launched the emulator
+* Verified device detection using:
+
+```bash
+flutter devices
+```
+
+**4. First Flutter App Run**
+
+* Created a new Flutter project
+* Ran the default Flutter counter app using:
+
+```bash
+flutter run
+```
+
+* App launched successfully on the emulator
+
+---
+
+### 🧠 Reflection
+
+**Challenges faced:**
+
+* Initial Flutter SDK path configuration
+* Emulator setup and device compatibility
+
+**What I learned:**
+
+* `flutter doctor` helps identify missing dependencies quickly
+* Proper setup ensures smooth Flutter & Firebase development
+* Emulator testing is essential before real device deployment
+
+
