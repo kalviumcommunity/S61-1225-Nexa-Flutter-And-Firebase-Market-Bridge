@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
 import 'screens/splash_screen.dart';
+import 'screens/stateless_stateful_demo.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,8 +25,8 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.green,
         fontFamily: 'Roboto',
       ),
-      home: const SplashScreen(),
-      // you can still use named routes if you prefer
+      // home: const SplashScreen(),
+      home: const StatelessStatefulDemo(),
     );
   }
 }

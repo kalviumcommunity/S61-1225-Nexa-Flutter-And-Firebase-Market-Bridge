@@ -471,4 +471,60 @@ Flutter uses this tree to understand:
 - Partial rebuilds improve performance
 - Understanding widget hierarchy is critical for clean UI design
 
+---
 
+# Flutter Stateless & Stateful Widgets – Demo Application
+
+This demo app showcases the difference between **Stateless** and **Stateful** widgets in Flutter, explaining how they work, when to use them, and how they help build dynamic and responsive user interfaces.
+
+The app demonstrates a simple counter UI where the static and dynamic parts of the screen are clearly separated to highlight Flutter’s reactive capabilities.
+
+---
+
+## Demo Overview
+
+This concept demonstrates:
+- The structure and purpose of Stateless widgets
+- The behavior and reactivity of Stateful widgets
+- How Flutter rebuilds UI based on state changes
+- Clean separation between static UI and dynamic UI components
+
+---
+
+## Understanding Widgets in Flutter
+
+### 🔹 **Stateless Widget**
+A **StatelessWidget** is a widget that **does not change** once it is built.
+
+- Contains **fixed UI**
+- Does not store data that changes
+- Used for:
+    - Static text
+    - Icons
+    - Buttons without dynamic content
+    - Layout or design components
+
+### 🔹 **Stateful Widget**
+- A StatefulWidget is a widget that changes over time based on interaction or data updates.
+- Stores data in State object
+- Rebuilds only the affected UI parts
+- Used for:
+    - Buttons that trigger UI changes
+    - Forms and text fields
+    - Animations
+    - Dynamic lists
+
+## Reflection
+
+### How do Stateful widgets make Flutter apps dynamic?
+
+Stateful widgets allow apps to react to user interactions, such as button presses, form updates, and animations.
+
+When state changes, Flutter intelligently rebuilds only the affected widgets, making the UI fast, flexible, and responsive.
+
+### Why separate static and reactive parts of UI?
+
+- Makes code cleaner and easier to maintain
+- Improves performance by reducing unnecessary rebuilds
+- Ensures UI updates happen only where needed
+- Encourages separation of concerns between layout and logic
