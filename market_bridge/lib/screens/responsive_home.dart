@@ -19,7 +19,6 @@ class ResponsiveHome extends StatelessWidget {
     final screenWidth = mq.size.width;
     final screenHeight = mq.size.height;
     final isTablet = screenWidth > 600;
-    final isLarge = screenWidth > 900;
 
     // responsive text sizes
     double titleSize = isTablet ? 20 : 18;

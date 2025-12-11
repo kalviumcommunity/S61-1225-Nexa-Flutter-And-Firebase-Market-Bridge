@@ -524,7 +524,80 @@ When state changes, Flutter intelligently rebuilds only the affected widgets, ma
 
 ### Why separate static and reactive parts of UI?
 
+ stateless_stateful
 - Makes code cleaner and easier to maintain
 - Improves performance by reducing unnecessary rebuilds
 - Ensures UI updates happen only where needed
 - Encourages separation of concerns between layout and logic
+=======
+## Market Bridge – Multi-Screen Navigation (Sprint-2)
+
+This project demonstrates **multi-screen navigation in Flutter** using `Navigator`, named routes, and dynamic route arguments. The app includes authentication screens, profile completion, and a responsive home screen inspired by the Market-Bridge use case.
+
+---
+
+## 🚀 Features Implemented
+
+### ✅ **1. Splash Screen → Phone Login → OTP → Profile → Home**
+
+Navigation flow implemented using:
+
+* `Navigator.pushNamed()`
+* `Navigator.pushReplacementNamed()`
+* `onGenerateRoute` for screens that require arguments
+* Centralized `routes.dart` file
+
+### ✅ **2. Firebase Phone Authentication**
+
+* Sends OTP using `FirebaseAuth.verifyPhoneNumber`
+* Auto-verification supported
+* Manual OTP entry and validation
+* Routes forward necessary data (phone, role, verificationId)
+
+### ✅ **3. Profile Completion Page**
+
+* Saves data to Firestore
+* Collects: Name, Email, Location, Language, Farm Size
+* Shows a success popup and routes to Home screen
+
+### ✅ **4. Responsive Farmer Home UI**
+
+* Grid layout adapts to screen width (mobile/tablet)
+* Shows sample produce cards and quick actions
+
+---
+
+## 🧭 Navigation Structure
+
+| Route Name  | Screen                                   |
+| ----------- | ---------------------------------------- |
+| `/`         | SplashScreen                             |
+| `/phone`    | PhoneLoginScreen                         |
+| `/otp`      | OtpVerifyScreen *(with arguments)*       |
+| `/complete` | CompleteProfileScreen *(with arguments)* |
+| `/home`     | ResponsiveHome                           |
+
+---
+
+## 📂 Project Files (Key Screens)
+
+* `lib/main.dart` → App entry + route configuration
+* `lib/routes.dart` → All route constants
+* `lib/screens/splash_screen.dart`
+* `lib/screens/phone_login_screen.dart`
+* `lib/screens/otp_verify_screen.dart`
+* `lib/screens/complete_profile_screen.dart`
+* `lib/screens/responsive_home.dart`
+* `lib/services/auth_service.dart` → Handles OTP login
+
+---
+
+
+## Reflection 
+
+Using named routes improved readability and organization of the navigation system.
+`onGenerateRoute` was helpful for passing dynamic data like `verificationId` and `phoneNumber` to OTP and profile screens.
+This structure scales well as the project grows.
+
+---
+main
