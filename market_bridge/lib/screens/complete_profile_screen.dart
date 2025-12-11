@@ -119,7 +119,18 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     final email = emailController.text.trim();
     final location = locationController.text.trim();
 
+    debugPrint('==========================================');
+    debugPrint('💾 SAVING PROFILE');
+    debugPrint('Name: $name');
+    debugPrint('Email: $email');
+    debugPrint('Location: $location');
+    debugPrint('Language: $preferredLanguage');
+    debugPrint('Farm Size: ${farmSizeController.text} $farmSizeUnit');
+    debugPrint('Role: ${widget.role}');
+    debugPrint('==========================================');
+
     if (name.isEmpty || location.isEmpty) {
+      debugPrint('❌ Validation failed: Missing required fields');
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please enter required fields')));
       return;
@@ -129,7 +140,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
 
     final user = FirebaseAuth.instance.currentUser;
     final uid = user?.uid ?? FirebaseFirestore.instance.collection('users').doc().id;
-
+    debugPrint('👤 User UID: $uid');
     final farmSizeValue = farmSizeController.text.trim();
     final farmSizeComplete = farmSizeValue.isNotEmpty ? '$farmSizeValue $farmSizeUnit' : '';
 
@@ -146,8 +157,10 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     };
 
     try {
+      debugPrint('🔄 Saving to Firestore...');
       await FirebaseFirestore.instance.collection('users').doc(uid).set(data, SetOptions(merge: true));
-
+      debugPrint('🔄 PROFILE SAVED SUCCESSFULLY');
+      debugPrint('Document ID: $uid');
       // Navigate to home first
       if (mounted) {
         Navigator.pushReplacementNamed(context, Routes.routeHome);
@@ -155,12 +168,13 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
         // Show success dialog after navigation
         Future.delayed(const Duration(milliseconds: 300), () {
           if (mounted) {
+            debugPrint('📱 Showing success dialog');
             _showSuccessDialog(context, themeColor);
           }
         });
       }
     } catch (e) {
-      print('Error saving profile: $e');
+      debugPrint('💥 ERROR SAVING PROFILE: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Failed to save: $e'))

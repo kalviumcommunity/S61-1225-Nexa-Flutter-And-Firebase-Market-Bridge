@@ -26,7 +26,13 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
 
   Future<void> _verify() async {
     final code = otpController.text.trim();
+    debugPrint('==========================================');
+    debugPrint('🔐 VERIFYING OTP');
+    debugPrint('OTP Code: $code');
+    debugPrint('Code Length: ${code.length}');
+    debugPrint('==========================================');
     if (code.length != 6) {
+      debugPrint('❌ Invalid OTP length: ${code.length}');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a valid 6-digit OTP')));
       return;
@@ -34,11 +40,16 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
 
     setState(() => loading = true);
     try {
+      debugPrint('🔄 Calling Firebase verifyOTP...');
       final user = await _auth.verifyOTP(widget.verificationId, code);
       if (!mounted) return;
       setState(() => loading = false);
 
       if (user != null) {
+        debugPrint('✅ OTP VERIFIED SUCCESSFULLY');
+        debugPrint('User ID: ${user.uid}');
+        debugPrint('Phone: ${user.phoneNumber}');
+
         Navigator.pushReplacementNamed(
           context,
           Routes.routeComplete,
@@ -48,9 +59,11 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
           },
         );
       } else {
+        debugPrint('❌ OTP verification failed - null user');
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('OTP verification failed')));
       }
     } catch (e) {
+      debugPrint('💥 EXCEPTION IN VERIFY OTP: $e');
       if (!mounted) return;
       setState(() => loading = false);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Verification error: $e')));
