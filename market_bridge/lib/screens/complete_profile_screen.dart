@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'responsive_home.dart';
+import '../routes.dart';
 
 class CompleteProfileScreen extends StatefulWidget {
   final String phoneNumber;
@@ -149,7 +150,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
 
       // Navigate to home first
       if (mounted) {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ResponsiveHome()));
+        Navigator.pushReplacementNamed(context, Routes.routeHome);
 
         // Show success dialog after navigation
         Future.delayed(const Duration(milliseconds: 300), () {

@@ -1,8 +1,14 @@
+// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
 import 'screens/splash_screen.dart';
+import 'screens/phone_login_screen.dart';
+import 'screens/otp_verify_screen.dart';
+import 'screens/complete_profile_screen.dart';
+import 'screens/responsive_home.dart';
+import 'routes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,7 +19,7 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -24,8 +30,36 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.green,
         fontFamily: 'Roboto',
       ),
-      home: const SplashScreen(),
-      // you can still use named routes if you prefer
+      initialRoute: Routes.routeSplash,
+      routes: {
+        Routes.routeSplash: (context) => const SplashScreen(),
+        Routes.routePhone: (context) => const PhoneLoginScreen(),
+        Routes.routeHome: (context) => const ResponsiveHome(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == Routes.routeOtp) {
+          final args = settings.arguments as Map<String, dynamic>;
+          return MaterialPageRoute(
+            builder: (_) => OtpVerifyScreen(
+              verificationId: args['verificationId'] as String,
+              selectedRole: args['selectedRole'] as String,
+              phoneNumber: args['phoneNumber'] as String,
+            ),
+          );
+        }
+
+        if (settings.name == Routes.routeComplete) {
+          final args = settings.arguments as Map<String, dynamic>;
+          return MaterialPageRoute(
+            builder: (_) => CompleteProfileScreen(
+              phoneNumber: args['phoneNumber'] as String,
+              role: args['role'] as String,
+            ),
+          );
+        }
+
+        return null;
+      },
     );
   }
 }
