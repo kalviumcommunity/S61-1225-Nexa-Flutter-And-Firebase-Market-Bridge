@@ -1,5 +1,6 @@
+// lib/screens/splash_screen.dart
 import 'package:flutter/material.dart';
-import 'phone_login_screen.dart';
+import '../routes.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
@@ -7,14 +8,12 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Match Figma: full green screen, centered basket icon and MarketBridge text
       backgroundColor: const Color(0xFF11823F),
       body: SafeArea(
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // small basket emoji icon to mimic Figma illustration
               Container(
                 width: 120,
                 height: 120,
@@ -30,7 +29,10 @@ class SplashScreen extends StatelessWidget {
               const Text(
                 'MarketBridge',
                 style: TextStyle(
-                    color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 8),
               const Text(
@@ -38,21 +40,23 @@ class SplashScreen extends StatelessWidget {
                 style: TextStyle(color: Colors.white70, fontSize: 12),
               ),
               const SizedBox(height: 32),
+
+              // Get Started Button
               SizedBox(
                 width: 220,
                 height: 44,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const PhoneLoginScreen(),
-                        ));
+                    Navigator.pushReplacementNamed(
+                      context,
+                      Routes.routePhone,
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   child: const Text(
                     'Get Started',

@@ -1,11 +1,13 @@
 // lib/screens/phone_login_screen.dart
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../services/auth_service.dart';
 import 'otp_verify_screen.dart';
+import '../routes.dart';
 
 class PhoneLoginScreen extends StatefulWidget {
-  const PhoneLoginScreen({Key? key}) : super(key: key);
+  const PhoneLoginScreen({super.key});
 
   @override
   State<PhoneLoginScreen> createState() => _PhoneLoginScreenState();
@@ -27,24 +29,18 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     super.dispose();
   }
 
-  // Build final E.164 phone number (Indian default)
   String _buildPhoneNumber(String raw) {
     raw = raw.trim();
     if (raw.isEmpty) return '';
 
-    // If user types a full E.164 number starting with +
     if (raw.startsWith('+')) {
-      // sanitize spaces etc.
       return raw.replaceAll(' ', '');
     }
 
-    // Remove non-digits and assume Indian local number
     final digits = raw.replaceAll(RegExp(r'\D'), '');
-    // If user accidentally typed country code without + e.g., 919876543210
     if (digits.length >= 11 && digits.startsWith('91')) {
       return '+$digits';
     }
-    // Otherwise assume it's a 10-digit Indian mobile and prepend +91
     return '+91$digits';
   }
 
@@ -58,41 +54,62 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     final phoneNumber = _buildPhoneNumber(raw);
     final digitsOnly = phoneNumber.replaceAll(RegExp(r'\D'), '');
 
-    // Basic validation: ensure at least 8-ish digits (simple)
     if (digitsOnly.length < 8) {
       _showSnackbar('Enter a valid phone number.');
       return;
     }
 
-    print('📞 Attempting sendOTP -> $phoneNumber');
+    debugPrint('📞 Attempting sendOTP -> $phoneNumber');
     setState(() => sending = true);
 
     try {
-      await _auth.sendOTP(phoneNumber, (verificationId) {
-        print('✔ codeSent verificationId=$verificationId');
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => OtpVerifyScreen(
-              verificationId: verificationId,
-              selectedRole: role,
-              phoneNumber: phoneNumber,
-            ),
-          ),
-        );
-      }, onError: (err) {
-        print('❌ sendOTP error: $err');
-        _showSnackbar('Failed to send OTP: $err');
-      });
+      await _auth.sendOTP(
+        phoneNumber,
+            (verificationId) {
+          debugPrint('✔ codeSent verificationId=$verificationId');
+          if (!mounted) return;
+          Navigator.pushNamed(
+            context,
+            Routes.routeOtp,
+            arguments: {
+              'verificationId': verificationId,
+              'selectedRole': role,
+              'phoneNumber': phoneNumber,
+            },
+          );
+        },
+        onError: (err) {
+          debugPrint('❌ sendOTP error: $err');
+          if (!mounted) return;
+          _showSnackbar('Failed to send OTP: $err');
+        },
+        onAutoVerified: (user) {
+          if (user != null) {
+            debugPrint('🔔 Auto-verified user uid=${user.uid}');
+            if (!mounted) return;
+            Navigator.pushReplacementNamed(
+              context,
+              Routes.routeComplete,
+              arguments: {
+                'phoneNumber': phoneNumber,
+                'role': role,
+              },
+            );
+          } else {
+            debugPrint('🔔 Auto-verify reported null user');
+          }
+        },
+      );
     } catch (e) {
-      print('❌ sendOTP thrown: $e');
-      _showSnackbar('Unexpected error: $e');
+      debugPrint('❌ sendOTP thrown: $e');
+      if (mounted) _showSnackbar('Unexpected error: $e');
     } finally {
       if (mounted) setState(() => sending = false);
     }
   }
 
   void _showSnackbar(String s) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s)));
   }
 
@@ -110,26 +127,15 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
           decoration: BoxDecoration(
             color: selected ? color : Colors.white,
             borderRadius: BorderRadius.circular(12),
-            boxShadow: selected
-                ? [BoxShadow(color: color.withOpacity(0.35), blurRadius: 10)]
-                : [],
+              boxShadow: [ BoxShadow(color: Color.fromRGBO(color.red, color.green, color.blue, 0.35), blurRadius: 10) ]
           ),
           child: Column(
             children: [
-              Icon(icon,
-                  size: 32,
-                  color: selected ? Colors.white : color),
+              Icon(icon, size: 32, color: selected ? Colors.white : color),
               const SizedBox(height: 8),
-              Text(label,
-                  style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: selected ? Colors.white : Colors.black)),
+              Text(label, style: TextStyle(fontWeight: FontWeight.w700, color: selected ? Colors.white : Colors.black)),
               const SizedBox(height: 4),
-              Text(subtitle,
-                  style: TextStyle(
-                      fontSize: 12,
-                      color:
-                      selected ? Colors.white70 : Colors.grey.shade600)),
+              Text(subtitle, style: TextStyle(fontSize: 12, color: selected ? Colors.white70 : Colors.grey.shade600)),
             ],
           ),
         ),
@@ -141,87 +147,59 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: bgGrey,
-
-      // ✅ APP BAR MATCHING FIGMA
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         leading: const BackButton(color: Colors.black),
-        title: const Text(
-          'Phone Verification',
-          style: TextStyle(
-              color: Colors.black, fontWeight: FontWeight.w600),
-        ),
+        title: const Text('Phone Verification', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-            // ✅ LABEL
-            const Text('Enter phone number',
-                style: TextStyle(
-                    fontSize: 14, color: Colors.black54)),
-
+            const Text('Enter phone number', style: TextStyle(fontSize: 14, color: Colors.black54)),
             const SizedBox(height: 8),
-
-            // ✅ PHONE INPUT (FIGMA STYLE)
             Row(
               children: [
                 Container(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey.shade400),
                     borderRadius: BorderRadius.circular(8),
                     color: Colors.white,
                   ),
-                  child: const Text('+91',
-                      style: TextStyle(fontWeight: FontWeight.w600)),
+                  child: const Text('+91', style: TextStyle(fontWeight: FontWeight.w600)),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: TextField(
                     controller: phoneController,
                     keyboardType: TextInputType.phone,
+                    autofillHints: const [AutofillHints.telephoneNumber],
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(13),
+                    ],
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
                       hintText: 'Phone number',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                     onChanged: (_) => setState(() {}),
                   ),
                 ),
               ],
             ),
-
             const SizedBox(height: 24),
-
-            // ✅ ROLE LABEL
-            const Text('I am a:',
-                style: TextStyle(
-                    fontSize: 14, color: Colors.black54)),
-
+            const Text('I am a:', style: TextStyle(fontSize: 14, color: Colors.black54)),
             const SizedBox(height: 12),
-
-            // ✅ ROLE CARDS
-            Row(
-              children: [
-                roleCard('farmer', 'Farmer', 'Sell Produce',
-                    Icons.agriculture),
-                roleCard('buyer', 'Buyer', 'Buy Produce',
-                    Icons.shopping_cart),
-              ],
-            ),
-
+            Row(children: [
+              roleCard('farmer', 'Farmer', 'Sell Produce', Icons.agriculture),
+              roleCard('buyer', 'Buyer', 'Buy Produce', Icons.shopping_cart),
+            ]),
             const Spacer(),
-
-            // ✅ WEB HINT (UNCHANGED)
             if (kIsWeb)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
@@ -230,23 +208,16 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                   style: TextStyle(color: Colors.grey.shade600),
                 ),
               ),
-
-            // ✅ SEND OTP BUTTON
             SizedBox(
               width: double.infinity,
               height: 52,
               child: ElevatedButton(
                 onPressed: sending ? null : _sendOtp,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                  role == 'farmer' ? farmerGreen : buyerBlue,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
+                  backgroundColor: role == 'farmer' ? farmerGreen : buyerBlue,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
-                child: sending
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Send OTP',
-                    style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600,), ),
+                child: sending ? const CircularProgressIndicator(color: Colors.white) : const Text('Send OTP', style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600)),
               ),
             ),
           ],
@@ -255,4 +226,3 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     );
   }
 }
-
