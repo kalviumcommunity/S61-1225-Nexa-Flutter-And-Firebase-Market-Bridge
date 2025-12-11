@@ -58,15 +58,20 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
       _showSnackbar('Enter a valid phone number.');
       return;
     }
-
-    debugPrint('📞 Attempting sendOTP -> $phoneNumber');
+    debugPrint('==========================================');
+    debugPrint('📞 SENDING OTP');
+    debugPrint('Phone Number: $phoneNumber');
+    debugPrint('User Role: $role');
+    debugPrint('Timestamp: ${DateTime.now()}');
+    debugPrint('==========================================');
     setState(() => sending = true);
 
     try {
       await _auth.sendOTP(
         phoneNumber,
             (verificationId) {
-          debugPrint('✔ codeSent verificationId=$verificationId');
+          debugPrint('✅ OTP SENT SUCCESSFULLY');
+          debugPrint('Verification ID: $verificationId');
           if (!mounted) return;
           Navigator.pushNamed(
             context,
@@ -79,13 +84,14 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
           );
         },
         onError: (err) {
-          debugPrint('❌ sendOTP error: $err');
+          debugPrint('❌ ERROR SENDING OTP: $err');
           if (!mounted) return;
           _showSnackbar('Failed to send OTP: $err');
         },
         onAutoVerified: (user) {
           if (user != null) {
-            debugPrint('🔔 Auto-verified user uid=${user.uid}');
+            debugPrint('🎉 AUTO-VERIFIED!');
+            debugPrint('User ID: ${user.uid}');
             if (!mounted) return;
             Navigator.pushReplacementNamed(
               context,
@@ -101,7 +107,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
         },
       );
     } catch (e) {
-      debugPrint('❌ sendOTP thrown: $e');
+      debugPrint('💥 EXCEPTION IN SEND OTP: $e');
       if (mounted) _showSnackbar('Unexpected error: $e');
     } finally {
       if (mounted) setState(() => sending = false);
@@ -158,7 +164,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Enter phone number', style: TextStyle(fontSize: 14, color: Colors.black54)),
+            const Text('📱 Enter your phone number', style: TextStyle(fontSize: 16, color: Colors.black87, fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
             Row(
               children: [
