@@ -69,3 +69,16 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+/*
+
+import 'package:flutter/material.dart';
+import 'screens/responsive_layout.dart';
+
+void main() {
+  runApp(MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: ResponsiveLayout(),
+  ));
+}
+*/
