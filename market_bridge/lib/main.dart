@@ -4,15 +4,11 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
 import 'screens/splash_screen.dart';
-stateless_stateful
-import 'screens/stateless_stateful_demo.dart';
-
 import 'screens/phone_login_screen.dart';
 import 'screens/otp_verify_screen.dart';
 import 'screens/complete_profile_screen.dart';
 import 'screens/responsive_home.dart';
 import 'routes.dart';
-main
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,15 +30,17 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.green,
         fontFamily: 'Roboto',
       ),
- stateless_stateful
-      // home: const SplashScreen(),
-      home: const StatelessStatefulDemo(),
+
+      // Use initialRoute + routes (do NOT set `home` to avoid "/" duplication).
       initialRoute: Routes.routeSplash,
       routes: {
+        // Ensure these keys match the values in your `routes.dart`
         Routes.routeSplash: (context) => const SplashScreen(),
         Routes.routePhone: (context) => const PhoneLoginScreen(),
         Routes.routeHome: (context) => const ResponsiveHome(),
       },
+
+      // onGenerateRoute handles routes that require arguments (dynamic routes).
       onGenerateRoute: (settings) {
         if (settings.name == Routes.routeOtp) {
           final args = settings.arguments as Map<String, dynamic>;
@@ -65,9 +63,9 @@ class MyApp extends StatelessWidget {
           );
         }
 
+        // Let Flutter handle unknown routes (returns null => 404-style behavior).
         return null;
       },
- main
     );
   }
 }

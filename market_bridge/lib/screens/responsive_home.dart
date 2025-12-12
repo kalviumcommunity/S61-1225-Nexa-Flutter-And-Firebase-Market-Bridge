@@ -21,35 +21,58 @@ class ResponsiveHome extends StatelessWidget {
     final isTablet = screenWidth > 600;
 
     // responsive text sizes
-    double titleSize = isTablet ? 20 : 18;
+    double titleSize = isTablet ? 22 : 18;
     double subtitleSize = isTablet ? 14 : 12;
     double cardTitleSize = isTablet ? 16 : 14;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F3F3),
+      backgroundColor: const Color(0xFFF1F1F1),
       body: SafeArea(
         child: LayoutBuilder(builder: (context, constraints) {
           // Use LayoutBuilder width if you want more precise decisions
           final width = constraints.maxWidth;
-          final gridCount = width > 900 ? 4 : (width > 600 ? 2 : 1);
+          final gridCount = width > 900 ? 4 : (width > 600 ? 2 : 2);
 
           return Column(
             children: [
-              // Header
+              // Header (taller green bar)
               Container(
                 padding: EdgeInsets.symmetric(
-                    horizontal: width * 0.04, vertical: screenHeight * 0.015),
+                  horizontal: 16,
+                  vertical: isTablet ? 18 : 14,
+                ),
                 decoration: const BoxDecoration(
-                  color: Color(0xFF11823F), // Market-bridge green
-                  borderRadius:
-                  BorderRadius.vertical(bottom: Radius.circular(6)),
+                  color: Color(0xFF11823F),
+                  borderRadius: BorderRadius.vertical(
+                    bottom: Radius.circular(8),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Color(0x22000000),
+                        blurRadius: 6,
+                        offset: Offset(0, 2))
+                  ],
                 ),
                 child: Row(
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.menu, color: Colors.white),
-                      onPressed: () {},
+                    // menu
+                    Container(
+                      height: 40,
+                      width: 40,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white24),
+                        color: Colors.white10,
+                      ),
+                      child: IconButton(
+                        padding: EdgeInsets.zero,
+                        icon: const Icon(Icons.menu, color: Colors.white),
+                        onPressed: () {},
+                      ),
                     ),
+                    const SizedBox(width: 10),
+
+                    // title + farmer mode
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -62,11 +85,11 @@ class ResponsiveHome extends StatelessWidget {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          SizedBox(height: 2),
+                          const SizedBox(height: 4),
                           Row(
                             children: [
                               const Icon(Icons.agriculture,
-                                  color: Colors.white, size: 14),
+                                  color: Colors.white70, size: 14),
                               const SizedBox(width: 6),
                               Text(
                                 'Farmer Mode',
@@ -80,81 +103,95 @@ class ResponsiveHome extends StatelessWidget {
                         ],
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.notifications_none,
-                          color: Colors.white),
-                      onPressed: () {},
+
+                    // bell
+                    Material(
+                      color: Colors.transparent,
+                      child: IconButton(
+                        icon: const Icon(Icons.notifications_none,
+                            color: Colors.white),
+                        onPressed: () {},
+                      ),
                     ),
                   ],
                 ),
               ),
 
-              // content area
+              // content
               Expanded(
                 child: SingleChildScrollView(
                   padding: EdgeInsets.symmetric(
-                      horizontal: width * 0.045, vertical: screenHeight * 0.02),
+                      horizontal: width * 0.055, vertical: screenHeight * 0.02),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Location Card
+                      // Location Card (rounded with leading icon)
                       Container(
-                        padding: EdgeInsets.all(width * 0.03),
-                        margin: const EdgeInsets.only(bottom: 14),
+                        padding: EdgeInsets.all(14),
+                        margin: const EdgeInsets.only(top: 6, bottom: 12),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
-                          boxShadow: const [
-                            BoxShadow(
-                                color: Color(0x11000000),
-                                blurRadius: 6,
-                                offset: Offset(0, 2))
-                          ],
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.location_on_outlined,
-                                color: Colors.black54),
-                            const SizedBox(width: 10),
+                            Container(
+                              height: 44,
+                              width: 44,
+                              decoration: BoxDecoration(
+                                  color: const Color(0xFFF5F5F5),
+                                  borderRadius: BorderRadius.circular(10)),
+                              child: const Icon(Icons.location_on_outlined,
+                                  color: Colors.black54),
+                            ),
+                            const SizedBox(width: 12),
                             Expanded(
-                              child: Text(
-                                'Location',
-                                style: TextStyle(
-                                    fontSize: cardTitleSize,
-                                    fontWeight: FontWeight.w600),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Location',
+                                    style: TextStyle(
+                                        fontSize: cardTitleSize,
+                                        fontWeight: FontWeight.w700),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'Today, 10:30 AM',
+                                    style: TextStyle(
+                                        color: Colors.black54,
+                                        fontSize: subtitleSize),
+                                  )
+                                ],
                               ),
                             ),
-                            Text(
-                              'Today, 10:30 AM',
-                              style: TextStyle(
-                                  fontSize: subtitleSize, color: Colors.black54),
-                            )
+                            IconButton(
+                                onPressed: () {}, icon: const Icon(Icons.edit))
                           ],
                         ),
                       ),
 
-                      // "Today's Market Prices" heading
+                      // Today's Market Prices heading
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 6.0),
                         child: Text(
                           "Today's Market Prices",
                           style: TextStyle(
-                              fontSize: cardTitleSize, fontWeight: FontWeight.w700),
+                              fontSize: cardTitleSize, fontWeight: FontWeight.w800),
                         ),
                       ),
 
-                      // Produce Grid - responsive columns
+                      // Produce Grid - responsive columns (2 columns on phone)
                       GridView.builder(
                         physics: const NeverScrollableScrollPhysics(),
                         shrinkWrap: true,
                         itemCount: produce.length,
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: gridCount,
-                          mainAxisExtent: isTablet ? 120 : 110,
+                          mainAxisExtent: isTablet ? 140 : 120,
                           crossAxisSpacing: 12,
                           mainAxisSpacing: 12,
-                          childAspectRatio: (width / gridCount) /
-                              (isTablet ? 120 : 110),
+                          childAspectRatio: 1,
                         ),
                         itemBuilder: (context, index) {
                           final item = produce[index];
@@ -162,65 +199,74 @@ class ResponsiveHome extends StatelessWidget {
                           final isPositive = change.startsWith('+');
 
                           return Container(
-                            padding: EdgeInsets.all(width * 0.035),
+                            padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(12),
                               boxShadow: const [
                                 BoxShadow(
-                                    color: Color(0x10000000),
+                                    color: Color(0x12000000),
                                     blurRadius: 6,
-                                    offset: Offset(0, 2))
+                                    offset: Offset(0, 3))
                               ],
                             ),
-                            child: Row(
+                            child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // simple circular icon for product
-                                Container(
-                                  height: 36,
-                                  width: 36,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFF3F3F3),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Center(
-                                      child: Icon(Icons.emoji_food_beverage,
-                                          size: 20, color: Colors.orange)),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item['name'] ?? '',
-                                        style: TextStyle(
-                                            fontSize: cardTitleSize,
-                                            fontWeight: FontWeight.w700),
+                                // icon row
+                                Row(
+                                  children: [
+                                    Container(
+                                      height: 40,
+                                      width: 40,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF7F7F7),
+                                        borderRadius: BorderRadius.circular(8),
                                       ),
-                                      SizedBox(height: 6),
-                                      Text(
-                                        item['price'] ?? '',
-                                        style: TextStyle(
-                                          fontSize: subtitleSize + 1,
-                                          fontWeight: FontWeight.w700,
-                                          color: Colors.green[700],
-                                        ),
+                                      child: const Center(
+                                          child: Icon(Icons.emoji_food_beverage,
+                                              size: 20, color: Colors.orange)),
+                                    ),
+                                    const Spacer(),
+                                    // small trend badge
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: isPositive
+                                            ? Colors.green.withOpacity(0.08)
+                                            : Colors.red.withOpacity(0.06),
+                                        borderRadius: BorderRadius.circular(12),
                                       ),
-                                      const Spacer(),
-                                      Text(
+                                      child: Text(
                                         change,
                                         style: TextStyle(
-                                            fontSize: subtitleSize,
-                                            fontWeight: FontWeight.w700,
                                             color: isPositive
-                                                ? Colors.green
-                                                : Colors.red),
-                                      )
-                                    ],
+                                                ? Colors.green[700]
+                                                : Colors.red[700],
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 12),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 10),
+                                Text(
+                                  item['name'] ?? '',
+                                  style: TextStyle(
+                                      fontSize: cardTitleSize,
+                                      fontWeight: FontWeight.w800),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  item['price'] ?? '',
+                                  style: TextStyle(
+                                    fontSize: subtitleSize + 1,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.green[700],
                                   ),
-                                )
+                                ),
                               ],
                             ),
                           );
@@ -229,13 +275,19 @@ class ResponsiveHome extends StatelessWidget {
 
                       const SizedBox(height: 18),
 
-                      // Quick Actions
+                      // Quick Actions big pill
                       Container(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: width * 0.035, vertical: screenHeight * 0.015),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 14),
                         decoration: BoxDecoration(
                           color: const Color(0xFF11823F),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: const [
+                            BoxShadow(
+                                color: Color(0x22000000),
+                                blurRadius: 6,
+                                offset: Offset(0, 3))
+                          ],
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -243,35 +295,51 @@ class ResponsiveHome extends StatelessWidget {
                             Text(
                               'Quick Actions',
                               style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: cardTitleSize,
-                                  fontWeight: FontWeight.w700),
+                                color: Colors.white,
+                                fontSize: cardTitleSize,
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
-                            SizedBox(height: 10),
-                            Wrap(
-                              spacing: 10,
-                              runSpacing: 8,
+                            const SizedBox(height: 12),
+                            Row(
                               children: [
-                                Chip(
-                                  backgroundColor: Colors.white,
-                                  label: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: const [
-                                      Icon(Icons.add_box, size: 16),
-                                      SizedBox(width: 6),
-                                      Text('Post Produce'),
-                                    ],
+                                // white chip 1
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: () {},
+                                    icon:
+                                    const Icon(Icons.add_box, color: Colors.black87),
+                                    label: const Text('Post Produce',
+                                        style:
+                                        TextStyle(color: Colors.black87)),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.white,
+                                      elevation: 0,
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 10),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(30)),
+                                    ),
                                   ),
                                 ),
-                                Chip(
-                                  backgroundColor: Colors.white,
-                                  label: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: const [
-                                      Icon(Icons.list_alt, size: 16),
-                                      SizedBox(width: 6),
-                                      Text('My Listings'),
-                                    ],
+                                const SizedBox(width: 10),
+                                // white chip 2
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: () {},
+                                    icon: const Icon(Icons.list_alt,
+                                        color: Colors.black87),
+                                    label: const Text('My Listings',
+                                        style:
+                                        TextStyle(color: Colors.black87)),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.white,
+                                      elevation: 0,
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 10),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(30)),
+                                    ),
                                   ),
                                 ),
                               ],
@@ -284,15 +352,15 @@ class ResponsiveHome extends StatelessWidget {
 
                       // Trending Demand card
                       Container(
-                        padding: EdgeInsets.all(width * 0.035),
+                        padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: const [
                             BoxShadow(
-                                color: Color(0x11000000),
+                                color: Color(0x12000000),
                                 blurRadius: 6,
-                                offset: Offset(0, 2))
+                                offset: Offset(0, 3))
                           ],
                         ),
                         child: Column(
@@ -305,17 +373,17 @@ class ResponsiveHome extends StatelessWidget {
                                 Text(
                                   'Trending Demand',
                                   style: TextStyle(
-                                      fontSize: cardTitleSize, fontWeight: FontWeight.w700),
+                                      fontSize: cardTitleSize,
+                                      fontWeight: FontWeight.w800),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 10),
-                            // demand items
+                            const SizedBox(height: 12),
                             Column(
                               children: const [
-                                DemandRow(name: 'Spinach', status: 'High demand'),
-                                DemandRow(name: 'Lemon', status: 'High demand'),
-                                DemandRow(name: 'Paddy', status: 'Harvest starting'),
+                                DemandRow(name: 'Spinach', status: 'High demand', icon: Icons.spa),
+                                DemandRow(name: 'Lemon', status: 'High demand', icon: Icons.emoji_food_beverage),
+                                DemandRow(name: 'Paddy', status: 'Harvest starting', icon: Icons.grass),
                               ],
                             )
                           ],
@@ -324,16 +392,18 @@ class ResponsiveHome extends StatelessWidget {
 
                       const SizedBox(height: 18),
 
-                      // Action buttons
+                      // Action buttons: Outline + Filled
                       SizedBox(
                         height: 48,
                         child: OutlinedButton(
                           onPressed: () {},
                           style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: Color(0xFF2E8B57)),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8)),
-                              backgroundColor: Colors.white),
+                            side: const BorderSide(color: Color(0xFF2E8B57)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            backgroundColor: Colors.white,
+                          ),
                           child: const Text('View Market Details',
                               style: TextStyle(color: Color(0xFF2E8B57))),
                         ),
@@ -349,7 +419,8 @@ class ResponsiveHome extends StatelessWidget {
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: const Text('See Buyer Demand'),
+                          child: const Text('See Buyer Demand',
+                              style: TextStyle(fontWeight: FontWeight.w700)),
                         ),
                       ),
 
@@ -359,17 +430,23 @@ class ResponsiveHome extends StatelessWidget {
                 ),
               ),
 
-              // Bottom navigation (simple)
+              // Bottom navigation (rounded white bar)
               Container(
-                color: Colors.white,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                  boxShadow: [
+                    BoxShadow(color: Color(0x11000000), blurRadius: 6, offset: Offset(0, -2))
+                  ],
+                ),
                 padding:
                 EdgeInsets.symmetric(vertical: screenHeight * 0.012, horizontal: width * 0.03),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    const BottomNavItem(icon: Icons.home, label: 'Home', active: true),
-                    const BottomNavItem(icon: Icons.storefront, label: 'Marketplace'),
-                    const BottomNavItem(icon: Icons.person_outline, label: 'Dashboard'),
+                  children: const [
+                    BottomNavItem(icon: Icons.home, label: 'Home', active: true),
+                    BottomNavItem(icon: Icons.storefront, label: 'Marketplace'),
+                    BottomNavItem(icon: Icons.person_outline, label: 'Dashboard'),
                   ],
                 ),
               ),
@@ -384,21 +461,24 @@ class ResponsiveHome extends StatelessWidget {
 class DemandRow extends StatelessWidget {
   final String name;
   final String status;
-  const DemandRow({Key? key, required this.name, required this.status})
+  final IconData icon;
+  const DemandRow(
+      {Key? key, required this.name, required this.status, required this.icon})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final isWarning = status.toLowerCase().contains('harvest');
+    final color = isWarning ? Colors.blue : Colors.green;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
-          Text('  •  $name', style: const TextStyle(fontWeight: FontWeight.w600)),
+          Icon(icon, size: 18, color: Colors.green[700]),
+          const SizedBox(width: 10),
+          Text(name, style: const TextStyle(fontWeight: FontWeight.w700)),
           const Spacer(),
-          Text(status,
-              style: TextStyle(
-                  color: isWarning ? Colors.blue : Colors.green, fontWeight: FontWeight.w600)),
+          Text(status, style: TextStyle(color: color, fontWeight: FontWeight.w700)),
         ],
       ),
     );
