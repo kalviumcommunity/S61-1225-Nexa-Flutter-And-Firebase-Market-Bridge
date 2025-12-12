@@ -143,7 +143,7 @@ final isTablet = screenWidth > 600;
 
 ## 🔧 Key Code Snippet – Using LayoutBuilder Breakpoints
 
-```dart
+dart
 LayoutBuilder(
   builder: (context, constraints) {
     final width = constraints.maxWidth;
@@ -151,7 +151,7 @@ LayoutBuilder(
     return ...;
   },
 );
-```
+
 
 ---
 
@@ -633,4 +633,120 @@ A clean, responsive screen that adjusts automatically for:
 * ↔ Portrait & Landscape modes
 
 This completes the Sprint-2 responsive layout assignment using fundamental Flutter layout widgets.
+
+---
+
+# Scrollable Views in Flutter — ListView & GridView Demo
+
+This assignment demonstrates how to build scrollable layouts in Flutter using **ListView**, **GridView**, and their builder constructors. The app displays both scrolling lists and grid tiles inside a single screen, showing how Flutter handles vertical and horizontal scrolling efficiently.
+
+---
+
+## Project Overview
+
+This demo contains:
+- A **horizontal ListView.builder** displaying scrollable cards
+- A **GridView.builder** showing a 2-column grid
+- A combined UI using **SingleChildScrollView + Column**
+- Smooth scrolling behavior across different device sizes
+
+The goal is to understand when to use ListView, GridView, and their builder variations for efficient UI rendering.
+
+---
+
+## Combined Scrollable Views — Full Example Used in This Project
+
+```dart
+class ScrollableViews extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Scrollable Views')),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Container(
+              padding: EdgeInsets.all(8),
+              child: Text('ListView Example', style: TextStyle(fontSize: 18)),
+            ),
+            Container(
+              height: 200,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: 5,
+                itemBuilder: (context, index) {
+                  return Container(
+                    width: 150,
+                    margin: EdgeInsets.all(8),
+                    color: Colors.teal[100 * (index + 2)],
+                    child: Center(child: Text('Card $index')),
+                  );
+                },
+              ),
+            ),
+
+            Divider(thickness: 2),
+
+            Container(
+              padding: EdgeInsets.all(8),
+              child: Text('GridView Example', style: TextStyle(fontSize: 18)),
+            ),
+            Container(
+              height: 400,
+              child: GridView.builder(
+                physics: NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                ),
+                itemCount: 6,
+                itemBuilder: (context, index) {
+                  return Container(
+                    color: Colors.primaries[index % Colors.primaries.length],
+                    child: Center(
+                      child: Text(
+                        'Tile $index',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
+
+
+## Reflection
+
+### **🔹 How do ListView and GridView improve UI efficiency?**
+Both widgets load items **lazily**, meaning they only render what's visible on the screen. This improves performance and reduces memory usage, especially when large lists or grids are involved.
+
+### **🔹 Why are builder constructors recommended?**
+`ListView.builder` and `GridView.builder`:
+- Render items on-demand
+- Avoid loading hundreds of widgets at once
+- Improve performance for dynamic data
+- Work perfectly with Firebase/real-time lists
+
+### **🔹 Common performance pitfalls to avoid**
+❌ Using ListView inside a Column without constraints  
+❌ Rendering hundreds of items manually instead of using builder  
+❌ Not using shrinkWrap / proper physics when embedding scrollables
+
+---
+
+## Conclusion
+
+This project demonstrates how ListView and GridView make Flutter apps scalable, smooth, and visually organized. Understanding scrollable layouts is essential for building dashboards, catalogs, lists, and gallery-based mobile applications.
 

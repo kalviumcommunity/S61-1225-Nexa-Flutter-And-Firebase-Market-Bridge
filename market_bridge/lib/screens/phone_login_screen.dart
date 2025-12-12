@@ -226,6 +226,27 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                 child: sending ? const CircularProgressIndicator(color: Colors.white) : const Text('Send OTP', style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600)),
               ),
             ),
+
+            const SizedBox(height: 12),
+
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/scrollable');
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text(
+                  'Skip & Open Scrollable Views',
+                  style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+
           ],
         ),
       ),
