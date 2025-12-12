@@ -599,5 +599,38 @@ Using named routes improved readability and organization of the navigation syste
 `onGenerateRoute` was helpful for passing dynamic data like `verificationId` and `phoneNumber` to OTP and profile screens.
 This structure scales well as the project grows.
 
----
-main
+# 📘 Concept – Responsive Layout Using Rows, Columns & Containers (Sprint-2 Task 2.17)
+
+This task focuses on designing a responsive screen using Flutter’s basic layout widgets such as **Container**, **Row**, and **Column**. The goal was to create a layout that adapts smoothly to different screen sizes, including mobile and tablet devices.
+
+## 🔹 What the Layout Includes
+
+* A top header section
+* Two content panels arranged **side-by-side on tablets**
+* The same panels **stack vertically on mobile screens**
+* Clean spacing and balanced structure using Rows, Columns, and padding
+* Fully responsive behavior with screen size adjustments
+
+## 🔹 What I Learned
+
+* How Rows and Columns help structure UI
+* How Containers help with spacing, alignment, and design
+* How to make layouts adapt to screen width using responsive principles
+* Importance of testing UI on different devices and orientations
+
+## 🔹 Challenges Faced
+
+* Managing layout proportions across devices
+* Preventing overflow in landscape mode
+* Ensuring panels resize smoothly
+
+## 🔹 Final Output
+
+A clean, responsive screen that adjusts automatically for:
+
+* 📱 Mobile
+* 📲 Tablets
+* ↔ Portrait & Landscape modes
+
+This completes the Sprint-2 responsive layout assignment using fundamental Flutter layout widgets.
+
