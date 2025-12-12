@@ -750,3 +750,190 @@ Both widgets load items **lazily**, meaning they only render what's visible on t
 
 This project demonstrates how ListView and GridView make Flutter apps scalable, smooth, and visually organized. Understanding scrollable layouts is essential for building dashboards, catalogs, lists, and gallery-based mobile applications.
 
+# Market Bridge - Scrollable Views Implementation
+
+## 📱 Project Overview
+A Flutter-based scrollable catalog screen implementing **ListView** and **GridView** widgets to display market products, categories, and orders. This demonstrates efficient data presentation with smooth scrolling performance.
+
+---
+
+## 🎯 Features Implemented
+
+### 1. **Horizontal ListView** - Featured Products
+Displays scrollable product cards horizontally with images, prices, and stock status.
+
+### 2. **GridView** - Browse Categories
+Shows market categories in a 2-column grid layout with icons and item counts.
+
+### 3. **Vertical ListView** - Recent Orders
+Lists recent orders with order details and delivery status.
+
+---
+
+## 💻 Code Snippets
+
+### ListView.builder - Horizontal Scrolling
+```dart
+SizedBox(
+  height: 220,
+  child: ListView.builder(
+    scrollDirection: Axis.horizontal,
+    padding: const EdgeInsets.symmetric(horizontal: 16),
+    itemCount: produceItems.length,
+    itemBuilder: (context, index) {
+      final item = produceItems[index];
+      return Container(
+        width: 160,
+        margin: const EdgeInsets.only(right: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            // Product image and details
+          ],
+        ),
+      );
+    },
+  ),
+)
+```
+
+### GridView.builder - Category Grid
+```dart
+GridView.builder(
+  physics: const NeverScrollableScrollPhysics(),
+  shrinkWrap: true,
+  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+    crossAxisCount: 2,
+    crossAxisSpacing: 16,
+    mainAxisSpacing: 16,
+    childAspectRatio: 1.1,
+  ),
+  itemCount: marketCategories.length,
+  itemBuilder: (context, index) {
+    final category = marketCategories[index];
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(category['icon'], size: 36),
+          Text(category['title']),
+          Text(category['count']),
+        ],
+      ),
+    );
+  },
+)
+```
+
+### Vertical ListView - Recent Orders
+```dart
+ListView.builder(
+  physics: const NeverScrollableScrollPhysics(),
+  shrinkWrap: true,
+  itemCount: 5,
+  itemBuilder: (context, index) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Icon(Icons.receipt_long),
+          Expanded(
+            child: Column(
+              children: [
+                Text('Order #${1000 + index}'),
+                Text('${index + 2} items • ₹${(index + 1) * 250}'),
+              ],
+            ),
+          ),
+          // Status badge
+        ],
+      ),
+    );
+  },
+)
+```
+
+---
+
+### 📸 Screenshots
+* Added Screenshot inside the CodeSnippets folder which shows Featured Products (horizontal scroll), Browse Categories (grid), and Recent Orders (vertical list)*
+
+---
+
+## 🤔 Reflection
+
+### **How does ListView differ from GridView in design use cases?**
+
+- **ListView**: Best for **linear, single-column** layouts like chat messages, news feeds, or product lists. Items flow vertically (or horizontally) in a single direction.
+
+- **GridView**: Ideal for **multi-column** layouts like photo galleries, product catalogs, or app icons. Displays items in a structured grid pattern for better space utilization.
+
+**Example**: Use ListView for a contact list, GridView for a photo gallery.
+
+---
+
+### **Why is `ListView.builder()` more efficient for large lists?**
+
+`ListView.builder()` uses **lazy loading** - it only builds widgets that are currently visible on screen, not all items at once.
+
+**Benefits:**
+- ✅ Saves memory by creating items on-demand
+- ✅ Faster initial load time
+- ✅ Smooth scrolling even with 1000+ items
+- ✅ Better performance than regular `ListView(children: [...])`
+
+**Example**: For 1000 items, regular ListView creates all 1000 widgets immediately. Builder creates only ~10-15 visible widgets and rebuilds as you scroll.
+
+---
+
+### **What can you do to prevent lag or overflow errors in scrollable views?**
+
+**To Prevent Lag:**
+1. ✅ Use `.builder()` constructors instead of static lists
+2. ✅ Set `physics: const NeverScrollableScrollPhysics()` for nested scrollables
+3. ✅ Use `shrinkWrap: true` for GridView/ListView inside SingleChildScrollView
+4. ✅ Optimize image loading with `CachedNetworkImage`
+5. ✅ Keep widget trees shallow, avoid deep nesting
+
+**To Prevent Overflow:**
+1. ✅ Wrap content in `SingleChildScrollView`
+2. ✅ Use `Expanded` or `Flexible` for dynamic sizing
+3. ✅ Set fixed heights for horizontal lists
+4. ✅ Use `MainAxisSize.min` for Columns inside scrollables
+5. ✅ Test on different screen sizes
+
+---
+
+## 🚀 Running the App
+
+```bash
+# Navigate to project directory
+cd market_bridge
+
+# Get dependencies
+flutter pub get
+
+# Run the app
+flutter run
+```
+
+Navigate to the Scrollable Views screen from:
+- Login Screen → "Skip & Open Scrollable Views" button
+- Home Screen → "Open Scrollable Views" button
+
+---
