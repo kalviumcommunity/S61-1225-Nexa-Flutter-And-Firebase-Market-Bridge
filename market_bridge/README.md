@@ -976,4 +976,174 @@ This project demonstrates how to maintain persistent user sessions in a Flutter 
 * Testing confirmed reliable auto-login behavior and smooth transitions between screens.
 
 ---
-main
+
+# Post Produce Screen - Development Documentation
+
+---
+
+## 🎯 Objective
+
+I implemented a fully functional **Post Produce Screen** that allows farmers to create and publish their produce listings on the Market Bridge platform. The screen was designed to match the Figma design specifications exactly while maintaining responsiveness and user-friendly interactions across different device sizes.
+
+---
+
+## ✅ Tasks Completed
+
+### 1. **Post Produce Screen Development** (`post_produce_screen.dart`)
+
+I created a complete form-based screen with multiple input components working together seamlessly.
+
+**Form Fields I Implemented:**
+- **Crop Name Dropdown** - I built a dropdown menu containing 8 pre-populated crop options including Tomato, Onion, Potato, Wheat, Rice, Carrot, Cabbage, and Spinach. The dropdown features custom styling to match the design system and includes required field validation.
+
+- **Quantity & Unit Input** - I designed a side-by-side layout where farmers can enter the quantity of their produce and select the appropriate unit of measurement. The quantity field accepts only numeric values, while the unit dropdown offers three options: Kg, Quintal, and Ton.
+
+- **Price Input** - I implemented a price input field with a rupee (₹) symbol prefix to clearly indicate the currency. The field uses a numeric keyboard for easier data entry and includes validation to ensure only valid numbers are accepted.
+
+- **Price Negotiable Checkbox** - I created a custom-styled checkbox that allows farmers to indicate if their price is negotiable. The checkbox features the brand's green accent color and provides visual feedback when toggled.
+
+- **Photo Upload** - I integrated dual photo upload options allowing farmers to either capture a new photo using their camera or select an existing image from their gallery. The selected image appears as a preview with the option to remove and choose a different photo. All images are automatically compressed to optimize storage and upload speeds.
+
+- **Location Input** - I added a text field where farmers can enter their city or district location, making it easier for buyers to find nearby produce listings.
+
+**UI/UX Features I Built:**
+- I styled the app bar with the brand's signature green color (#11823F) to maintain visual consistency throughout the application.
+- I added a back button for easy navigation and a notifications icon in the header for future feature integration.
+- I implemented proper spacing and padding that adjusts based on device size, using 16px for phones and 24px for tablets.
+- I applied rounded corners throughout the interface to create a modern, friendly appearance.
+- I built comprehensive form validation that displays clear error messages when users miss required fields or enter invalid data.
+- I created a success dialog with an animated check icon that appears after successful form submission.
+- I ensured the design works beautifully on both phone and tablet screen sizes.
+
+---
+
+### 2. **Navigation Integration**
+
+I integrated the Post Produce screen into the existing application navigation system to ensure smooth user flow.
+
+**Files I Updated:**
+- In `responsive_home.dart`, I connected the "Post Produce" button to navigate users to the new screen when tapped.
+- In `routes.dart`, I added the `routePostProduce` constant to maintain consistent route naming across the application.
+- I configured the main route system to recognize and handle navigation to the Post Produce screen.
+
+**Navigation Flow I Implemented:**
+When users tap the "Post Produce" button on the home screen, they're taken to the Post Produce screen where they can fill out the form. After submitting, they see a success confirmation dialog, and upon tapping OK, they're automatically returned to the home screen.
+
+---
+
+### 3. **Package Integration**
+
+I added the necessary package dependencies to enable photo upload functionality.
+
+**Dependency I Added:**
+I integrated the `image_picker` package version 1.0.4, which provides reliable access to the device camera and photo gallery across both Android and iOS platforms.
+
+**Required Imports:**
+I ensured all necessary Flutter imports are included, such as Material design components, platform services for input formatting, file handling for image display, and the image picker package for photo selection functionality.
+
+---
+
+## 📁 Files Created/Modified
+
+**New Files I Created:**
+I built the complete `post_produce_screen.dart` file from scratch, writing approximately 470 lines of well-structured, documented code that handles all form functionality, validation, and user interactions.
+
+**Existing Files I Modified:**
+I updated the `responsive_home.dart` file to add navigation logic for the Post Produce button. I modified the `routes.dart` file to include the new route constant. I also updated the `pubspec.yaml` file to include the image_picker dependency required for photo upload functionality.
+
+---
+
+## 🎨 Design Implementation
+
+**Color Scheme I Applied:**
+I used the primary green color (#11823F) for the app bar, buttons, and interactive elements to maintain brand consistency. The screen background uses a light gray (#F5F5F5) to reduce eye strain, while input fields and containers feature clean white backgrounds. Text colors range from dark gray for headings to lighter grays for hints and secondary information.
+
+**Typography Decisions I Made:**
+I set the app bar title at 20px with semi-bold weight for clear hierarchy. Section labels use 14px semi-bold text to distinguish them from input content. Input text appears at 15px regular weight for comfortable reading. Button text is displayed at 16px bold to emphasize interactivity.
+
+**Spacing System I Implemented:**
+I applied 16px padding on phone screens and increased it to 24px on tablets for better use of available space. Sections are separated by 20-24px to create clear visual groupings. Labels appear 8px above their corresponding input fields for tight association. Both input fields and buttons maintain a consistent 54px height for comfortable tapping.
+
+---
+
+## 🔧 Technical Implementation
+
+**Form Validation Logic I Built:**
+I implemented comprehensive validation for the quantity field that checks if a value has been entered and verifies it's a valid number. The price field validation ensures users enter a value and confirms it's a legitimate numeric price. Location validation checks that the field isn't empty. For crop selection, I added validation that displays a helpful message if users try to submit without selecting a crop.
+
+**Image Picker Implementation I Created:**
+I built an async function that handles image selection from either camera or gallery sources. The function includes error handling to manage cases where users cancel the selection or if the picker fails. I configured automatic image compression to a maximum of 1800x1800 pixels at 85% quality to balance image clarity with file size.
+
+**Success Dialog I Designed:**
+I created a custom dialog that appears after successful form submission, featuring a green check icon and a congratulatory message. The dialog includes an OK button that, when tapped, automatically navigates users back to the home screen, completing the post creation flow.
+
+---
+
+## 📱 Responsive Breakpoints
+
+**Phone Layout I Optimized:**
+For devices with screens smaller than 600px wide, I used a single-column form layout with 16px padding throughout. Font sizes are optimized for readability on smaller screens, and photo upload buttons are set to 100px height for easy tapping.
+
+**Tablet Layout I Enhanced:**
+For tablets with screens 600px or wider, I maintained the same overall layout but increased padding to 24px to better utilize the larger screen space. Touch targets are slightly enlarged for more comfortable interaction on bigger devices.
+
+---
+
+## ✨ Key Features
+
+**Form Validation System:**
+I implemented real-time validation that triggers when users attempt to submit the form. Each field displays its own specific error message to guide users in correcting issues. Required fields are clearly indicated, and numeric fields include type checking to prevent invalid data entry.
+
+**Image Handling Capabilities:**
+I built functionality for users to capture photos directly with their camera or browse their existing photo gallery. Selected images display as previews with a remove option if users want to choose a different photo. All images are automatically compressed to optimize performance without significantly reducing quality.
+
+**User Experience Enhancements:**
+I created a clear visual hierarchy that guides users through the form naturally. Field labels are intuitive and descriptive. Placeholder text provides helpful examples of what to enter. Success confirmation gives users confidence their listing was created. The navigation flow is smooth and predictable throughout the entire process.
+
+---
+
+## 🔄 Data Flow
+
+I designed the data flow so that user input moves through form fields, undergoes validation checks, and upon successful validation, triggers the success dialog before navigating users back home. The image picker flow operates independently, allowing users to select from camera or gallery, which then updates the preview and stores the file in the component's state.
+
+---
+
+## 🧪 Testing Scenarios
+
+**Manual Tests I Completed:**
+I thoroughly tested form submission with all valid data to ensure successful posting. I verified validation by attempting submission with missing required fields. I tested numeric validation by entering invalid characters in number fields. I checked both camera capture and gallery selection for image upload. I confirmed the image removal feature works correctly. I tested checkbox toggling for the price negotiable option. I verified all dropdown selections work as expected. I tested the back button navigation. I confirmed the success dialog displays correctly and navigates properly. I verified responsive layout behavior on different screen sizes.
+
+---
+
+## 🚀 Running the App
+
+```bash
+# Navigate to project directory
+cd market_bridge
+
+# Get dependencies
+flutter pub get
+
+# Run the app
+flutter run
+```
+---
+
+## 📦 Installation Instructions
+
+**Step 1 - Adding the Dependency:**
+I added the image_picker package to the pubspec.yaml file under dependencies with version 1.0.4, then ran flutter pub get to install it.
+
+**Step 2 - Creating the Screen File:**
+I created a new file at lib/screens/post_produce_screen.dart and wrote the complete implementation with all form fields, validation logic, and image handling functionality.
+
+**Step 3 - Updating Routes:**
+I modified the routes.dart file to add the routePostProduce constant, then updated the main route configuration to recognize and handle navigation to the Post Produce screen.
+
+**Step 4 - Connecting Navigation:**
+I updated the responsive_home.dart file to connect the "Post Produce" button's onPressed handler to navigate to the new screen using the defined route.
+
+**Step 5 - Platform-Specific Configuration:**
+For Android, I added camera and storage permissions to the AndroidManifest.xml file. For iOS, I added usage description strings to the Info.plist file explaining why the app needs camera and photo library access.
+
+

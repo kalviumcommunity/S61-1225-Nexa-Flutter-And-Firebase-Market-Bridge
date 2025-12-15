@@ -7,4 +7,5 @@ class Routes {
   static const routeHome = '/home';
   static const routeMarketPlace = '/marketplace';
   static const routeListingDetails = '/listing-details';
+  static const String routePostProduce = '/post-produce';
 }
