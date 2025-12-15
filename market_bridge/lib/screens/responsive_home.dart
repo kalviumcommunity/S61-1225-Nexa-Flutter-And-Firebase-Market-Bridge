@@ -1,6 +1,9 @@
 // lib/screens/responsive_home.dart
 import 'package:flutter/material.dart';
+feat/user-authentication
 import '../routes.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+main
 
 class ResponsiveHome extends StatelessWidget {
   const ResponsiveHome({Key? key}) : super(key: key);
@@ -112,6 +115,17 @@ class ResponsiveHome extends StatelessWidget {
                         icon: const Icon(Icons.notifications_none,
                             color: Colors.white),
                         onPressed: () {},
+                      ),
+                    ),
+                    // logout
+                    Material(
+                      color: Colors.transparent,
+                      child: IconButton(
+                        icon: const Icon(Icons.logout, color: Colors.white),
+                        tooltip: 'Logout',
+                        onPressed: () async {
+                          await FirebaseAuth.instance.signOut();
+                        },
                       ),
                     ),
                   ],

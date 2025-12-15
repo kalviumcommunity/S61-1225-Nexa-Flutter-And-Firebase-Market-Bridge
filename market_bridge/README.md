@@ -941,3 +941,39 @@ Navigate to the Scrollable Views screen from:
 
 ---
 
+feat/user-authentication
+# Persistent User Session with Firebase Auth
+
+## Project Overview
+
+This project demonstrates how to maintain persistent user sessions in a Flutter app using Firebase Authentication. Users remain logged in even after closing or restarting the app, providing a seamless experience.
+
+## Auto-Login Flow
+
+* App detects if a user is already logged in.
+* Authenticated users are redirected to the Home screen automatically.
+* Users are sent to the Login screen only when not authenticated or after logout.
+* Session persists across app restarts without manual storage.
+
+## Features
+
+* Persistent login after app restart
+* Automatic screen navigation based on authentication state
+* Clean logout handling
+* Optional splash/loading screen during session verification
+
+## Testing Steps
+
+1. Login → App navigates to Home screen.
+2. Close and reopen the app → App auto-redirects to Home screen.
+3. Logout → App redirects to Login screen.
+4. Reopen → App stays on Login screen.
+
+## Reflection
+
+* Persistent login enhances user experience by avoiding repeated logins.
+* Firebase handles token persistence and auto-refresh, simplifying session management.
+* Testing confirmed reliable auto-login behavior and smooth transitions between screens.
+
+---
+main
