@@ -773,7 +773,8 @@ Lists recent orders with order details and delivery status.
 ## 💻 Code Snippets
 
 ### ListView.builder - Horizontal Scrolling
-```dart
+```
+dart
 SizedBox(
   height: 220,
   child: ListView.builder(
@@ -808,7 +809,8 @@ SizedBox(
 ```
 
 ### GridView.builder - Category Grid
-```dart
+```
+dart
 GridView.builder(
   physics: const NeverScrollableScrollPhysics(),
   shrinkWrap: true,
@@ -840,7 +842,8 @@ GridView.builder(
 ```
 
 ### Vertical ListView - Recent Orders
-```dart
+```
+dart
 ListView.builder(
   physics: const NeverScrollableScrollPhysics(),
   shrinkWrap: true,
@@ -938,6 +941,7 @@ Navigate to the Scrollable Views screen from:
 
 ---
 
+feat/user-authentication
 # Persistent User Session with Firebase Auth
 
 ## Project Overview
@@ -972,3 +976,4 @@ This project demonstrates how to maintain persistent user sessions in a Flutter 
 * Testing confirmed reliable auto-login behavior and smooth transitions between screens.
 
 ---
+main

@@ -9,8 +9,11 @@ import 'screens/otp_verify_screen.dart';
 import 'screens/complete_profile_screen.dart';
 import 'screens/responsive_home.dart';
 import 'screens/scrollable_views.dart';
+feat/user-authentication
+import 'screens/marketplace_screen.dart';
 import 'screens/auth_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+main
 import 'routes.dart';
 
 void main() async {
@@ -46,6 +49,13 @@ class MyApp extends StatelessWidget {
         },
       ),
       routes: {
+feat/user-authentication
+        // Ensure these keys match the values in your `routes.dart`
+        Routes.routeSplash: (context) => const SplashScreen(),
+        Routes.routePhone: (context) => const PhoneLoginScreen(),
+        Routes.routeHome: (context) => const ResponsiveHome(),
+        Routes.routeMarketPlace: (context) => const MarketplaceScreen(),
+ main
         '/scrollable': (context) => ScrollableViews(),
       },
       onGenerateRoute: (settings) {

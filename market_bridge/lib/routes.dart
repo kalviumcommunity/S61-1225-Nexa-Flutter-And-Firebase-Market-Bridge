@@ -5,4 +5,6 @@ class Routes {
   static const routeOtp = '/otp';
   static const routeComplete = '/complete';
   static const routeHome = '/home';
+  static const routeMarketPlace = '/marketplace';
+  static const routeListingDetails = '/listing-details';
 }
