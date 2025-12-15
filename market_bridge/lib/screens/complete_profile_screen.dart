@@ -163,7 +163,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       debugPrint('Document ID: $uid');
       // Navigate to home first
       if (mounted) {
-        Navigator.pushReplacementNamed(context, Routes.routeHome);
+        Navigator.of(context).popUntil((route) => route.isFirst);
 
         // Show success dialog after navigation
         Future.delayed(const Duration(milliseconds: 300), () {
