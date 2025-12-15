@@ -131,8 +131,8 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
           padding: const EdgeInsets.symmetric(vertical: 16),
           margin: const EdgeInsets.symmetric(horizontal: 6),
           decoration: BoxDecoration(
-            color: selected ? color : Colors.white,
-            borderRadius: BorderRadius.circular(12),
+              color: selected ? color : Colors.white,
+              borderRadius: BorderRadius.circular(12),
               boxShadow: [ BoxShadow(color: Color.fromRGBO(color.red, color.green, color.blue, 0.35), blurRadius: 10) ]
           ),
           child: Column(

@@ -9,6 +9,7 @@ import 'screens/otp_verify_screen.dart';
 import 'screens/complete_profile_screen.dart';
 import 'screens/responsive_home.dart';
 import 'screens/scrollable_views.dart';
+import 'screens/marketplace_screen.dart';
 import 'routes.dart';
 
 void main() async {
@@ -39,6 +40,7 @@ class MyApp extends StatelessWidget {
         Routes.routeSplash: (context) => const SplashScreen(),
         Routes.routePhone: (context) => const PhoneLoginScreen(),
         Routes.routeHome: (context) => const ResponsiveHome(),
+        Routes.routeMarketPlace: (context) => const MarketplaceScreen(),
 
         '/scrollable': (context) => ScrollableViews(),
       },

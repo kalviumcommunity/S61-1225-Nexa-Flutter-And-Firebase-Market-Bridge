@@ -1,5 +1,6 @@
 // lib/screens/responsive_home.dart
 import 'package:flutter/material.dart';
+import '../routes.dart';
 
 class ResponsiveHome extends StatelessWidget {
   const ResponsiveHome({Key? key}) : super(key: key);
@@ -409,10 +410,14 @@ class ResponsiveHome extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 12),
+
+                      // ✅ UPDATED: Navigate to Marketplace
                       SizedBox(
                         height: 48,
                         child: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.pushNamed(context, Routes.routeMarketPlace);
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF11823F),
                             shape: RoundedRectangleBorder(
@@ -423,6 +428,8 @@ class ResponsiveHome extends StatelessWidget {
                               style: TextStyle(fontWeight: FontWeight.w700)),
                         ),
                       ),
+
+                      const SizedBox(height: 12),
 
                       SizedBox(
                         height: 48,
@@ -446,9 +453,6 @@ class ResponsiveHome extends StatelessWidget {
                         ),
                       ),
 
-                      const SizedBox(height: 12),
-
-
                       const SizedBox(height: 18),
                     ],
                   ),
@@ -468,10 +472,16 @@ class ResponsiveHome extends StatelessWidget {
                 EdgeInsets.symmetric(vertical: screenHeight * 0.012, horizontal: width * 0.03),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: const [
-                    BottomNavItem(icon: Icons.home, label: 'Home', active: true),
-                    BottomNavItem(icon: Icons.storefront, label: 'Marketplace'),
-                    BottomNavItem(icon: Icons.person_outline, label: 'Dashboard'),
+                  children: [
+                    const BottomNavItem(icon: Icons.home, label: 'Home', active: true),
+                    // ✅ UPDATED: Navigate to Marketplace on tap
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, Routes.routeMarketPlace);
+                      },
+                      child: const BottomNavItem(icon: Icons.storefront, label: 'Marketplace'),
+                    ),
+                    const BottomNavItem(icon: Icons.person_outline, label: 'Dashboard'),
                   ],
                 ),
               ),
@@ -526,7 +536,7 @@ class BottomNavItem extends StatelessWidget {
       children: [
         Icon(icon, color: color),
         const SizedBox(height: 4),
-        Text(label, style: TextStyle(color: color)),
+        Text(label, style: TextStyle(color: color, fontSize: 12)),
       ],
     );
   }
