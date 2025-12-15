@@ -1,9 +1,7 @@
 // lib/screens/responsive_home.dart
 import 'package:flutter/material.dart';
-feat/user-authentication
 import '../routes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-main
 
 class ResponsiveHome extends StatelessWidget {
   const ResponsiveHome({Key? key}) : super(key: key);
@@ -321,7 +319,9 @@ class ResponsiveHome extends StatelessWidget {
                                 // white chip 1
                                 Expanded(
                                   child: ElevatedButton.icon(
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      Navigator.pushNamed(context, Routes.routePostProduce);
+                                    },
                                     icon:
                                     const Icon(Icons.add_box, color: Colors.black87),
                                     label: const Text('Post Produce',
