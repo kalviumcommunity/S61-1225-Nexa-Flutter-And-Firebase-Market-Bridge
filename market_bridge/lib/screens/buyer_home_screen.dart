@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../routes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'buyer_marketplace_screen.dart';
 
 class BuyerHomeScreen extends StatelessWidget {
   const BuyerHomeScreen({Key? key}) : super(key: key);
@@ -332,7 +333,15 @@ class BuyerHomeScreen extends StatelessWidget {
                               children: [
                                 Expanded(
                                   child: ElevatedButton.icon(
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const BuyerMarketplaceScreen(),
+                                        ),
+                                      );
+                                    },
                                     icon: const Icon(Icons.storefront,
                                         color: Colors.black87),
                                     label: const Text(
@@ -459,7 +468,13 @@ class BuyerHomeScreen extends StatelessWidget {
                         height: 48,
                         child: ElevatedButton(
                           onPressed: () {
-                            Navigator.pushNamed(context, Routes.routeMarketPlace);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const BuyerMarketplaceScreen(),
+                              ),
+                            );
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF2196F3),
@@ -469,30 +484,6 @@ class BuyerHomeScreen extends StatelessWidget {
                           ),
                           child: const Text(
                             'Browse Available Produce',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      SizedBox(
-                        height: 48,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/scrollable');
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepPurple,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text(
-                            'Open Scrollable Views',
                             style: TextStyle(
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
@@ -533,7 +524,15 @@ class BuyerHomeScreen extends StatelessWidget {
                       active: true,
                     ),
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const BuyerMarketplaceScreen(),
+                          ),
+                        );
+                      },
                       child: const BottomNavItem(
                         icon: Icons.storefront,
                         label: 'Marketplace',

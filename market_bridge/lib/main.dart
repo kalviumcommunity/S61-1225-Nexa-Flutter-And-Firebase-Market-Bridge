@@ -18,9 +18,7 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
@@ -32,22 +30,15 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Market Bridge',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-        useMaterial3: true,
-      ),
+      theme: ThemeData(primarySwatch: Colors.green, useMaterial3: true),
       initialRoute: Routes.routeSplash,
       onGenerateRoute: (settings) {
         switch (settings.name) {
           case Routes.routeSplash:
-            return MaterialPageRoute(
-              builder: (_) => const SplashScreen(),
-            );
+            return MaterialPageRoute(builder: (_) => const SplashScreen());
 
           case Routes.routePhone:
-            return MaterialPageRoute(
-              builder: (_) => const PhoneLoginScreen(),
-            );
+            return MaterialPageRoute(builder: (_) => const PhoneLoginScreen());
 
           case Routes.routeOtp:
             final args = settings.arguments as Map<String, dynamic>;
@@ -69,27 +60,21 @@ class MyApp extends StatelessWidget {
             );
 
           case Routes.routeHome:
-          // This will route to appropriate home based on role
+            // This will route to appropriate home based on role
             return MaterialPageRoute(
               builder: (_) => const RoleHomeRouter(),
               settings: settings, // Pass settings to access arguments
             );
 
           case Routes.routeMarketPlace:
-            return MaterialPageRoute(
-              builder: (_) => const MarketplaceScreen(),
-            );
+            return MaterialPageRoute(builder: (_) => const MarketplaceScreen());
 
           case Routes.routeDashboard:
-          // Route to appropriate dashboard based on user role
-            return MaterialPageRoute(
-              builder: (_) => const DashboardRouter(),
-            );
+            // Route to appropriate dashboard based on user role
+            return MaterialPageRoute(builder: (_) => const DashboardRouter());
 
           case Routes.routePostProduce:
-            return MaterialPageRoute(
-              builder: (_) => const PostProduceScreen(),
-            );
+            return MaterialPageRoute(builder: (_) => const PostProduceScreen());
 
           case Routes.routeListingDetails:
             final args = settings.arguments as Map<String, dynamic>?;
@@ -98,14 +83,10 @@ class MyApp extends StatelessWidget {
             );
 
           case '/scrollable':
-            return MaterialPageRoute(
-              builder: (_) => const ResponsiveLayout(),
-            );
+            return MaterialPageRoute(builder: (_) => const ResponsiveLayout());
 
           default:
-            return MaterialPageRoute(
-              builder: (_) => const SplashScreen(),
-            );
+            return MaterialPageRoute(builder: (_) => const SplashScreen());
         }
       },
     );
@@ -157,10 +138,7 @@ class _DashboardRouterState extends State<DashboardRouter> {
                   SizedBox(height: 16),
                   Text(
                     'Loading Dashboard...',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
-                    ),
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                 ],
               ),

@@ -92,10 +92,7 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
           children: [
             Text(
               'Order: ${order['crop']}',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             Text('Quantity: ${order['quantity']}'),
@@ -171,10 +168,7 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
                 children: [
                   const Text(
                     'Track your orders and interests',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -227,8 +221,11 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: () {},
-                            icon: const Icon(Icons.notifications,
-                                size: 20, color: Color(0xFF2196F3)),
+                            icon: const Icon(
+                              Icons.notifications,
+                              size: 20,
+                              color: Color(0xFF2196F3),
+                            ),
                             label: const Text('Set Alerts'),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: const Color(0xFF2196F3),
@@ -370,19 +367,12 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
                 color: const Color(0xFF2196F3).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(
-                icon,
-                color: const Color(0xFF2196F3),
-                size: 24,
-              ),
+              child: Icon(icon, color: const Color(0xFF2196F3), size: 24),
             ),
             const SizedBox(height: 12),
             Text(
               label,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Color(0xFF666666),
-              ),
+              style: const TextStyle(fontSize: 12, color: Color(0xFF666666)),
             ),
             const SizedBox(height: 4),
             Text(
@@ -399,10 +389,7 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
     );
   }
 
-  Widget _buildSectionCard({
-    required String title,
-    required Widget child,
-  }) {
+  Widget _buildSectionCard({required String title, required Widget child}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -495,8 +482,10 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
                 ),
               ),
               Container(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: _getStatusBgColor(order['status']),
                   borderRadius: BorderRadius.circular(20),
@@ -532,18 +521,12 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
             children: [
               Text(
                 'From: ${order['farmer']}',
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: Color(0xFF666666),
-                ),
+                style: const TextStyle(fontSize: 13, color: Color(0xFF666666)),
               ),
               const Spacer(),
               Text(
                 order['date'],
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: Color(0xFF666666),
-                ),
+                style: const TextStyle(fontSize: 13, color: Color(0xFF666666)),
               ),
             ],
           ),
@@ -589,11 +572,7 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
       ),
       child: Column(
         children: [
-          Icon(
-            Icons.shopping_bag_outlined,
-            size: 64,
-            color: Colors.grey[400],
-          ),
+          Icon(Icons.shopping_bag_outlined, size: 64, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
             'No orders yet',
@@ -606,10 +585,7 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
           const SizedBox(height: 8),
           Text(
             'Start browsing fresh produce from farmers',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
@@ -654,8 +630,9 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
             label,
             style: TextStyle(
               fontSize: 12,
-              color:
-              isActive ? const Color(0xFF2196F3) : const Color(0xFF999999),
+              color: isActive
+                  ? const Color(0xFF2196F3)
+                  : const Color(0xFF999999),
               fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
             ),
           ),
