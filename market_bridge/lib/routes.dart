@@ -8,4 +8,5 @@ class Routes {
   static const routeMarketPlace = '/marketplace';
   static const routeListingDetails = '/listing-details';
   static const String routePostProduce = '/post-produce';
+  static const String routeDashboard = '/farmer-dashboard';
 }

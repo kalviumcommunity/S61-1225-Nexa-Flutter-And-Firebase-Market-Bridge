@@ -341,7 +341,9 @@ class ResponsiveHome extends StatelessWidget {
                                 // white chip 2
                                 Expanded(
                                   child: ElevatedButton.icon(
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      Navigator.pushNamed(context, Routes.routeDashboard);
+                                    },
                                     icon: const Icon(Icons.list_alt,
                                         color: Colors.black87),
                                     label: const Text('My Listings',
@@ -495,7 +497,12 @@ class ResponsiveHome extends StatelessWidget {
                       },
                       child: const BottomNavItem(icon: Icons.storefront, label: 'Marketplace'),
                     ),
-                    const BottomNavItem(icon: Icons.person_outline, label: 'Dashboard'),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, Routes.routeDashboard);
+                      },
+                      child: const BottomNavItem(icon: Icons.person_outline, label: 'Dashboard'),
+                    ),
                   ],
                 ),
               ),
