@@ -123,6 +123,7 @@ class ResponsiveHome extends StatelessWidget {
                         tooltip: 'Logout',
                         onPressed: () async {
                           await FirebaseAuth.instance.signOut();
+                          Navigator.pushReplacementNamed(context, Routes.routeSplash);
                         },
                       ),
                     ),

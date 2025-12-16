@@ -1353,3 +1353,152 @@ After implementation, you'll have a fully functional role-based app where:
 - Buyers see blue-themed UI and buyer-specific features
 - Each role navigates to their appropriate home and dashboard screens
 - The experience is seamless and consistent throughout the app
+
+# Buyer Marketplace Implementation Guide
+
+## 🎯 Overview
+Created a separate *Buyer Marketplace* that shows farmer listings (produce available for purchase), distinct from the *Farmer Marketplace* which shows buyer requirements.
+
+## 📋 What's New
+
+### 1. *Buyer Marketplace Screen* (buyer_marketplace_screen.dart)
+- Shows farmer listings with produce available for sale
+- Blue theme matching buyer branding
+- Search functionality
+- Listing cards with:
+    - Crop icon
+    - Crop name and quantity
+    - Price (in blue - buyer color)
+    - Farmer name, distance, and rating
+    - "View Details" button
+
+### 2. *Buyer Listing Details Screen*
+- Full details view of farmer produce
+- Large crop display
+- Farmer information card
+- Description section
+- "Contact Farmer" button with dialog
+    - Shows phone number
+    - "Call Now" action
+- "Send Offer" button with dialog
+    - Price negotiation interface
+    - Input field for custom offer
+
+### 3. *Updated Buyer Home Screen*
+- "Browse Produce" buttons now navigate to BuyerMarketplaceScreen
+- "Browse Available Produce" button navigates to buyer marketplace
+- Bottom navigation "Marketplace" tab opens buyer marketplace
+- All navigation consistent throughout
+
+## 🎨 Design Matching Figma
+
+### Colors:
+- *Buyer Primary*: #2196F3 (Blue)
+- *Price Color*: Blue (for buyers viewing farmer produce)
+- *Success*: #11823F (Green - for prices/availability)
+- *Warning*: #FFB800 (Gold - for ratings)
+
+### Components:
+- ✅ Clean white cards with subtle shadows
+- ✅ Rounded corners (12px for cards, 8px for buttons)
+- ✅ Proper spacing and padding
+- ✅ Icon-based crop display
+- ✅ Rating stars with numeric value
+- ✅ Distance indicator
+- ✅ Farmer information
+- ✅ Action buttons (Contact/Offer)
+
+## 📂 File Structure
+
+
+lib/screens/
+├── buyer_marketplace_screen.dart  (NEW)
+├── buyer_home_screen.dart         (UPDATED)
+├── buyer_dashboard_screen.dart    (EXISTING)
+└── marketplace_screen.dart        (FARMER MARKETPLACE - UNCHANGED)
+
+
+## 🔄 Navigation Flow
+
+### Buyer Flow:
+1. *Buyer Home* → Browse Produce → *Buyer Marketplace*
+2. *Buyer Marketplace* → View Details → *Listing Details*
+3. *Listing Details* → Contact Farmer / Send Offer
+
+### Farmer Flow (Unchanged):
+1. *Farmer Home* → See Buyer Demand → *Farmer Marketplace*
+2. *Farmer Marketplace* → View Requirement → *Buyer Requirement Details*
+
+## ⚙ Implementation Steps
+
+### Step 1: Create the New File
+Create lib/screens/buyer_marketplace_screen.dart with the code from the artifact.
+
+### Step 2: Update Buyer Home
+Replace your lib/screens/buyer_home_screen.dart with the updated version that:
+- Imports buyer_marketplace_screen.dart
+- Navigates to BuyerMarketplaceScreen instead of generic marketplace
+
+### Step 3: Test Navigation
+Run the app and verify:
+- ✅ Buyer home → "Browse Produce" → Opens Buyer Marketplace
+- ✅ Buyer home → "Browse Available Produce" → Opens Buyer Marketplace
+- ✅ Buyer home → Bottom nav "Marketplace" → Opens Buyer Marketplace
+- ✅ Buyer Marketplace → "View Details" → Opens Listing Details
+- ✅ Listing Details → "Contact Farmer" → Shows contact dialog
+- ✅ Listing Details → "Send Offer" → Shows offer dialog
+
+## 🆚 Buyer vs Farmer Marketplace
+
+### Buyer Marketplace (New):
+- *Theme*: Blue (#2196F3)
+- *Shows*: Farmer listings (produce for sale)
+- *Action*: "View Details" → Contact farmer
+- *User*: Buyers browsing produce to buy
+- *Navigation*: From buyer home screen
+
+### Farmer Marketplace (Existing):
+- *Theme*: Green (#11823F)
+- *Shows*: Buyer requirements (what buyers need)
+- *Action*: "View Requirement" → Contact buyer
+- *User*: Farmers looking for buyers
+- *Navigation*: From farmer home screen
+
+## 🎉 Features
+
+### Buyer Marketplace:
+- ✅ Search crops
+- ✅ View farmer listings
+- ✅ See prices, quantities, ratings
+- ✅ View detailed listing information
+- ✅ Contact farmers directly
+- ✅ Send price offers
+- ✅ Distance-based sorting ready
+- ✅ Rating system
+- ✅ Responsive design
+
+### User Experience:
+- ✅ Clear visual distinction (blue theme)
+- ✅ Intuitive navigation
+- ✅ Direct farmer contact
+- ✅ Price negotiation capability
+- ✅ Professional layout
+- ✅ Smooth animations
+
+## 📱 Screenshots Reference
+
+Based on Figma:
+- *Marketplace List*: Clean white cards, blue accents
+- *Listing Details*: Large crop image, farmer profile, action buttons
+
+## 🚀 Ready to Use
+
+Your app now has:
+- ✅ Separate buyer and farmer marketplaces
+- ✅ Role-specific navigation
+- ✅ Theme-consistent design
+- ✅ Full CRUD capability for interactions
+- ✅ Contact and negotiation features
+- ✅ Professional UI matching Figma
+
+Perfect implementation of the buyer marketplace! 🎊
