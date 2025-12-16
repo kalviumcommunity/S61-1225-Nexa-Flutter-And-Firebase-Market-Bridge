@@ -1,7 +1,7 @@
+// lib/screens/complete_profile_screen.dart
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'responsive_home.dart';
 import '../routes.dart';
 
 class CompleteProfileScreen extends StatefulWidget {
@@ -30,6 +30,20 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
         : const Color(0xFF11823F);
   }
 
+  // Helper method to get icon based on role
+  IconData get roleIcon {
+    return widget.role.toLowerCase() == 'buyer'
+        ? Icons.shopping_bag
+        : Icons.agriculture;
+  }
+
+  // Helper method to get icon background color based on role
+  Color get iconBgColor {
+    return widget.role.toLowerCase() == 'buyer'
+        ? const Color(0xFFE3F2FD)
+        : const Color(0xFFFFF3E0);
+  }
+
   void _showSuccessDialog(BuildContext context, Color themeColor) {
     showDialog(
       context: context,
@@ -44,7 +58,6 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Success icon
                 Container(
                   width: 80,
                   height: 80,
@@ -59,7 +72,6 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Success title
                 const Text(
                   'Registration Successful!',
                   style: TextStyle(
@@ -70,10 +82,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
-                // Success message
-                const Text(
-                  'Your profile has been created successfully. Welcome to Market Bridge!',
-                  style: TextStyle(
+                Text(
+                  'Your ${widget.role.toLowerCase()} profile has been created successfully. Welcome to Market Bridge!',
+                  style: const TextStyle(
                     fontSize: 14,
                     color: Color(0xFF666666),
                     height: 1.5,
@@ -81,13 +92,18 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 32),
-                // Continue button
                 SizedBox(
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.of(context).pop(); // Close dialog
+                      // Navigate to appropriate home screen based on role
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                        Routes.routeHome,
+                            (route) => false,
+                        arguments: {'role': widget.role},
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: themeColor,
@@ -151,21 +167,22 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       'phone': widget.phoneNumber,
       'location': location,
       'preferredLanguage': preferredLanguage,
-      'farmSize': farmSizeComplete,
       'role': widget.role,
       'createdAt': FieldValue.serverTimestamp(),
     };
 
+    // Add farmSize only if role is farmer
+    if (widget.role.toLowerCase() == 'farmer') {
+      data['farmSize'] = farmSizeComplete;
+    }
+
     try {
       debugPrint('🔄 Saving to Firestore...');
       await FirebaseFirestore.instance.collection('users').doc(uid).set(data, SetOptions(merge: true));
-      debugPrint('🔄 PROFILE SAVED SUCCESSFULLY');
+      debugPrint('✅ PROFILE SAVED SUCCESSFULLY');
       debugPrint('Document ID: $uid');
-      // Navigate to home first
-      if (mounted) {
-        Navigator.of(context).popUntil((route) => route.isFirst);
 
-        // Show success dialog after navigation
+      if (mounted) {
         Future.delayed(const Duration(milliseconds: 300), () {
           if (mounted) {
             debugPrint('📱 Showing success dialog');
@@ -198,6 +215,8 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isFarmer = widget.role.toLowerCase() == 'farmer';
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -223,23 +242,23 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 20),
-              // Farmer icon
+              // Role-based icon
               Container(
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFF3E0),
+                  color: iconBgColor,
                   borderRadius: BorderRadius.circular(40),
                 ),
                 child: Center(
-                  child: Text(
-                    '👨‍🌾',
-                    style: TextStyle(fontSize: 40),
+                  child: Icon(
+                    roleIcon,
+                    size: 40,
+                    color: themeColor,
                   ),
                 ),
               ),
               const SizedBox(height: 16),
-              // Title
               const Text(
                 'Complete Your Profile',
                 style: TextStyle(
@@ -249,7 +268,6 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                 ),
               ),
               const SizedBox(height: 6),
-              // Subtitle
               const Text(
                 'Help us serve you better',
                 style: TextStyle(
@@ -258,312 +276,45 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                 ),
               ),
               const SizedBox(height: 32),
+
               // Full Name field
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  RichText(
-                    text: const TextSpan(
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF333333),
-                      ),
-                      children: [
-                        TextSpan(text: 'Full Name '),
-                        TextSpan(
-                          text: '*',
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: nameController,
-                    decoration: InputDecoration(
-                      hintText: 'Enter your full name',
-                      hintStyle: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[400],
-                      ),
-                      filled: true,
-                      fillColor: const Color(0xFFF5F5F5),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color: themeColor,
-                          width: 2,
-                        ),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 16,
-                        horizontal: 16,
-                      ),
-                    ),
-                  ),
-                ],
+              _buildTextField(
+                controller: nameController,
+                label: 'Full Name',
+                hint: 'Enter your full name',
+                isRequired: true,
               ),
               const SizedBox(height: 20),
+
               // Email Address field
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Email Address',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF333333),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      hintText: 'email@example.com',
-                      hintStyle: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[400],
-                      ),
-                      filled: true,
-                      fillColor: const Color(0xFFF5F5F5),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color: themeColor,
-                          width: 2,
-                        ),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 16,
-                        horizontal: 16,
-                      ),
-                    ),
-                  ),
-                ],
+              _buildTextField(
+                controller: emailController,
+                label: 'Email Address',
+                hint: 'email@example.com',
+                keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 20),
+
               // Location field
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  RichText(
-                    text: const TextSpan(
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF333333),
-                      ),
-                      children: [
-                        TextSpan(text: 'Location '),
-                        TextSpan(
-                          text: '*',
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: locationController,
-                    decoration: InputDecoration(
-                      hintText: 'City, District',
-                      hintStyle: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[400],
-                      ),
-                      filled: true,
-                      fillColor: const Color(0xFFF5F5F5),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color: themeColor,
-                          width: 2,
-                        ),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 16,
-                        horizontal: 16,
-                      ),
-                    ),
-                  ),
-                ],
+              _buildTextField(
+                controller: locationController,
+                label: 'Location',
+                hint: 'City, District',
+                isRequired: true,
               ),
               const SizedBox(height: 20),
+
               // Preferred Language dropdown
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  RichText(
-                    text: const TextSpan(
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF333333),
-                      ),
-                      children: [
-                        TextSpan(text: 'Preferred Language '),
-                        TextSpan(
-                          text: '*',
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  DropdownButtonFormField<String>(
-                    value: preferredLanguage,
-                    items: const [
-                      DropdownMenuItem(value: 'English', child: Text('English')),
-                      DropdownMenuItem(value: 'Hindi', child: Text('Hindi')),
-                      DropdownMenuItem(value: 'Local', child: Text('Local')),
-                    ],
-                    onChanged: (v) => setState(() => preferredLanguage = v ?? 'English'),
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: const Color(0xFFF5F5F5),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color: themeColor,
-                          width: 2,
-                        ),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 16,
-                        horizontal: 16,
-                      ),
-                    ),
-                    icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF666666)),
-                  ),
-                ],
-              ),
+              _buildDropdown(),
               const SizedBox(height: 20),
-              // Farm Size field (with unit dropdown)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Farm Size (Optional)',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF333333),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: TextField(
-                          controller: farmSizeController,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            hintText: 'Area',
-                            hintStyle: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[400],
-                            ),
-                            filled: true,
-                            fillColor: const Color(0xFFF5F5F5),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: themeColor,
-                                width: 2,
-                              ),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              vertical: 16,
-                              horizontal: 16,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Flexible(
-                        flex: 1,
-                        child: DropdownButtonFormField<String>(
-                          value: farmSizeUnit,
-                          items: const [
-                            DropdownMenuItem(value: 'Acres', child: Text('Acres')),
-                            DropdownMenuItem(value: 'Hectares', child: Text('Ha')),
-                          ],
-                          onChanged: (v) => setState(() => farmSizeUnit = v ?? 'Acres'),
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: const Color(0xFFF5F5F5),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: themeColor,
-                                width: 2,
-                              ),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              vertical: 16,
-                              horizontal: 16,
-                            ),
-                          ),
-                          icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF666666)),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 32),
+
+              // Farm Size field (only for farmers)
+              if (isFarmer) ...[
+                _buildFarmSizeField(),
+                const SizedBox(height: 32),
+              ] else
+                const SizedBox(height: 12),
+
               // Complete Registration button
               SizedBox(
                 width: double.infinity,
@@ -602,6 +353,220 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    bool isRequired = false,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        RichText(
+          text: TextSpan(
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF333333),
+            ),
+            children: [
+              TextSpan(text: '$label '),
+              if (isRequired)
+                const TextSpan(
+                  text: '*',
+                  style: TextStyle(color: Colors.red),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[400],
+            ),
+            filled: true,
+            fillColor: const Color(0xFFF5F5F5),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: themeColor,
+                width: 2,
+              ),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 16,
+              horizontal: 16,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        RichText(
+          text: const TextSpan(
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF333333),
+            ),
+            children: [
+              TextSpan(text: 'Preferred Language '),
+              TextSpan(
+                text: '*',
+                style: TextStyle(color: Colors.red),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          value: preferredLanguage,
+          items: const [
+            DropdownMenuItem(value: 'English', child: Text('English')),
+            DropdownMenuItem(value: 'Hindi', child: Text('Hindi')),
+            DropdownMenuItem(value: 'Local', child: Text('Local')),
+          ],
+          onChanged: (v) => setState(() => preferredLanguage = v ?? 'English'),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: const Color(0xFFF5F5F5),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: themeColor,
+                width: 2,
+              ),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 16,
+              horizontal: 16,
+            ),
+          ),
+          icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF666666)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFarmSizeField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Farm Size (Optional)',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF333333),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              flex: 2,
+              child: TextField(
+                controller: farmSizeController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  hintText: 'Area',
+                  hintStyle: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[400],
+                  ),
+                  filled: true,
+                  fillColor: const Color(0xFFF5F5F5),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: themeColor,
+                      width: 2,
+                    ),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 16,
+                    horizontal: 16,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Flexible(
+              flex: 1,
+              child: DropdownButtonFormField<String>(
+                value: farmSizeUnit,
+                items: const [
+                  DropdownMenuItem(value: 'Acres', child: Text('Acres')),
+                  DropdownMenuItem(value: 'Hectares', child: Text('Ha')),
+                ],
+                onChanged: (v) => setState(() => farmSizeUnit = v ?? 'Acres'),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: const Color(0xFFF5F5F5),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: themeColor,
+                      width: 2,
+                    ),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 16,
+                    horizontal: 16,
+                  ),
+                ),
+                icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF666666)),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
