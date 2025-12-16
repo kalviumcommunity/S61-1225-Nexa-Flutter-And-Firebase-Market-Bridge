@@ -12,6 +12,7 @@ import 'screens/scrollable_views.dart';
 import 'screens/post_produce_screen.dart';
 import 'screens/marketplace_screen.dart';
 import 'screens/auth_screen.dart';
+import 'screens/farmer_dashboard_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'routes.dart';
 
@@ -55,6 +56,7 @@ class MyApp extends StatelessWidget {
         Routes.routeHome: (context) => const ResponsiveHome(),
         Routes.routeMarketPlace: (context) => const MarketplaceScreen(),
         Routes.routePostProduce: (context) => const PostProduceScreen(),
+        Routes.routeDashboard: (context) => const FarmerDashboardScreen(),
         '/scrollable': (context) => ScrollableViews(),
       },
       onGenerateRoute: (settings) {

@@ -1146,4 +1146,109 @@ I updated the responsive_home.dart file to connect the "Post Produce" button's o
 **Step 5 - Platform-Specific Configuration:**
 For Android, I added camera and storage permissions to the AndroidManifest.xml file. For iOS, I added usage description strings to the Info.plist file explaining why the app needs camera and photo library access.
 
+---
 
+# Farmer Dashboard - Simple Documentation
+
+## What We Built Today
+
+Today we created a Farmer Dashboard screen where farmers can see and manage their produce listings. This screen shows important information like total sales, number of active listings, and recent activity from buyers.
+
+---
+
+## ✅ Main Features
+
+### Dashboard Screen
+We built a complete dashboard with these parts:
+
+*Statistics Section*
+- Shows sales for this month (₹45,000)
+- Shows how many listings are active
+- Both displayed in nice white cards with icons
+
+*Recent Activity*
+- Shows buyer interest in crops (like "2 new" buyers interested in tomatoes)
+- Shows how many people viewed listings
+- Uses colored badges to highlight new activity
+
+*My Listings*
+- Shows all crops the farmer has posted
+- Each listing shows crop name, quantity, price, views, and inquiries
+- Has "Edit" and "Delete" buttons for each listing
+- "Add New" button to post more crops
+
+*Empty State*
+- When farmer has no listings, shows a friendly message
+- Gives a button to add their first listing
+
+*Bottom Navigation*
+- Three buttons: Home, Marketplace, Dashboard
+- Active page is highlighted in green
+- Easy to switch between screens
+
+---
+
+## 🔧 How It Works
+
+### Navigation Setup
+We connected the dashboard to other screens in two ways:
+
+1. *From Home Screen:*
+    - Click "My Listings" button → Goes to Dashboard
+    - Click "Dashboard" in bottom navigation → Goes to Dashboard
+
+2. *From Dashboard:*
+    - Click "Add New" → Goes to Post Produce screen
+    - Click bottom navigation → Goes to Home or Marketplace
+    - Click back button → Returns to previous screen
+
+### Delete Function
+When you click "Delete" on a listing:
+1. A popup asks "Are you sure?"
+2. If you click "Delete" → Listing is removed
+3. If you click "Cancel" → Nothing happens
+4. After delete, you see a success message
+
+### Edit Function
+When you click "Edit" on a listing:
+- Currently shows "Coming soon" message
+- Ready to add full edit feature later
+
+---
+
+## Files We Created/Changed
+
+### New File:
+- lib/screens/farmer_dashboard_screen.dart - The complete dashboard screen
+
+### Files We Updated:
+- lib/screens/responsive_home.dart - Added navigation to dashboard
+- lib/routes.dart - Added dashboard route
+- Route configuration in main.dart - Connected route to screen
+
+---
+
+## Design Colors Used
+
+- *Green (#11823F)* - Main color for buttons and headers
+- *Light Gray (#F5F5F5)* - Screen background
+- *White (#FFFFFF)* - Cards and containers
+- *Dark Gray (#333333)* - Main text
+- *Medium Gray (#666666)* - Supporting text
+- *Light Gray (#999999)* - Hint text
+
+---
+
+## 📝 Quick Summary
+
+We built a complete Farmer Dashboard where farmers can:
+- See their sales and listing statistics
+- View recent activity from buyers
+- Manage all their produce listings
+- Edit or delete listings easily
+- Add new listings quickly
+- Navigate smoothly between screens
+
+The dashboard looks professional, works smoothly, and is ready to connect to a real database when needed.
+
+---
