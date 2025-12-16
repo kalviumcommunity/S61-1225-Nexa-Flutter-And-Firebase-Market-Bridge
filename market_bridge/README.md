@@ -1252,3 +1252,104 @@ We built a complete Farmer Dashboard where farmers can:
 The dashboard looks professional, works smoothly, and is ready to connect to a real database when needed.
 
 ---
+
+# Role-Based Navigation Implementation Guide
+
+## 🎯 Overview
+This implementation adds role-based navigation and theming to your Market Bridge app, ensuring buyers and farmers see appropriate screens and UI colors.
+
+## 📋 Changes Made
+
+### 1. **Complete Profile Screen** (Updated)
+- ✅ Single unified screen for both farmers and buyers
+- ✅ Dynamic theming based on role (Green for Farmer, Blue for Buyer)
+- ✅ Shows farm size field only for farmers
+- ✅ Role-appropriate icons and colors
+- ✅ Navigates to correct home screen after registration
+
+### 2. **OTP Verify Screen** (Updated)
+- ✅ Dynamic theming based on selected role
+- ✅ Maintains role information throughout verification flow
+- ✅ Passes role to profile completion screen
+
+### 3. **Role Home Router** (New)
+- ✅ Fetches user role from Firestore
+- ✅ Routes to `BuyerHomeScreen` for buyers
+- ✅ Routes to `ResponsiveHome` (farmer home) for farmers
+- ✅ Shows loading state while fetching role
+- ✅ Handles errors gracefully
+
+### 4. **Dashboard Router** (New)
+- ✅ Fetches user role from Firestore
+- ✅ Routes to `BuyerDashboardScreen` for buyers
+- ✅ Routes to `FarmerDashboardScreen` for farmers
+- ✅ Shows loading state while determining role
+
+### 5. **Main.dart Configuration** (Updated)
+- ✅ Updated route generation to use new routers
+- ✅ Proper argument passing between screens
+- ✅ Clean navigation flow
+
+## 🚀 How It Works
+
+### User Flow:
+
+#### **Farmer Flow:**
+1. Splash Screen → Phone Login → Select "Farmer"
+2. Send OTP (Green theme maintained)
+3. Verify OTP (Green theme)
+4. Complete Profile with farm size field (Green theme)
+5. **Navigate to ResponsiveHome (Farmer Home)**
+6. Click Dashboard → **FarmerDashboardScreen**
+
+#### **Buyer Flow:**
+1. Splash Screen → Phone Login → Select "Buyer"
+2. Send OTP (Blue theme maintained)
+3. Verify OTP (Blue theme)
+4. Complete Profile without farm size (Blue theme)
+5. **Navigate to BuyerHomeScreen**
+6. Click Dashboard → **BuyerDashboardScreen**
+
+## 📦 Files to Create/Update
+
+### New Files:
+1. `lib/screens/role_home_router.dart` - Routes to correct home based on role
+
+### Updated Files:
+1. `lib/screens/complete_profile_screen.dart` - Unified with role theming
+2. `lib/screens/otp_verify_screen.dart` - Role-based theming
+3. `lib/main.dart` - Updated routing configuration
+
+### Existing Files (No Changes Needed):
+- `lib/screens/buyer_home_screen.dart`
+- `lib/screens/responsive_home.dart` (Farmer home)
+- `lib/screens/buyer_dashboard_screen.dart`
+- `lib/screens/farmer_dashboard_screen.dart`
+
+## 🎨 Color Scheme
+
+### Farmer Theme:
+- Primary Color: `#11823F` (Green)
+- Icon Background: `#FFF3E0` (Light Orange)
+- Icon: Agriculture (🧺/👨‍🌾)
+
+### Buyer Theme:
+- Primary Color: `#2196F3` (Blue)
+- Icon Background: `#E3F2FD` (Light Blue)
+- Icon: Shopping Bag (🛒)
+
+## 📝 Notes
+
+1. **Role is case-insensitive**: Code uses `.toLowerCase()` for comparisons
+2. **Role persistence**: Role is stored in Firestore and fetched on app launch
+3. **Navigation flow**: Uses `pushReplacementNamed` to prevent back navigation to login screens after registration
+4. **Loading states**: Both routers show loading indicators while fetching role data
+5. **Error handling**: Redirects to login if role can't be determined
+
+## 🎉 Result
+
+After implementation, you'll have a fully functional role-based app where:
+- Farmers see green-themed UI and farmer-specific features
+- Buyers see blue-themed UI and buyer-specific features
+- Each role navigates to their appropriate home and dashboard screens
+- The experience is seamless and consistent throughout the app
