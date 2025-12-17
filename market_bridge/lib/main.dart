@@ -30,64 +30,217 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Market Bridge',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.green, useMaterial3: true),
+      theme: ThemeData(
+        primarySwatch: Colors.green,
+        useMaterial3: true,
+        // Add default page transition
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          },
+        ),
+      ),
       initialRoute: Routes.routeSplash,
       onGenerateRoute: (settings) {
+        // Get the transition curve for this route
+        final curve = Routes.getTransitionCurve(settings.name ?? '');
+
         switch (settings.name) {
           case Routes.routeSplash:
-            return MaterialPageRoute(builder: (_) => const SplashScreen());
+            return _buildFadeRoute(const SplashScreen(), settings);
 
           case Routes.routePhone:
-            return MaterialPageRoute(builder: (_) => const PhoneLoginScreen());
+            return _buildSlideRoute(
+              const PhoneLoginScreen(),
+              settings,
+              curve: curve,
+            );
 
           case Routes.routeOtp:
             final args = settings.arguments as Map<String, dynamic>;
-            return MaterialPageRoute(
-              builder: (_) => OtpVerifyScreen(
+            return _buildSlideRoute(
+              OtpVerifyScreen(
                 verificationId: args['verificationId'],
                 selectedRole: args['selectedRole'],
                 phoneNumber: args['phoneNumber'],
               ),
+              settings,
+              curve: curve,
             );
 
           case Routes.routeComplete:
             final args = settings.arguments as Map<String, dynamic>;
-            return MaterialPageRoute(
-              builder: (_) => CompleteProfileScreen(
+            return _buildScaleFadeRoute(
+              CompleteProfileScreen(
                 phoneNumber: args['phoneNumber'],
                 role: args['role'],
               ),
+              settings,
+              curve: curve,
             );
 
           case Routes.routeHome:
-            // This will route to appropriate home based on role
-            return MaterialPageRoute(
-              builder: (_) => const RoleHomeRouter(),
-              settings: settings, // Pass settings to access arguments
+            return _buildFadeRoute(
+              const RoleHomeRouter(),
+              settings,
+              curve: curve,
             );
 
           case Routes.routeMarketPlace:
-            return MaterialPageRoute(builder: (_) => const MarketplaceScreen());
+            return _buildSlideRoute(
+              const MarketplaceScreen(),
+              settings,
+              curve: curve,
+            );
 
           case Routes.routeDashboard:
-            // Route to appropriate dashboard based on user role
-            return MaterialPageRoute(builder: (_) => const DashboardRouter());
+            return _buildSlideUpRoute(
+              const DashboardRouter(),
+              settings,
+              curve: curve,
+            );
 
           case Routes.routePostProduce:
-            return MaterialPageRoute(builder: (_) => const PostProduceScreen());
+            return _buildSlideUpRoute(
+              const PostProduceScreen(),
+              settings,
+              curve: curve,
+            );
 
           case Routes.routeListingDetails:
             final args = settings.arguments as Map<String, dynamic>?;
-            return MaterialPageRoute(
-              builder: (_) => ListingDetailsScreen(crop: args?['crop'] ?? {}),
+            return _buildScaleFadeRoute(
+              ListingDetailsScreen(crop: args?['crop'] ?? {}),
+              settings,
+              curve: curve,
             );
 
           case '/scrollable':
-            return MaterialPageRoute(builder: (_) => const ResponsiveLayout());
+            return _buildSlideRoute(
+              const ResponsiveLayout(),
+              settings,
+              curve: curve,
+            );
 
           default:
-            return MaterialPageRoute(builder: (_) => const SplashScreen());
+            return _buildFadeRoute(const SplashScreen(), settings);
         }
+      },
+    );
+  }
+
+  /// Slide transition from right
+  PageRouteBuilder _buildSlideRoute(
+      Widget page,
+      RouteSettings settings, {
+        Curve curve = Curves.easeInOutCubic,
+      }) {
+    return PageRouteBuilder(
+      settings: settings,
+      pageBuilder: (context, animation, secondaryAnimation) => page,
+      transitionDuration: Routes.transitionDuration,
+      reverseTransitionDuration: const Duration(milliseconds: 300),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        const begin = Offset(1.0, 0.0);
+        const end = Offset.zero;
+
+        var tween = Tween(begin: begin, end: end)
+            .chain(CurveTween(curve: curve));
+        var offsetAnimation = animation.drive(tween);
+
+        return SlideTransition(
+          position: offsetAnimation,
+          child: child,
+        );
+      },
+    );
+  }
+
+  /// Fade transition
+  PageRouteBuilder _buildFadeRoute(
+      Widget page,
+      RouteSettings settings, {
+        Curve curve = Curves.easeIn,
+      }) {
+    return PageRouteBuilder(
+      settings: settings,
+      pageBuilder: (context, animation, secondaryAnimation) => page,
+      transitionDuration: const Duration(milliseconds: 500),
+      reverseTransitionDuration: const Duration(milliseconds: 300),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        var fadeAnimation = CurvedAnimation(
+          parent: animation,
+          curve: curve,
+        );
+
+        return FadeTransition(
+          opacity: fadeAnimation,
+          child: child,
+        );
+      },
+    );
+  }
+
+  /// Scale and fade transition
+  PageRouteBuilder _buildScaleFadeRoute(
+      Widget page,
+      RouteSettings settings, {
+        Curve curve = Curves.easeOutQuart,
+      }) {
+    return PageRouteBuilder(
+      settings: settings,
+      pageBuilder: (context, animation, secondaryAnimation) => page,
+      transitionDuration: const Duration(milliseconds: 600),
+      reverseTransitionDuration: const Duration(milliseconds: 400),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        var scaleTween = Tween<double>(begin: 0.85, end: 1.0)
+            .chain(CurveTween(curve: curve));
+        var fadeAnimation = CurvedAnimation(
+          parent: animation,
+          curve: curve,
+        );
+
+        return FadeTransition(
+          opacity: fadeAnimation,
+          child: ScaleTransition(
+            scale: animation.drive(scaleTween),
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+
+  /// Slide up transition (for modals)
+  PageRouteBuilder _buildSlideUpRoute(
+      Widget page,
+      RouteSettings settings, {
+        Curve curve = Curves.easeOutCubic,
+      }) {
+    return PageRouteBuilder(
+      settings: settings,
+      pageBuilder: (context, animation, secondaryAnimation) => page,
+      transitionDuration: const Duration(milliseconds: 500),
+      reverseTransitionDuration: const Duration(milliseconds: 400),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        const begin = Offset(0.0, 0.3);
+        const end = Offset.zero;
+
+        var slideTween = Tween(begin: begin, end: end)
+            .chain(CurveTween(curve: curve));
+        var fadeAnimation = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeIn,
+        );
+
+        return FadeTransition(
+          opacity: fadeAnimation,
+          child: SlideTransition(
+            position: animation.drive(slideTween),
+            child: child,
+          ),
+        );
       },
     );
   }
@@ -101,7 +254,25 @@ class DashboardRouter extends StatefulWidget {
   State<DashboardRouter> createState() => _DashboardRouterState();
 }
 
-class _DashboardRouterState extends State<DashboardRouter> {
+class _DashboardRouterState extends State<DashboardRouter>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _loadingController;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadingController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _loadingController.dispose();
+    super.dispose();
+  }
+
   Future<String?> _getUserRole() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -133,10 +304,17 @@ class _DashboardRouterState extends State<DashboardRouter> {
             body: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text(
+                children: [
+                  RotationTransition(
+                    turns: _loadingController,
+                    child: const Icon(
+                      Icons.agriculture,
+                      size: 48,
+                      color: Color(0xFF11823F),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
                     'Loading Dashboard...',
                     style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
@@ -147,7 +325,6 @@ class _DashboardRouterState extends State<DashboardRouter> {
         }
 
         if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
-          // Error or no data, go back
           WidgetsBinding.instance.addPostFrameCallback((_) {
             Navigator.of(context).pop();
           });
