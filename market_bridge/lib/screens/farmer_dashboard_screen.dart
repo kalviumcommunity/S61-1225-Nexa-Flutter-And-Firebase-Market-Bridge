@@ -17,7 +17,8 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
       'views': 12,
       'inquiries': 3,
       'status': 'active',
-      'icon': '🍅',
+      'icon': 'assets/icons/tomato.png',
+      'isAsset': true,
     },
     {
       'crop': 'Onion',
@@ -26,7 +27,8 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
       'views': 8,
       'inquiries': 1,
       'status': 'active',
-      'icon': '🧅',
+      'icon': 'assets/icons/onion.png',
+      'isAsset': true,
     },
   ];
 
@@ -98,11 +100,11 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                       children: _recentActivity
                           .map(
                             (a) => _buildActivityRow(
-                              title: a['title'],
-                              badge: a['badge'],
-                              isNew: a['isNew'],
-                            ),
-                          )
+                          title: a['title'],
+                          badge: a['badge'],
+                          isNew: a['isNew'],
+                        ),
+                      )
                           .toList(),
                     ),
                   ),
@@ -141,10 +143,10 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                               .entries
                               .map(
                                 (entry) => _buildListingCard(
-                                  listing: entry.value,
-                                  onDelete: () => _deleteListing(entry.key),
-                                ),
-                              )
+                              listing: entry.value,
+                              onDelete: () => _deleteListing(entry.key),
+                            ),
+                          )
                               .toList(),
                         );
                       } else {
@@ -154,12 +156,12 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: _myListings.length,
                           gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                crossAxisSpacing: 20,
-                                mainAxisSpacing: 20,
-                                childAspectRatio: 1.3,
-                              ),
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 20,
+                            mainAxisSpacing: 20,
+                            childAspectRatio: 1.3,
+                          ),
                           itemBuilder: (context, index) {
                             return _buildListingCard(
                               listing: _myListings[index],
@@ -265,19 +267,56 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
     required Map<String, dynamic> listing,
     required VoidCallback onDelete,
   }) {
+    final isAsset = listing['isAsset'] ?? false;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Text(listing['icon'], style: const TextStyle(fontSize: 28)),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F5F5),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Center(
+                  child: isAsset
+                      ? Image.asset(
+                    listing['icon'],
+                    width: 28,
+                    height: 28,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      // Fallback to generic icon if asset fails
+                      return const Icon(
+                        Icons.emoji_food_beverage,
+                        size: 24,
+                        color: Colors.orange,
+                      );
+                    },
+                  )
+                      : Text(
+                    listing['icon'],
+                    style: const TextStyle(fontSize: 28),
+                  ),
+                ),
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -288,9 +327,20 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                   ),
                 ),
               ),
-              Text(
-                listing['status'],
-                style: const TextStyle(color: Color(0xFF11823F)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF11823F).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  listing['status'],
+                  style: const TextStyle(
+                    color: Color(0xFF11823F),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ],
           ),
@@ -312,7 +362,22 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          OutlinedButton(onPressed: onDelete, child: const Text('Delete')),
+          SizedBox(
+            width: double.infinity,
+            height: 40,
+            child: OutlinedButton.icon(
+              onPressed: onDelete,
+              icon: const Icon(Icons.delete_outline, size: 18),
+              label: const Text('Delete Listing'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.red,
+                side: const BorderSide(color: Colors.red),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -325,7 +390,13 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
         color: const Color(0xFFF5F5F5),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Text(text),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 12,
+          color: Color(0xFF666666),
+        ),
+      ),
     );
   }
 }

@@ -1774,9 +1774,11 @@ Container(
   width: screenWidth * 0.8,
   height: screenHeight * 0.1,
   color: Colors.teal,
-  child: Center(child: Text('Responsive Container')),
+  child: const Center(
+    child: Text('Responsive Container'),
+  ),
 );
-````
+```
 
 ### Using LayoutBuilder
 
@@ -1863,3 +1865,194 @@ class ResponsiveDemo extends StatelessWidget {
 
     * `MediaQuery` gives **screen dimensions and orientation**.
     * `LayoutBuilder` provides **widget constraints** allowing conditional layouts for different screen widths.
+---
+
+# Sprint 2: Managing Images, Icons, and Local Assets in Flutter
+
+## Project Overview
+This project demonstrates proper asset management in Flutter by implementing local image icons for agricultural produce (Tomato, Potato, Wheat, Onion) across multiple screens in the Market Bridge application.
+
+---
+
+## 📁 Project Structure
+
+```
+project_root/
+├── assets/
+│   ├── images/
+│   │   └── (future images)
+│   └── icons/
+│       ├── tomato.png
+│       ├── potato.png
+│       ├── onion.png
+│       └── wheat.png
+├── lib/
+│   └── screens/
+│       ├── marketplace_screen.dart
+│       ├── farmer_dashboard_screen.dart
+│       └── responsive_home.dart
+└── pubspec.yaml
+```
+
+---
+
+## 🎯 Implementation Steps
+
+### Step 1: Created Assets Folder Structure
+Created the following directory structure in the project root:
+```
+assets/
+ ├── images/
+ └── icons/
+      ├── tomato.png
+      ├── potato.png
+      ├── onion.png
+      └── wheat.png
+```
+
+### Step 2: Registered Assets in `pubspec.yaml`
+Updated the Flutter configuration to include asset directories:
+
+```yaml
+flutter:
+  assets:
+    - assets/images/
+    - assets/icons/
+  uses-material-design: true
+```
+
+**Important:** Proper indentation (2 spaces) was maintained to avoid YAML parsing errors.
+
+### Step 3: Replaced Emoji Icons with Image Assets
+Updated the following screens to use `Image.asset()` instead of emoji text:
+
+#### Files Modified:
+1. **marketplace_screen.dart** - Marketplace listing cards and detail view
+2. **farmer_dashboard_screen.dart** - Farmer's produce listings
+3. **responsive_home.dart** - Home screen market prices (if applicable)
+
+---
+
+## 💻 Code Implementation
+
+### Using Image.asset() Widget
+
+**Before (Using Emoji):**
+```dart
+Text(
+  crop['icon'], // '🍅'
+  style: const TextStyle(fontSize: 28),
+)
+```
+
+**After (Using Image Asset):**
+```dart
+Image.asset(
+  crop['iconPath'], // 'assets/icons/tomato.png'
+  width: 32,
+  height: 32,
+  fit: BoxFit.contain,
+  errorBuilder: (context, error, stackTrace) {
+    // Fallback if image not found
+    return const Icon(
+      Icons.local_florist,
+      size: 28,
+      color: Color(0xFF11823F),
+    );
+  },
+)
+```
+
+### Data Model Update
+
+**Before:**
+```dart
+{
+  'name': 'Tomato',
+  'icon': '🍅',
+  // other fields...
+}
+```
+
+**After:**
+```dart
+{
+  'name': 'Tomato',
+  'iconPath': 'assets/icons/tomato.png',
+  // other fields...
+}
+```
+
+---
+
+## 🎨 Design Features
+
+### Error Handling
+- Implemented `errorBuilder` callback to show fallback icon if asset fails to load
+- Graceful degradation ensures app doesn't crash on missing assets
+
+### Responsive Sizing
+- Icons scaled appropriately for different contexts:
+    - **Card thumbnails:** 32x32 pixels
+    - **Detail view:** 150x150 pixels
+    - Maintains aspect ratio with `BoxFit.contain`
+
+### Container Styling
+- Background color: `Color(0xFFF5F5F5)`
+- Border radius: 8-10px for modern rounded appearance
+- Centered alignment for visual balance
+
+---
+
+## 🔧 Testing & Verification
+
+### Checklist ✅
+- [x] All four crop icons (tomato, potato, onion, wheat) load correctly
+- [x] No "missing asset" errors in debug console
+- [x] Icons scale properly on different screen sizes
+- [x] Error fallback works when asset path is incorrect
+- [x] Hot reload works after running `flutter pub get`
+- [x] Assets registered in `pubspec.yaml` with correct indentation
+
+### Test Commands
+```bash
+# Clean and rebuild project
+flutter clean
+flutter pub get
+flutter run
+
+# Check for asset errors
+flutter build apk --debug
+```
+
+---
+
+## 📝 Reflection
+
+### What steps are necessary to load assets correctly in Flutter?
+
+1. **Create organized folder structure** (`assets/icons/`, `assets/images/`)
+2. **Register assets in pubspec.yaml** under the `flutter:` section
+3. **Run `flutter pub get`** to update asset bundles
+4. **Use correct paths** in `Image.asset()` calls
+5. **Implement error handling** with `errorBuilder`
+6. **Test thoroughly** across different screens and devices
+
+### What common errors did you face while configuring pubspec.yaml?
+
+1. **Indentation issues** - YAML is whitespace-sensitive; used 2 spaces consistently
+2. **Missing `flutter pub get`** - Assets don't load until dependencies are refreshed
+3. **Path typos** - Case sensitivity matters (tomato.png ≠ Tomato.png)
+4. **Directory vs. file registration** - Registering directories is more scalable than individual files
+
+### How do proper asset management practices support scalability?
+
+1. **Organized structure** makes it easy to add new assets without confusion
+2. **Directory registration** (`assets/icons/`) means no pubspec.yaml edits for each new file
+3. **Error handling** prevents app crashes from missing assets
+4. **Consistent naming** (lowercase, descriptive) improves maintainability
+5. **Separation of concerns** (icons vs. images) helps team collaboration
+6. **Type safety** with data models (iconPath field) catches errors at compile time
+
+---
+
