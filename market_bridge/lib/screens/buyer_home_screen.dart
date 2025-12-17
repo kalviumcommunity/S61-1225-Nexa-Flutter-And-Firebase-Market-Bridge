@@ -28,531 +28,563 @@ class BuyerHomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF1F1F1),
       body: SafeArea(
-        child: LayoutBuilder(builder: (context, constraints) {
-          final width = constraints.maxWidth;
-          final gridCount = width > 900 ? 4 : (width > 600 ? 2 : 2);
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            final gridCount = width > 900 ? 4 : (width > 600 ? 2 : 2);
 
-          return Column(
-            children: [
-              // Header - Buyer Blue Theme
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: isTablet ? 18 : 14,
-                ),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF2196F3),
-                  borderRadius: BorderRadius.vertical(
-                    bottom: Radius.circular(8),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color(0x22000000),
-                      blurRadius: 6,
-                      offset: Offset(0, 2),
-                    )
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    // menu
-                    Container(
-                      height: 40,
-                      width: 40,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.white24),
-                        color: Colors.white10,
-                      ),
-                      child: IconButton(
-                        padding: EdgeInsets.zero,
-                        icon: const Icon(Icons.menu, color: Colors.white),
-                        onPressed: () {},
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-
-                    // title + buyer mode
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Market Bridge',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: titleSize,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              const Icon(Icons.shopping_cart,
-                                  color: Colors.white70, size: 14),
-                              const SizedBox(width: 6),
-                              Text(
-                                'Buyer Mode',
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: subtitleSize,
-                                ),
-                              )
-                            ],
-                          )
-                        ],
-                      ),
-                    ),
-
-                    // bell
-                    Material(
-                      color: Colors.transparent,
-                      child: IconButton(
-                        icon: const Icon(Icons.notifications_none,
-                            color: Colors.white),
-                        onPressed: () {},
-                      ),
-                    ),
-                    // logout
-                    Material(
-                      color: Colors.transparent,
-                      child: IconButton(
-                        icon: const Icon(Icons.logout, color: Colors.white),
-                        tooltip: 'Logout',
-                        onPressed: () async {
-                          await FirebaseAuth.instance.signOut();
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // content
-              Expanded(
-                child: SingleChildScrollView(
+            return Column(
+              children: [
+                // Header - Buyer Blue Theme
+                Container(
                   padding: EdgeInsets.symmetric(
-                    horizontal: width * 0.055,
-                    vertical: screenHeight * 0.02,
+                    horizontal: 16,
+                    vertical: isTablet ? 18 : 14,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF2196F3),
+                    borderRadius: BorderRadius.vertical(
+                      bottom: Radius.circular(8),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0x22000000),
+                        blurRadius: 6,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
                     children: [
-                      // Location Card
+                      // menu
                       Container(
-                        padding: const EdgeInsets.all(14),
-                        margin: const EdgeInsets.only(top: 6, bottom: 12),
+                        height: 40,
+                        width: 40,
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.white24),
+                          color: Colors.white10,
                         ),
-                        child: Row(
-                          children: [
-                            Container(
-                              height: 44,
-                              width: 44,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF5F5F5),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Icon(Icons.location_on_outlined,
-                                  color: Colors.black54),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Location',
-                                    style: TextStyle(
-                                      fontSize: cardTitleSize,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    'Today, 10:30 AM',
-                                    style: TextStyle(
-                                      color: Colors.black54,
-                                      fontSize: subtitleSize,
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                            IconButton(
-                              onPressed: () {},
-                              icon: const Icon(Icons.edit),
-                            )
-                          ],
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          icon: const Icon(Icons.menu, color: Colors.white),
+                          onPressed: () {},
                         ),
                       ),
+                      const SizedBox(width: 10),
 
-                      // Today's Market Prices heading
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6.0),
-                        child: Text(
-                          "Today's Market Prices",
-                          style: TextStyle(
-                            fontSize: cardTitleSize,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-
-                      // Produce Grid
-                      GridView.builder(
-                        physics: const NeverScrollableScrollPhysics(),
-                        shrinkWrap: true,
-                        itemCount: produce.length,
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: gridCount,
-                          mainAxisExtent: isTablet ? 140 : 120,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: 1,
-                        ),
-                        itemBuilder: (context, index) {
-                          final item = produce[index];
-                          final change = item['change'] ?? '';
-                          final isPositive = change.startsWith('+');
-
-                          return Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Color(0x12000000),
-                                  blurRadius: 6,
-                                  offset: Offset(0, 3),
-                                )
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                      height: 40,
-                                      width: 40,
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFF7F7F7),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Center(
-                                        child: Text(
-                                          item['icon'] ?? '🥬',
-                                          style: const TextStyle(fontSize: 20),
-                                        ),
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: isPositive
-                                            ? Colors.green.withOpacity(0.08)
-                                            : Colors.red.withOpacity(0.06),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text(
-                                        change,
-                                        style: TextStyle(
-                                          color: isPositive
-                                              ? Colors.green[700]
-                                              : Colors.red[700],
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 10),
-                                Text(
-                                  item['name'] ?? '',
-                                  style: TextStyle(
-                                    fontSize: cardTitleSize,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  item['price'] ?? '',
-                                  style: TextStyle(
-                                    fontSize: subtitleSize + 1,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.green[700],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-
-                      const SizedBox(height: 18),
-
-                      // Quick Actions - Buyer themed
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF2196F3),
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x22000000),
-                              blurRadius: 6,
-                              offset: Offset(0, 3),
-                            )
-                          ],
-                        ),
+                      // title + buyer mode
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Quick Actions',
+                              'Market Bridge',
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: cardTitleSize,
-                                fontWeight: FontWeight.w800,
+                                fontSize: titleSize,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 4),
                             Row(
                               children: [
-                                Expanded(
-                                  child: ElevatedButton.icon(
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              const BuyerMarketplaceScreen(),
-                                        ),
-                                      );
-                                    },
-                                    icon: const Icon(Icons.storefront,
-                                        color: Colors.black87),
-                                    label: const Text(
-                                      'Browse Produce',
-                                      style: TextStyle(color: Colors.black87),
-                                    ),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.white,
-                                      elevation: 0,
-                                      padding:
-                                      const EdgeInsets.symmetric(vertical: 10),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(30),
-                                      ),
-                                    ),
-                                  ),
+                                const Icon(
+                                  Icons.shopping_cart,
+                                  color: Colors.white70,
+                                  size: 14,
                                 ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: ElevatedButton.icon(
-                                    onPressed: () {
-                                      Navigator.pushNamed(
-                                          context, Routes.routeDashboard);
-                                    },
-                                    icon: const Icon(Icons.receipt_long,
-                                        color: Colors.black87),
-                                    label: const Text(
-                                      'My Orders',
-                                      style: TextStyle(color: Colors.black87),
-                                    ),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.white,
-                                      elevation: 0,
-                                      padding:
-                                      const EdgeInsets.symmetric(vertical: 10),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(30),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            )
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 18),
-
-                      // Fresh from Farmers section
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x12000000),
-                              blurRadius: 6,
-                              offset: Offset(0, 3),
-                            )
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(Icons.agriculture,
-                                    color: Colors.green),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 6),
                                 Text(
-                                  'Fresh produce from farmers',
+                                  'Buyer Mode',
                                   style: TextStyle(
-                                    fontSize: cardTitleSize,
-                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white70,
+                                    fontSize: subtitleSize,
                                   ),
                                 ),
                               ],
-                            ),
-                            const SizedBox(height: 12),
-                            const AvailabilityRow(
-                              name: 'Tomato',
-                              subtitle: '2 quintal',
-                              icon: Icons.local_shipping,
-                            ),
-                            const AvailabilityRow(
-                              name: 'Onion',
-                              subtitle: '5 quintal',
-                              icon: Icons.local_shipping,
-                            ),
-                            const AvailabilityRow(
-                              name: 'Wheat',
-                              subtitle: '10 quintal',
-                              icon: Icons.local_shipping,
                             ),
                           ],
                         ),
                       ),
 
-                      const SizedBox(height: 18),
-
-                      // Action buttons
-                      SizedBox(
-                        height: 48,
-                        child: OutlinedButton(
+                      // bell
+                      Material(
+                        color: Colors.transparent,
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.notifications_none,
+                            color: Colors.white,
+                          ),
                           onPressed: () {},
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFF2196F3)),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            backgroundColor: Colors.white,
-                          ),
-                          child: const Text(
-                            'View Market Details',
-                            style: TextStyle(color: Color(0xFF2196F3)),
-                          ),
                         ),
                       ),
-                      const SizedBox(height: 12),
-
-                      SizedBox(
-                        height: 48,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const BuyerMarketplaceScreen(),
-                              ),
-                            );
+                      // logout
+                      Material(
+                        color: Colors.transparent,
+                        child: IconButton(
+                          icon: const Icon(Icons.logout, color: Colors.white),
+                          tooltip: 'Logout',
+                          onPressed: () async {
+                            await FirebaseAuth.instance.signOut();
                           },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF2196F3),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text(
-                            'Browse Available Produce',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
                         ),
                       ),
-
-                      const SizedBox(height: 18),
                     ],
                   ),
                 ),
-              ),
 
-              // Bottom navigation
-              Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color(0x11000000),
-                      blurRadius: 6,
-                      offset: Offset(0, -2),
-                    )
-                  ],
-                ),
-                padding: EdgeInsets.symmetric(
-                  vertical: screenHeight * 0.012,
-                  horizontal: width * 0.03,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    const BottomNavItem(
-                      icon: Icons.home,
-                      label: 'Home',
-                      active: true,
+                // content
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: width * 0.055,
+                      vertical: screenHeight * 0.02,
                     ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const BuyerMarketplaceScreen(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Location Card
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          margin: const EdgeInsets.only(top: 6, bottom: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                        );
-                      },
-                      child: const BottomNavItem(
-                        icon: Icons.storefront,
-                        label: 'Marketplace',
-                      ),
+                          child: Row(
+                            children: [
+                              Container(
+                                height: 44,
+                                width: 44,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF5F5F5),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.location_on_outlined,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Location',
+                                      style: TextStyle(
+                                        fontSize: cardTitleSize,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      'Today, 10:30 AM',
+                                      style: TextStyle(
+                                        color: Colors.black54,
+                                        fontSize: subtitleSize,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                onPressed: () {},
+                                icon: const Icon(Icons.edit),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Today's Market Prices heading
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6.0),
+                          child: Text(
+                            "Today's Market Prices",
+                            style: TextStyle(
+                              fontSize: cardTitleSize,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+
+                        // Produce Grid
+                        GridView.builder(
+                          physics: const NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: produce.length,
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: gridCount,
+                                mainAxisExtent: isTablet ? 140 : 120,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 12,
+                                childAspectRatio: 1,
+                              ),
+                          itemBuilder: (context, index) {
+                            final item = produce[index];
+                            final change = item['change'] ?? '';
+                            final isPositive = change.startsWith('+');
+
+                            return Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0x12000000),
+                                    blurRadius: 6,
+                                    offset: Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Container(
+                                        height: 40,
+                                        width: 40,
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF7F7F7),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            item['icon'] ?? '🥬',
+                                            style: TextStyle(
+                                              fontSize: screenWidth * 0.045,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: isPositive
+                                              ? Colors.green.withOpacity(0.08)
+                                              : Colors.red.withOpacity(0.06),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          change,
+                                          style: TextStyle(
+                                            color: isPositive
+                                                ? Colors.green[700]
+                                                : Colors.red[700],
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    item['name'] ?? '',
+                                    style: TextStyle(
+                                      fontSize: cardTitleSize,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    item['price'] ?? '',
+                                    style: TextStyle(
+                                      fontSize: subtitleSize + 1,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.green[700],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+
+                        const SizedBox(height: 18),
+
+                        // Quick Actions - Buyer themed
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF2196F3),
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x22000000),
+                                blurRadius: 6,
+                                offset: Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Quick Actions',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: cardTitleSize,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: ElevatedButton.icon(
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const BuyerMarketplaceScreen(),
+                                          ),
+                                        );
+                                      },
+                                      icon: const Icon(
+                                        Icons.storefront,
+                                        color: Colors.black87,
+                                      ),
+                                      label: const Text(
+                                        'Browse Produce',
+                                        style: TextStyle(color: Colors.black87),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        elevation: 0,
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 10,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            30,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: ElevatedButton.icon(
+                                      onPressed: () {
+                                        Navigator.pushNamed(
+                                          context,
+                                          Routes.routeDashboard,
+                                        );
+                                      },
+                                      icon: const Icon(
+                                        Icons.receipt_long,
+                                        color: Colors.black87,
+                                      ),
+                                      label: const Text(
+                                        'My Orders',
+                                        style: TextStyle(color: Colors.black87),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        elevation: 0,
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 10,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            30,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 18),
+
+                        // Fresh from Farmers section
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x12000000),
+                                blurRadius: 6,
+                                offset: Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.agriculture,
+                                    color: Colors.green,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Fresh produce from farmers',
+                                    style: TextStyle(
+                                      fontSize: cardTitleSize,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              const AvailabilityRow(
+                                name: 'Tomato',
+                                subtitle: '2 quintal',
+                                icon: Icons.local_shipping,
+                              ),
+                              const AvailabilityRow(
+                                name: 'Onion',
+                                subtitle: '5 quintal',
+                                icon: Icons.local_shipping,
+                              ),
+                              const AvailabilityRow(
+                                name: 'Wheat',
+                                subtitle: '10 quintal',
+                                icon: Icons.local_shipping,
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 18),
+
+                        // Action buttons
+                        SizedBox(
+                          height: 48,
+                          child: OutlinedButton(
+                            onPressed: () {},
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Color(0xFF2196F3)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              backgroundColor: Colors.white,
+                            ),
+                            child: const Text(
+                              'View Market Details',
+                              style: TextStyle(color: Color(0xFF2196F3)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        SizedBox(
+                          height: 48,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const BuyerMarketplaceScreen(),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF2196F3),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Text(
+                              'Browse Available Produce',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 18),
+                      ],
                     ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(context, Routes.routeDashboard);
-                      },
-                      child: const BottomNavItem(
-                        icon: Icons.person_outline,
-                        label: 'Dashboard',
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
-          );
-        }),
+
+                // Bottom navigation
+                Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(12),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0x11000000),
+                        blurRadius: 6,
+                        offset: Offset(0, -2),
+                      ),
+                    ],
+                  ),
+                  padding: EdgeInsets.symmetric(
+                    vertical: screenHeight * 0.012,
+                    horizontal: width * 0.03,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      const BottomNavItem(
+                        icon: Icons.home,
+                        label: 'Home',
+                        active: true,
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const BuyerMarketplaceScreen(),
+                            ),
+                          );
+                        },
+                        child: const BottomNavItem(
+                          icon: Icons.storefront,
+                          label: 'Marketplace',
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pushNamed(context, Routes.routeDashboard);
+                        },
+                        child: const BottomNavItem(
+                          icon: Icons.person_outline,
+                          label: 'Dashboard',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
