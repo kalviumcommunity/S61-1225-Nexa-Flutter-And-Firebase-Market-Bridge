@@ -7,11 +7,35 @@ import 'buyer_marketplace_screen.dart';
 class BuyerHomeScreen extends StatelessWidget {
   const BuyerHomeScreen({Key? key}) : super(key: key);
 
-  List<Map<String, String>> get produce => [
-    {"name": "Tomato", "price": "₹20/kg", "change": "+5%", "icon": "🍅"},
-    {"name": "Onion", "price": "₹25/kg", "change": "+2%", "icon": "🧅"},
-    {"name": "Potato", "price": "₹12/kg", "change": "-3%", "icon": "🥔"},
-    {"name": "Wheat", "price": "₹2400/quintal", "change": "+8%", "icon": "🌾"},
+  List<Map<String, dynamic>> get produce => [
+    {
+      "name": "Tomato",
+      "price": "₹20/kg",
+      "change": "+5%",
+      "icon": "assets/icons/tomato.png",
+      "isAsset": true
+    },
+    {
+      "name": "Onion",
+      "price": "₹25/kg",
+      "change": "+2%",
+      "icon": "assets/icons/onion.png",
+      "isAsset": true
+    },
+    {
+      "name": "Potato",
+      "price": "₹12/kg",
+      "change": "-3%",
+      "icon": "assets/icons/potato.png",
+      "isAsset": true
+    },
+    {
+      "name": "Wheat",
+      "price": "₹2400/quintal",
+      "change": "+8%",
+      "icon": "assets/icons/rice.png",
+      "isAsset": true
+    },
   ];
 
   @override
@@ -56,7 +80,6 @@ class BuyerHomeScreen extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      // menu
                       Container(
                         height: 40,
                         width: 40,
@@ -72,8 +95,6 @@ class BuyerHomeScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 10),
-
-                      // title + buyer mode
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,8 +128,6 @@ class BuyerHomeScreen extends StatelessWidget {
                           ],
                         ),
                       ),
-
-                      // bell
                       Material(
                         color: Colors.transparent,
                         child: IconButton(
@@ -119,7 +138,6 @@ class BuyerHomeScreen extends StatelessWidget {
                           onPressed: () {},
                         ),
                       ),
-                      // logout
                       Material(
                         color: Colors.transparent,
                         child: IconButton(
@@ -215,17 +233,18 @@ class BuyerHomeScreen extends StatelessWidget {
                           shrinkWrap: true,
                           itemCount: produce.length,
                           gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: gridCount,
-                                mainAxisExtent: isTablet ? 140 : 120,
-                                crossAxisSpacing: 12,
-                                mainAxisSpacing: 12,
-                                childAspectRatio: 1,
-                              ),
+                          SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: gridCount,
+                            mainAxisExtent: isTablet ? 140 : 120,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                            childAspectRatio: 1,
+                          ),
                           itemBuilder: (context, index) {
                             final item = produce[index];
                             final change = item['change'] ?? '';
                             final isPositive = change.startsWith('+');
+                            final isAsset = item['isAsset'] ?? false;
 
                             return Container(
                               padding: const EdgeInsets.all(12),
@@ -250,12 +269,24 @@ class BuyerHomeScreen extends StatelessWidget {
                                         width: 40,
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFF7F7F7),
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
+                                          borderRadius: BorderRadius.circular(8),
                                         ),
                                         child: Center(
-                                          child: Text(
+                                          child: isAsset
+                                              ? Image.asset(
+                                            item['icon'],
+                                            width: 24,
+                                            height: 24,
+                                            fit: BoxFit.contain,
+                                            errorBuilder: (context, error, stackTrace) {
+                                              return const Icon(
+                                                Icons.emoji_food_beverage,
+                                                size: 20,
+                                                color: Colors.orange,
+                                              );
+                                            },
+                                          )
+                                              : Text(
                                             item['icon'] ?? '🥬',
                                             style: TextStyle(
                                               fontSize: screenWidth * 0.045,
@@ -273,9 +304,7 @@ class BuyerHomeScreen extends StatelessWidget {
                                           color: isPositive
                                               ? Colors.green.withOpacity(0.08)
                                               : Colors.red.withOpacity(0.06),
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
+                                          borderRadius: BorderRadius.circular(12),
                                         ),
                                         child: Text(
                                           change,
@@ -353,7 +382,7 @@ class BuyerHomeScreen extends StatelessWidget {
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) =>
-                                                const BuyerMarketplaceScreen(),
+                                            const BuyerMarketplaceScreen(),
                                           ),
                                         );
                                       },
@@ -372,9 +401,7 @@ class BuyerHomeScreen extends StatelessWidget {
                                           vertical: 10,
                                         ),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            30,
-                                          ),
+                                          borderRadius: BorderRadius.circular(30),
                                         ),
                                       ),
                                     ),
@@ -403,9 +430,7 @@ class BuyerHomeScreen extends StatelessWidget {
                                           vertical: 10,
                                         ),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            30,
-                                          ),
+                                          borderRadius: BorderRadius.circular(30),
                                         ),
                                       ),
                                     ),
@@ -501,7 +526,7 @@ class BuyerHomeScreen extends StatelessWidget {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      const BuyerMarketplaceScreen(),
+                                  const BuyerMarketplaceScreen(),
                                 ),
                               );
                             },
@@ -560,7 +585,7 @@ class BuyerHomeScreen extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                                  const BuyerMarketplaceScreen(),
+                              const BuyerMarketplaceScreen(),
                             ),
                           );
                         },

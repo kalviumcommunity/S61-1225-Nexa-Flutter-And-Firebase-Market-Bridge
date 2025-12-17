@@ -18,7 +18,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       'buyer': 'Ramesh',
       'distance': '3km',
       'rating': 4,
-      'icon': '🍅',
+      'icon': 'assets/icons/tomato.png',
+      'isAsset': true,
     },
     {
       'name': 'Onion',
@@ -27,7 +28,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       'buyer': 'Ramesh',
       'distance': '3km',
       'rating': 4,
-      'icon': '🧅',
+      'icon': 'assets/icons/onion.png',
+      'isAsset': true,
     },
     {
       'name': 'Potato',
@@ -36,7 +38,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       'buyer': 'Ramesh',
       'distance': '3km',
       'rating': 4,
-      'icon': '🥔',
+      'icon': 'assets/icons/potato.png',
+      'isAsset': true,
     },
     {
       'name': 'Wheat',
@@ -45,7 +48,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       'buyer': 'Ramesh',
       'distance': '3km',
       'rating': 4,
-      'icon': '🌾',
+      'icon': 'assets/icons/rice.png',
+      'isAsset': true,
     },
   ];
 
@@ -80,7 +84,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
         actions: [
           IconButton(
             icon:
-                const Icon(Icons.notifications_outlined, color: Colors.black),
+            const Icon(Icons.notifications_outlined, color: Colors.black),
             onPressed: () {},
           ),
         ],
@@ -146,7 +150,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                     padding: EdgeInsets.all(screenWidth * 0.04),
                     itemCount: crops.length,
                     gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
+                    const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       crossAxisSpacing: 20,
                       mainAxisSpacing: 20,
@@ -195,6 +199,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
 
   Widget _buildCropCard(
       Map<String, dynamic> crop, double screenWidth) {
+    final isAsset = crop['isAsset'] ?? false;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -223,7 +229,21 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Center(
-                    child: Text(
+                    child: isAsset
+                        ? Image.asset(
+                      crop['icon'],
+                      width: 32,
+                      height: 32,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          Icons.emoji_food_beverage,
+                          size: 28,
+                          color: Colors.orange,
+                        );
+                      },
+                    )
+                        : Text(
                       crop['icon'],
                       style: const TextStyle(fontSize: 28),
                     ),
@@ -238,7 +258,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                         crop['name'],
                         style: TextStyle(
                           fontSize:
-                              screenWidth < 600 ? 18 : 20,
+                          screenWidth < 600 ? 18 : 20,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -285,7 +305,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                 onPressed: () => _showListingDetails(crop),
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
-                      const Color(0xFF11823F),
+                  const Color(0xFF11823F),
                 ),
                 child: const Text('View Requirement'),
               ),
@@ -344,6 +364,7 @@ class ListingDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth >= 600;
+    final isAsset = crop['isAsset'] ?? false;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -371,21 +392,98 @@ class ListingDetailsScreen extends StatelessWidget {
               height: isTablet ? 380 : 280,
               color: const Color(0xFFF0F0F0),
               child: Center(
-                child: Text(
+                child: isAsset
+                    ? Image.asset(
+                  crop['icon'],
+                  width: 120,
+                  height: 120,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(
+                      Icons.emoji_food_beverage,
+                      size: 120,
+                      color: Colors.orange,
+                    );
+                  },
+                )
+                    : Text(
                   crop['icon'],
                   style: const TextStyle(fontSize: 120),
                 ),
               ),
             ),
             Padding(
-              padding:
-                  EdgeInsets.all(isTablet ? 32 : 20),
-              child: Text(
-                crop['name'],
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+              padding: EdgeInsets.all(isTablet ? 32 : 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    crop['name'],
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Quantity: ${crop['quantity']}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Color(0xFF666666),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    crop['price'],
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF11823F),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      const Icon(Icons.person, size: 18, color: Color(0xFF666666)),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Buyer: ${crop['buyer']}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Color(0xFF666666),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on, size: 18, color: Color(0xFF666666)),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Distance: ${crop['distance']}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Color(0xFF666666),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.star, size: 18, color: Color(0xFFFFB800)),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Rating: ${crop['rating']}/5',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Color(0xFF666666),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],

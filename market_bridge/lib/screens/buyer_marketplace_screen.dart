@@ -21,7 +21,8 @@ class _BuyerMarketplaceScreenState
       'farmer': 'Ramesh',
       'distance': '3km',
       'rating': 4.0,
-      'icon': '🍅',
+      'icon': 'assets/icons/tomato.png',
+      'isAsset': true,
     },
     {
       'name': 'Onion',
@@ -30,7 +31,8 @@ class _BuyerMarketplaceScreenState
       'farmer': 'Ramesh',
       'distance': '3km',
       'rating': 4.0,
-      'icon': '🧅',
+      'icon': 'assets/icons/onion.png',
+      'isAsset': true,
     },
     {
       'name': 'Potato',
@@ -39,7 +41,8 @@ class _BuyerMarketplaceScreenState
       'farmer': 'Ramesh',
       'distance': '3km',
       'rating': 4.0,
-      'icon': '🥔',
+      'icon': 'assets/icons/potato.png',
+      'isAsset': true,
     },
     {
       'name': 'Wheat',
@@ -48,7 +51,8 @@ class _BuyerMarketplaceScreenState
       'farmer': 'Ramesh',
       'distance': '3km',
       'rating': 4.0,
-      'icon': '🌾',
+      'icon': 'assets/icons/rice.png',
+      'isAsset': true,
     },
   ];
 
@@ -96,7 +100,7 @@ class _BuyerMarketplaceScreenState
                 const Text(
                   'Fresh produce from farmers',
                   style:
-                      TextStyle(fontSize: 14, color: Color(0xFF666666)),
+                  TextStyle(fontSize: 14, color: Color(0xFF666666)),
                 ),
                 const SizedBox(height: 12),
                 TextField(
@@ -138,7 +142,7 @@ class _BuyerMarketplaceScreenState
                     padding: EdgeInsets.all(screenWidth * 0.04),
                     itemCount: farmerListings.length,
                     gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
+                    const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       mainAxisSpacing: 20,
                       crossAxisSpacing: 20,
@@ -176,13 +180,13 @@ class _BuyerMarketplaceScreenState
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(Icons.home_outlined, 'Home', false,
-                  () => Navigator.pop(context)),
+                      () => Navigator.pop(context)),
               _buildNavItem(Icons.store, 'Marketplace', true, () {}),
               _buildNavItem(
                 Icons.person_outline,
                 'Dashboard',
                 false,
-                () => Navigator.pushNamed(
+                    () => Navigator.pushNamed(
                     context, Routes.routeDashboard),
               ),
             ],
@@ -194,6 +198,8 @@ class _BuyerMarketplaceScreenState
 
   Widget _buildListingCard(
       Map<String, dynamic> listing, bool isTablet) {
+    final isAsset = listing['isAsset'] ?? false;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -221,7 +227,21 @@ class _BuyerMarketplaceScreenState
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Center(
-                  child: Text(listing['icon'],
+                  child: isAsset
+                      ? Image.asset(
+                    listing['icon'],
+                    width: 32,
+                    height: 32,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(
+                        Icons.emoji_food_beverage,
+                        size: 28,
+                        color: Colors.orange,
+                      );
+                    },
+                  )
+                      : Text(listing['icon'],
                       style: const TextStyle(fontSize: 28)),
                 ),
               ),
@@ -290,11 +310,11 @@ class _BuyerMarketplaceScreenState
   }
 
   Widget _buildNavItem(
-    IconData icon,
-    String label,
-    bool active,
-    VoidCallback onTap,
-  ) {
+      IconData icon,
+      String label,
+      bool active,
+      VoidCallback onTap,
+      ) {
     return InkWell(
       onTap: onTap,
       child: Column(
@@ -342,6 +362,7 @@ class BuyerListingDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth >= 600;
+    final isAsset = listing['isAsset'] ?? false;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -359,8 +380,23 @@ class BuyerListingDetailsScreen extends StatelessWidget {
           children: [
             Container(
               height: isTablet ? 380 : 280,
+              color: const Color(0xFFF0F0F0),
               alignment: Alignment.center,
-              child: Text(
+              child: isAsset
+                  ? Image.asset(
+                listing['icon'],
+                width: 140,
+                height: 140,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Icon(
+                    Icons.emoji_food_beverage,
+                    size: 120,
+                    color: Colors.orange,
+                  );
+                },
+              )
+                  : Text(
                 listing['icon'],
                 style: TextStyle(fontSize: isTablet ? 140 : 120),
               ),
@@ -387,6 +423,30 @@ class BuyerListingDetailsScreen extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                       color: const Color(0xFF2196F3),
                     ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      const Icon(Icons.person, size: 18, color: Color(0xFF666666)),
+                      const SizedBox(width: 8),
+                      Text('Farmer: ${listing['farmer']}'),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on, size: 18, color: Color(0xFF666666)),
+                      const SizedBox(width: 8),
+                      Text('Distance: ${listing['distance']}'),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.star, size: 18, color: Color(0xFFFFB800)),
+                      const SizedBox(width: 8),
+                      Text('Rating: ${listing['rating']}/5'),
+                    ],
                   ),
                 ],
               ),

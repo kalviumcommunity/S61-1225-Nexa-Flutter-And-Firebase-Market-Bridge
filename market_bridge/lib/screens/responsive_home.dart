@@ -7,10 +7,10 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
   const ResponsiveHomeEnhanced({Key? key}) : super(key: key);
 
   List<Map<String, String>> get produce => [
-    {"name": "Tomato", "price": "₹20/kg", "change": "+5%"},
-    {"name": "Onion", "price": "₹25/kg", "change": "+2%"},
-    {"name": "Potato", "price": "₹12/kg", "change": "-3%"},
-    {"name": "Wheat", "price": "₹2400/quintal", "change": "+8%"},
+    {"name": "Tomato", "price": "₹20/kg", "change": "+5%", "icon": "assets/icons/tomato.png"},
+    {"name": "Onion", "price": "₹25/kg", "change": "+2%", "icon": "assets/icons/onion.png"},
+    {"name": "Potato", "price": "₹12/kg", "change": "-3%", "icon": "assets/icons/potato.png"},
+    {"name": "Wheat", "price": "₹2400/quintal", "change": "+8%", "icon": "assets/icons/rice.png"},
   ];
 
   @override
@@ -23,10 +23,10 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
             // Define breakpoints
             final width = constraints.maxWidth;
             final height = constraints.maxHeight;
-            
+
             // Determine device type
             final DeviceType deviceType = _getDeviceType(width);
-            
+
             // Responsive configurations
             final config = _getResponsiveConfig(deviceType, width, height);
 
@@ -34,7 +34,7 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
               children: [
                 // Header
                 _buildHeader(context, config, deviceType),
-                
+
                 // Main Content
                 Expanded(
                   child: SingleChildScrollView(
@@ -47,25 +47,25 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
                       children: [
                         _buildLocationCard(config),
                         SizedBox(height: config.sectionSpacing),
-                        
+
                         _buildSectionTitle("Today's Market Prices", config),
                         SizedBox(height: config.itemSpacing),
-                        
+
                         _buildProduceGrid(config, deviceType),
                         SizedBox(height: config.sectionSpacing),
-                        
+
                         _buildQuickActions(context, config),
                         SizedBox(height: config.sectionSpacing),
-                        
+
                         _buildTrendingDemand(config),
                         SizedBox(height: config.sectionSpacing),
-                        
+
                         _buildActionButtons(context, config),
                       ],
                     ),
                   ),
                 ),
-                
+
                 // Bottom Navigation
                 _buildBottomNav(context, config, width, height),
               ],
@@ -99,7 +99,7 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
           gridAspectRatio: 1.0,
           gridItemHeight: 120,
         );
-      
+
       case DeviceType.tablet:
         return ResponsiveConfig(
           titleSize: 22,
@@ -113,7 +113,7 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
           gridAspectRatio: 1.0,
           gridItemHeight: 140,
         );
-      
+
       case DeviceType.desktop:
         return ResponsiveConfig(
           titleSize: 26,
@@ -292,6 +292,8 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
         final item = produce[index];
         final change = item['change'] ?? '';
         final isPositive = change.startsWith('+');
+        final iconPath = item['icon'] ?? '';
+        final isAsset = iconPath.startsWith('assets/');
 
         return Container(
           padding: const EdgeInsets.all(12),
@@ -318,11 +320,24 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
                       color: const Color(0xFFF7F7F7),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.emoji_food_beverage,
-                        size: 20,
-                        color: Colors.orange,
+                    child: Center(
+                      child: isAsset
+                          ? Image.asset(
+                        iconPath,
+                        width: 24,
+                        height: 24,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Icon(
+                            Icons.emoji_food_beverage,
+                            size: 20,
+                            color: Colors.orange,
+                          );
+                        },
+                      )
+                          : Text(
+                        iconPath,
+                        style: const TextStyle(fontSize: 20),
                       ),
                     ),
                   ),
@@ -541,11 +556,11 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
 
   // Bottom Navigation
   Widget _buildBottomNav(
-    BuildContext context,
-    ResponsiveConfig config,
-    double width,
-    double height,
-  ) {
+      BuildContext context,
+      ResponsiveConfig config,
+      double width,
+      double height,
+      ) {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,

@@ -18,7 +18,8 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
       'farmer': 'Kumar',
       'status': 'pending',
       'date': '2 days ago',
-      'icon': '🍅',
+      'icon': 'assets/icons/tomato.png',
+      'isAsset': true,
     },
     {
       'crop': 'Onion',
@@ -27,9 +28,9 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
       'farmer': 'Kumar',
       'status': 'confirmed',
       'date': '2 days ago',
-      'icon': '🧅',
+      'icon': 'assets/icons/onion.png',
+      'isAsset': true,
     },
-    // Add more orders if needed
   ];
 
   Color _getStatusBgColor(String status) {
@@ -59,6 +60,8 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
   }
 
   void _trackOrder(Map<String, dynamic> order) {
+    final isAsset = order['isAsset'] ?? false;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -74,6 +77,38 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Order icon
+            Center(
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F5F5),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: isAsset
+                      ? Image.asset(
+                    order['icon'],
+                    width: 50,
+                    height: 50,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(
+                        Icons.emoji_food_beverage,
+                        size: 40,
+                        color: Colors.orange,
+                      );
+                    },
+                  )
+                      : Text(
+                    order['icon'],
+                    style: const TextStyle(fontSize: 50),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
             Text('Order: ${order['crop']}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
             Text('Quantity: ${order['quantity']}'),
@@ -141,19 +176,19 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
                     builder: (context, constraints) {
                       return isTablet
                           ? Row(
-                              children: [
-                                _buildStatCard(icon: Icons.receipt_long, label: 'Total Orders', value: '8', screenWidth: screenWidth),
-                                SizedBox(width: padding),
-                                _buildStatCard(icon: Icons.attach_money, label: 'Total Spent', value: '₹32,000', screenWidth: screenWidth),
-                              ],
-                            )
+                        children: [
+                          _buildStatCard(icon: Icons.receipt_long, label: 'Total Orders', value: '8', screenWidth: screenWidth),
+                          SizedBox(width: padding),
+                          _buildStatCard(icon: Icons.attach_money, label: 'Total Spent', value: '₹32,000', screenWidth: screenWidth),
+                        ],
+                      )
                           : Column(
-                              children: [
-                                _buildStatCard(icon: Icons.receipt_long, label: 'Total Orders', value: '8', screenWidth: screenWidth),
-                                SizedBox(height: padding),
-                                _buildStatCard(icon: Icons.attach_money, label: 'Total Spent', value: '₹32,000', screenWidth: screenWidth),
-                              ],
-                            );
+                        children: [
+                          _buildStatCard(icon: Icons.receipt_long, label: 'Total Orders', value: '8', screenWidth: screenWidth),
+                          SizedBox(height: padding),
+                          _buildStatCard(icon: Icons.attach_money, label: 'Total Spent', value: '₹32,000', screenWidth: screenWidth),
+                        ],
+                      );
                     },
                   ),
                 ],
@@ -228,7 +263,6 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
                       if (_myOrders.isEmpty) return _buildEmptyState(padding);
 
                       final crossAxisCount = isTablet ? 2 : 1;
-                      final childAspectRatio = isTablet ? 3 : 2.5;
 
                       return GridView.builder(
                         shrinkWrap: true,
@@ -238,7 +272,8 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
                           crossAxisCount: crossAxisCount,
                           crossAxisSpacing: padding,
                           mainAxisSpacing: padding,
-                          ),
+                          childAspectRatio: isTablet ? 1.5 : 1.8,
+                        ),
                         itemBuilder: (context, index) => _buildOrderCard(order: _myOrders[index]),
                       );
                     },
@@ -319,6 +354,8 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
   }
 
   Widget _buildOrderCard({required Map<String, dynamic> order}) {
+    final isAsset = order['isAsset'] ?? false;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -336,7 +373,23 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(10)),
-                child: Center(child: Text(order['icon'], style: const TextStyle(fontSize: 28))),
+                child: Center(
+                  child: isAsset
+                      ? Image.asset(
+                    order['icon'],
+                    width: 32,
+                    height: 32,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(
+                        Icons.emoji_food_beverage,
+                        size: 28,
+                        color: Colors.orange,
+                      );
+                    },
+                  )
+                      : Text(order['icon'], style: const TextStyle(fontSize: 28)),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
