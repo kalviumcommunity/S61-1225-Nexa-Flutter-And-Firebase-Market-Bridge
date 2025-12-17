@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'buyer_home_screen.dart';
 import 'responsive_home.dart';
 
@@ -14,40 +15,32 @@ class RoleHomeRouter extends StatefulWidget {
 
 class _RoleHomeRouterState extends State<RoleHomeRouter>
     with SingleTickerProviderStateMixin {
-  late AnimationController _loadingController;
-  late Animation<double> _rotationAnimation;
-  late Animation<double> _scaleAnimation;
+  late final AnimationController _loadingController;
+  late final Animation<double> _rotationAnimation;
+  late final Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
 
-    // Setup loading animation
     _loadingController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
+    )..repeat(reverse: true);
+
+    _rotationAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(
+        parent: _loadingController,
+        curve: Curves.linear,
+      ),
     );
 
-    // Rotation animation for loading icon
-    _rotationAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _loadingController,
-      curve: Curves.linear,
-    ));
-
-    // Pulsing scale animation
-    _scaleAnimation = Tween<double>(
-      begin: 0.9,
-      end: 1.1,
-    ).animate(CurvedAnimation(
-      parent: _loadingController,
-      curve: Curves.easeInOut,
-    ));
-
-    // Start repeating animation
-    _loadingController.repeat(reverse: true);
+    _scaleAnimation = Tween<double>(begin: 0.9, end: 1.1).animate(
+      CurvedAnimation(
+        parent: _loadingController,
+        curve: Curves.easeInOut,
+      ),
+    );
   }
 
   @override
@@ -66,100 +59,106 @@ class _RoleHomeRouterState extends State<RoleHomeRouter>
           .doc(user.uid)
           .get();
 
-      if (doc.exists) {
-        return doc.data()?['role'] as String?;
-      }
-      return null;
+      return doc.data()?['role'] as String?;
     } catch (e) {
-      debugPrint('Error fetching user role: $e');
+      debugPrint('Role fetch error: $e');
       return null;
     }
   }
 
+  /// =======================
+  /// LOADING SCREEN (Responsive)
+  /// =======================
   Widget _buildLoadingScreen() {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Animated loading icon
-            ScaleTransition(
-              scale: _scaleAnimation,
-              child: RotationTransition(
-                turns: _rotationAnimation,
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF11823F).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: const Icon(
-                    Icons.agriculture,
-                    size: 40,
-                    color: Color(0xFF11823F),
-                  ),
-                ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final screenWidth = MediaQuery.of(context).size.width;
+          final screenHeight = MediaQuery.of(context).size.height;
+          final isTablet = screenWidth >= 600;
+
+          final iconSize =
+              isTablet ? constraints.maxWidth * 0.12 : constraints.maxWidth * 0.2;
+          final iconInnerSize = iconSize * 0.5;
+
+          return Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: screenWidth * 0.05,
+                vertical: screenHeight * 0.02,
               ),
-            ),
-            const SizedBox(height: 24),
-
-            // Animated loading text
-            FadeTransition(
-              opacity: _loadingController,
-              child: const Text(
-                'Loading your dashboard...',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // Progress indicator
-            SizedBox(
-              width: 200,
-              child: AnimatedBuilder(
-                animation: _loadingController,
-                builder: (context, child) {
-                  return LinearProgressIndicator(
-                    value: _loadingController.value,
-                    backgroundColor: Colors.grey[200],
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      const Color(0xFF11823F),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ScaleTransition(
+                    scale: _scaleAnimation,
+                    child: RotationTransition(
+                      turns: _rotationAnimation,
+                      child: Container(
+                        width: iconSize,
+                        height: iconSize,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF11823F).withOpacity(0.1),
+                          borderRadius:
+                              BorderRadius.circular(isTablet ? 20 : 16),
+                        ),
+                        child: Icon(
+                          Icons.agriculture,
+                          size: iconInnerSize,
+                          color: const Color(0xFF11823F),
+                        ),
+                      ),
                     ),
-                    minHeight: 4,
-                  );
-                },
+                  ),
+                  const SizedBox(height: 24),
+                  FadeTransition(
+                    opacity: _loadingController,
+                    child: Text(
+                      'Loading your dashboard...',
+                      style: TextStyle(
+                        fontSize: isTablet ? 20 : 16,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: isTablet
+                        ? constraints.maxWidth * 0.4
+                        : constraints.maxWidth * 0.6,
+                    child: LinearProgressIndicator(
+                      value: _loadingController.value,
+                      backgroundColor: Colors.grey[200],
+                      valueColor:
+                          const AlwaysStoppedAnimation(Color(0xFF11823F)),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Check if role was passed as argument (from profile completion)
-    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth >= 600;
+
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     final passedRole = args?['role'] as String?;
 
     if (passedRole != null) {
-      // Role was passed directly, use it with fade transition
       return AnimatedSwitcher(
-        duration: const Duration(milliseconds: 500),
-        switchInCurve: Curves.easeIn,
-        switchOutCurve: Curves.easeOut,
+        duration: Duration(milliseconds: isTablet ? 600 : 500),
         child: _buildHomeScreen(passedRole),
       );
     }
 
-    // No role passed, fetch from Firestore
     return FutureBuilder<String?>(
       future: _getUserRole(),
       builder: (context, snapshot) {
@@ -167,44 +166,24 @@ class _RoleHomeRouterState extends State<RoleHomeRouter>
           return _buildLoadingScreen();
         }
 
-        if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
-          // Error or no data, redirect to login with animation
+        if (!snapshot.hasData || snapshot.data == null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.of(context).pushReplacementNamed('/phone');
+            Navigator.pushReplacementNamed(context, '/phone');
           });
           return _buildLoadingScreen();
         }
 
-        final role = snapshot.data!;
         return AnimatedSwitcher(
-          duration: const Duration(milliseconds: 600),
-          switchInCurve: Curves.easeInOut,
-          transitionBuilder: (child, animation) {
-            // Custom transition: fade + scale
-            return FadeTransition(
-              opacity: animation,
-              child: ScaleTransition(
-                scale: Tween<double>(begin: 0.95, end: 1.0).animate(
-                  CurvedAnimation(
-                    parent: animation,
-                    curve: Curves.easeOutQuart,
-                  ),
-                ),
-                child: child,
-              ),
-            );
-          },
-          child: _buildHomeScreen(role),
+          duration: Duration(milliseconds: isTablet ? 700 : 600),
+          child: _buildHomeScreen(snapshot.data!),
         );
       },
     );
   }
 
   Widget _buildHomeScreen(String role) {
-    if (role.toLowerCase() == 'buyer') {
-      return const BuyerHomeScreen(key: ValueKey('buyer_home'));
-    } else {
-      return const ResponsiveHome(key: ValueKey('farmer_home'));
-    }
+    return role.toLowerCase() == 'buyer'
+        ? const BuyerHomeScreen(key: ValueKey('buyer_home'))
+        : const ResponsiveHomeEnhanced(key: ValueKey('farmer_home'));
   }
 }

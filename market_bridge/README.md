@@ -1744,3 +1744,122 @@ Animations provide visual feedback, reduce perceived wait times, guide user atte
 7. Add page transitions that match app personality
 
 ---
+
+# Responsive Flutter
+
+## Project Description
+This Flutter project demonstrates **responsive and adaptive UI design** using `MediaQuery` and `LayoutBuilder`. The app dynamically adjusts its layout, sizing, and orientation based on different screen sizes, ensuring an optimal user experience on both **mobile phones** and **tablets**.
+
+The goal of this project is to show how Flutter widgets can scale proportionally and adapt their layout without distortion or overflow issues.
+
+---
+
+## Features
+
+- **Responsive Container Sizing**: Uses `MediaQuery` to adjust widget width and height relative to the screen size.
+- **Conditional Layouts**: Uses `LayoutBuilder` to switch between **Column** (for mobile) and **Row** (for tablet) layouts.
+- **Adaptive UI**: Ensures font sizes, paddings, and widget dimensions are proportional across devices.
+
+---
+
+## Code Examples
+
+### Using MediaQuery
+
+```dart
+var screenWidth = MediaQuery.of(context).size.width;
+var screenHeight = MediaQuery.of(context).size.height;
+
+Container(
+  width: screenWidth * 0.8,
+  height: screenHeight * 0.1,
+  color: Colors.teal,
+  child: Center(child: Text('Responsive Container')),
+);
+````
+
+### Using LayoutBuilder
+
+```dart
+LayoutBuilder(
+  builder: (context, constraints) {
+    if (constraints.maxWidth < 600) {
+      return Column(
+        children: [
+          Text('Mobile Layout'),
+          Icon(Icons.phone_android, size: 80),
+        ],
+      );
+    } else {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text('Tablet Layout'),
+          SizedBox(width: 20),
+          Icon(Icons.tablet, size: 100),
+        ],
+      );
+    }
+  },
+);
+```
+
+### Combined Example
+
+```dart
+class ResponsiveDemo extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var screenWidth = MediaQuery.of(context).size.width;
+
+    return Scaffold(
+      appBar: AppBar(title: Text('Responsive Design Demo')),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          if (screenWidth < 600) {
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: screenWidth * 0.8,
+                  height: 100,
+                  color: Colors.tealAccent,
+                  child: Center(child: Text('Mobile View')),
+                ),
+              ],
+            );
+          } else {
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Container(
+                  width: 250,
+                  height: 150,
+                  color: Colors.orangeAccent,
+                  child: Center(child: Text('Tablet Left Panel')),
+                ),
+                Container(
+                  width: 250,
+                  height: 150,
+                  color: Colors.tealAccent,
+                  child: Center(child: Text('Tablet Right Panel')),
+                ),
+              ],
+            );
+          }
+        },
+      ),
+    );
+  }
+}
+```
+
+## Reflection
+
+* **Why is responsiveness important?**
+  It ensures a consistent user experience across devices of different sizes and orientations, improving usability and accessibility.
+
+* **MediaQuery vs LayoutBuilder:**
+
+    * `MediaQuery` gives **screen dimensions and orientation**.
+    * `LayoutBuilder` provides **widget constraints** allowing conditional layouts for different screen widths.

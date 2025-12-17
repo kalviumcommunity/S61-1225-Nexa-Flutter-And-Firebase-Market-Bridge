@@ -1,4 +1,3 @@
-// lib/screens/marketplace_screen.dart
 import 'package:flutter/material.dart';
 
 class MarketplaceScreen extends StatefulWidget {
@@ -11,7 +10,6 @@ class MarketplaceScreen extends StatefulWidget {
 class _MarketplaceScreenState extends State<MarketplaceScreen> {
   final searchController = TextEditingController();
 
-  // Sample data matching Figma
   final List<Map<String, dynamic>> crops = [
     {
       'name': 'Tomato',
@@ -59,6 +57,9 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth >= 600;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
@@ -78,51 +79,46 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: Colors.black),
+            icon:
+                const Icon(Icons.notifications_outlined, color: Colors.black),
             onPressed: () {},
           ),
         ],
       ),
       body: Column(
         children: [
-          // Header section
+          /// Header
           Container(
             color: Colors.white,
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            padding: EdgeInsets.fromLTRB(
+              screenWidth * 0.04,
+              8,
+              screenWidth * 0.04,
+              16,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
                   'Browse buyer requirements',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF666666),
-                  ),
+                  style: TextStyle(fontSize: 14, color: Color(0xFF666666)),
                 ),
                 const SizedBox(height: 12),
-                // Search bar
                 TextField(
                   controller: searchController,
                   decoration: InputDecoration(
                     hintText: 'Search crops...',
-                    hintStyle: const TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF999999),
+                    hintStyle: TextStyle(
+                      fontSize: isTablet ? 16 : 14,
+                      color: const Color(0xFF999999),
                     ),
-                    prefixIcon: const Icon(
-                      Icons.search,
-                      color: Color(0xFF999999),
-                      size: 20,
-                    ),
+                    prefixIcon: const Icon(Icons.search,
+                        color: Color(0xFF999999)),
                     filled: true,
                     fillColor: const Color(0xFFF5F5F5),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 16,
                     ),
                   ),
                 ),
@@ -130,21 +126,45 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
             ),
           ),
 
-          // Crop list
+          /// Crop List / Grid
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: crops.length,
-              itemBuilder: (context, index) {
-                final crop = crops[index];
-                return _buildCropCard(crop);
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                if (constraints.maxWidth < 600) {
+                  /// 📱 Mobile → List
+                  return ListView.builder(
+                    padding: EdgeInsets.all(screenWidth * 0.04),
+                    itemCount: crops.length,
+                    itemBuilder: (context, index) {
+                      return _buildCropCard(
+                          crops[index], screenWidth);
+                    },
+                  );
+                } else {
+                  /// 📲 Tablet → Grid
+                  return GridView.builder(
+                    padding: EdgeInsets.all(screenWidth * 0.04),
+                    itemCount: crops.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 20,
+                      mainAxisSpacing: 20,
+                      childAspectRatio: 1.3,
+                    ),
+                    itemBuilder: (context, index) {
+                      return _buildCropCard(
+                          crops[index], screenWidth);
+                    },
+                  );
+                }
               },
             ),
           ),
         ],
       ),
 
-      // Bottom Navigation
+      /// Bottom Navigation
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -173,7 +193,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     );
   }
 
-  Widget _buildCropCard(Map<String, dynamic> crop) {
+  Widget _buildCropCard(
+      Map<String, dynamic> crop, double screenWidth) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -192,10 +213,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Crop header
             Row(
               children: [
-                // Crop icon
                 Container(
                   width: 48,
                   height: 48,
@@ -211,20 +230,18 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                // Crop details
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         crop['name'],
-                        style: const TextStyle(
-                          fontSize: 18,
+                        style: TextStyle(
+                          fontSize:
+                              screenWidth < 600 ? 18 : 20,
                           fontWeight: FontWeight.w700,
-                          color: Colors.black,
                         ),
                       ),
-                      const SizedBox(height: 2),
                       Text(
                         crop['quantity'],
                         style: const TextStyle(
@@ -238,84 +255,39 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               ],
             ),
             const SizedBox(height: 12),
-
-            // Price
             Text(
               crop['price'],
-              style: const TextStyle(
-                fontSize: 20,
+              style: TextStyle(
+                fontSize: screenWidth < 600 ? 20 : 24,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF11823F),
+                color: const Color(0xFF11823F),
               ),
             ),
             const SizedBox(height: 12),
-
-            // Buyer info
             Row(
               children: [
                 Text(
                   'Buyer: ${crop['buyer']}',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF666666),
-                  ),
+                  style: const TextStyle(fontSize: 13),
                 ),
                 const Spacer(),
-                Text(
-                  crop['distance'],
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF666666),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                // Rating
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.star,
-                      size: 14,
-                      color: Color(0xFFFFB800),
-                    ),
-                    const SizedBox(width: 2),
-                    Text(
-                      '${crop['rating']}',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ],
-                ),
+                const Icon(Icons.star,
+                    size: 14, color: Color(0xFFFFB800)),
+                const SizedBox(width: 4),
+                Text('${crop['rating']}'),
               ],
             ),
             const SizedBox(height: 16),
-
-            // View Requirement button
             SizedBox(
               width: double.infinity,
               height: 44,
               child: ElevatedButton(
-                onPressed: () {
-                  // Navigate to listing details
-                  _showListingDetails(crop);
-                },
+                onPressed: () => _showListingDetails(crop),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF11823F),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  elevation: 0,
+                  backgroundColor:
+                      const Color(0xFF11823F),
                 ),
-                child: const Text(
-                  'View Requirement',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
+                child: const Text('View Requirement'),
               ),
             ),
           ],
@@ -324,22 +296,24 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     );
   }
 
-  Widget _buildNavItem(IconData icon, String label, bool isActive) {
+  Widget _buildNavItem(
+      IconData icon, String label, bool isActive) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(
           icon,
-          color: isActive ? const Color(0xFF11823F) : const Color(0xFF999999),
-          size: 24,
+          color: isActive
+              ? const Color(0xFF11823F)
+              : const Color(0xFF999999),
         ),
-        const SizedBox(height: 4),
         Text(
           label,
           style: TextStyle(
             fontSize: 12,
-            color: isActive ? const Color(0xFF11823F) : const Color(0xFF999999),
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+            color: isActive
+                ? const Color(0xFF11823F)
+                : const Color(0xFF999999),
           ),
         ),
       ],
@@ -350,20 +324,27 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ListingDetailsScreen(crop: crop),
+        builder: (context) =>
+            ListingDetailsScreen(crop: crop),
       ),
     );
   }
 }
 
-// Listing Details Screen
+/// =====================
+/// Listing Details Screen
+/// =====================
 class ListingDetailsScreen extends StatelessWidget {
   final Map<String, dynamic> crop;
 
-  const ListingDetailsScreen({Key? key, required this.crop}) : super(key: key);
+  const ListingDetailsScreen({Key? key, required this.crop})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth >= 600;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
@@ -384,12 +365,10 @@ class ListingDetailsScreen extends StatelessWidget {
       ),
       body: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Crop image section
             Container(
               width: double.infinity,
-              height: 280,
+              height: isTablet ? 380 : 280,
               color: const Color(0xFFF0F0F0),
               child: Center(
                 child: Text(
@@ -398,191 +377,15 @@ class ListingDetailsScreen extends StatelessWidget {
                 ),
               ),
             ),
-
-            // Details section
             Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Crop name and quantity
-                  Text(
-                    crop['name'],
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Quantity: ${crop['quantity']}',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF666666),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Price
-                  Text(
-                    crop['price'],
-                    style: const TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF11823F),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Buyer info card
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        // Avatar
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE8E8E8),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Icon(
-                            Icons.person,
-                            color: Color(0xFF666666),
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                crop['buyer'],
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              Text(
-                                '${crop['distance']} away',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Color(0xFF666666),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Rating
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.star,
-                              size: 18,
-                              color: Color(0xFFFFB800),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${crop['rating']}.0',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Description
-                  const Text(
-                    'Description',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Fresh tomatoes harvested this morning. Good quality, disease-free and clean. Looking for bulk buyers in the local market.',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF666666),
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Contact Buyer button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF11823F),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        'Contact Buyer',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Negotiate Price button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: OutlinedButton(
-                      onPressed: () {},
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(
-                          color: Color(0xFF11823F),
-                          width: 2,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text(
-                        'Negotiate Price',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF11823F),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+              padding:
+                  EdgeInsets.all(isTablet ? 32 : 20),
+              child: Text(
+                crop['name'],
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
