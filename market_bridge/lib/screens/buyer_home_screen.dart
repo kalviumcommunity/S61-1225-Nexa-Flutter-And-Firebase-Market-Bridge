@@ -1,5 +1,6 @@
 // lib/screens/buyer_home_screen.dart
 import 'package:flutter/material.dart';
+import 'package:market_bridge/screens/buyer_dashboard_screen.dart';
 import '../routes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'buyer_marketplace_screen.dart';
@@ -13,28 +14,28 @@ class BuyerHomeScreen extends StatelessWidget {
       "price": "₹20/kg",
       "change": "+5%",
       "icon": "assets/icons/tomato.png",
-      "isAsset": true
+      "isAsset": true,
     },
     {
       "name": "Onion",
       "price": "₹25/kg",
       "change": "+2%",
       "icon": "assets/icons/onion.png",
-      "isAsset": true
+      "isAsset": true,
     },
     {
       "name": "Potato",
       "price": "₹12/kg",
       "change": "-3%",
       "icon": "assets/icons/potato.png",
-      "isAsset": true
+      "isAsset": true,
     },
     {
       "name": "Wheat",
       "price": "₹2400/quintal",
       "change": "+8%",
       "icon": "assets/icons/rice.png",
-      "isAsset": true
+      "isAsset": true,
     },
   ];
 
@@ -155,16 +156,13 @@ class BuyerHomeScreen extends StatelessWidget {
                 // content
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: width * 0.055,
-                      vertical: screenHeight * 0.02,
-                    ),
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         // Location Card
                         Container(
-                          padding: const EdgeInsets.all(14),
+                          padding: const EdgeInsets.all(16),
                           margin: const EdgeInsets.only(top: 6, bottom: 12),
                           decoration: BoxDecoration(
                             color: Colors.white,
@@ -233,13 +231,13 @@ class BuyerHomeScreen extends StatelessWidget {
                           shrinkWrap: true,
                           itemCount: produce.length,
                           gridDelegate:
-                          SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: gridCount,
-                            mainAxisExtent: isTablet ? 140 : 120,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                            childAspectRatio: 1,
-                          ),
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: gridCount,
+                                mainAxisExtent: isTablet ? 140 : 120,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 12,
+                                childAspectRatio: 1,
+                              ),
                           itemBuilder: (context, index) {
                             final item = produce[index];
                             final change = item['change'] ?? '';
@@ -269,29 +267,38 @@ class BuyerHomeScreen extends StatelessWidget {
                                         width: 40,
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFF7F7F7),
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                         ),
                                         child: Center(
                                           child: isAsset
                                               ? Image.asset(
-                                            item['icon'],
-                                            width: 24,
-                                            height: 24,
-                                            fit: BoxFit.contain,
-                                            errorBuilder: (context, error, stackTrace) {
-                                              return const Icon(
-                                                Icons.emoji_food_beverage,
-                                                size: 20,
-                                                color: Colors.orange,
-                                              );
-                                            },
-                                          )
+                                                  item['icon'],
+                                                  width: 24,
+                                                  height: 24,
+                                                  fit: BoxFit.contain,
+                                                  errorBuilder:
+                                                      (
+                                                        context,
+                                                        error,
+                                                        stackTrace,
+                                                      ) {
+                                                        return const Icon(
+                                                          Icons
+                                                              .emoji_food_beverage,
+                                                          size: 20,
+                                                          color: Colors.orange,
+                                                        );
+                                                      },
+                                                )
                                               : Text(
-                                            item['icon'] ?? '🥬',
-                                            style: TextStyle(
-                                              fontSize: screenWidth * 0.045,
-                                            ),
-                                          ),
+                                                  item['icon'] ?? '🥬',
+                                                  style: TextStyle(
+                                                    fontSize:
+                                                        screenWidth * 0.045,
+                                                  ),
+                                                ),
                                         ),
                                       ),
                                       const Spacer(),
@@ -304,7 +311,9 @@ class BuyerHomeScreen extends StatelessWidget {
                                           color: isPositive
                                               ? Colors.green.withOpacity(0.08)
                                               : Colors.red.withOpacity(0.06),
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
                                         child: Text(
                                           change,
@@ -382,7 +391,7 @@ class BuyerHomeScreen extends StatelessWidget {
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) =>
-                                            const BuyerMarketplaceScreen(),
+                                                const BuyerMarketplaceScreen(),
                                           ),
                                         );
                                       },
@@ -401,7 +410,9 @@ class BuyerHomeScreen extends StatelessWidget {
                                           vertical: 10,
                                         ),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(30),
+                                          borderRadius: BorderRadius.circular(
+                                            30,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -430,7 +441,9 @@ class BuyerHomeScreen extends StatelessWidget {
                                           vertical: 10,
                                         ),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(30),
+                                          borderRadius: BorderRadius.circular(
+                                            30,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -502,7 +515,12 @@ class BuyerHomeScreen extends StatelessWidget {
                         SizedBox(
                           height: 48,
                           child: OutlinedButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              _showMarketDetailsBottomSheet(
+                                context,
+                                cardTitleSize,
+                              );
+                            },
                             style: OutlinedButton.styleFrom(
                               side: const BorderSide(color: Color(0xFF2196F3)),
                               shape: RoundedRectangleBorder(
@@ -526,7 +544,7 @@ class BuyerHomeScreen extends StatelessWidget {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                  const BuyerMarketplaceScreen(),
+                                      const BuyerMarketplaceScreen(),
                                 ),
                               );
                             },
@@ -585,7 +603,7 @@ class BuyerHomeScreen extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                              const BuyerMarketplaceScreen(),
+                                  const BuyerMarketplaceScreen(),
                             ),
                           );
                         },
@@ -610,6 +628,150 @@ class BuyerHomeScreen extends StatelessWidget {
             );
           },
         ),
+      ),
+    );
+  }
+
+  // Market Details Bottom Sheet
+  void _showMarketDetailsBottomSheet(
+    BuildContext context,
+    double cardTitleSize,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2196F3).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.analytics,
+                        color: Color(0xFF2196F3),
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'Market Overview',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            _buildMarketStat(
+              'Active Listings',
+              '245',
+              Icons.list_alt,
+              const Color(0xFF2196F3),
+            ),
+            _buildMarketStat('Total Farmers', '89', Icons.people, Colors.green),
+            _buildMarketStat(
+              'Available Produce',
+              '1,450 quintals',
+              Icons.inventory,
+              Colors.orange,
+            ),
+            _buildMarketStat(
+              'Average Price Change',
+              '+3.2%',
+              Icons.trending_up,
+              Colors.teal,
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const BuyerMarketplaceScreen(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2196F3),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'Explore Marketplace',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Helper method for market stats
+  Widget _buildMarketStat(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 20, color: color),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }

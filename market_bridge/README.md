@@ -2056,3 +2056,185 @@ flutter build apk --debug
 
 ---
 
+
+# 🛒 MarketBridge – Firestore Database Schema Design
+
+MarketBridge is a Flutter-based mobile application that connects farmers and buyers through a simple, clean, and real-time marketplace experience.  
+This document focuses on **designing a scalable Cloud Firestore database schema** for storing app data efficiently.
+
+
+---
+
+## 📘 Overview of Firestore Data Model
+
+Cloud Firestore is a NoSQL, document-oriented database that stores data in **collections**, **documents**, and **subcollections**.  
+The MarketBridge schema is designed to be:
+- Scalable
+- Easy to query
+- Optimized for real-time updates
+- Future-proof for feature expansion
+
+---
+
+## 📦 Data Requirements
+
+The MarketBridge app needs to store the following data:
+
+- Users (Farmers & Buyers)
+- User profiles
+- Products listed by farmers
+- Orders placed by buyers
+- Product reviews & ratings
+- Favorite products (wishlist)
+
+---
+
+## 🗂 Firestore Database Schema
+
+### 🔹 users (collection)
+
+Stores basic user information.
+
+```
+
+users
+└── userId
+├── name: string
+├── email: string
+├── role: string (farmer | buyer)
+├── phone: string
+├── createdAt: timestamp
+
+```
+
+---
+
+### 🔹 products (collection)
+
+Stores all products listed by farmers.
+
+```
+
+products
+└── productId
+├── name: string
+├── description: string
+├── price: number
+├── quantity: number
+├── category: string
+├── imageUrl: string
+├── farmerId: string (reference to users)
+├── createdAt: timestamp
+
+```
+
+---
+
+### 🔹 orders (collection)
+
+Stores orders placed by buyers.
+
+```
+
+orders
+└── orderId
+├── buyerId: string
+├── totalPrice: number
+├── status: string (pending | confirmed | delivered)
+├── createdAt: timestamp
+└── items (subcollection)
+└── itemId
+├── productId: string
+├── quantity: number
+├── price: number
+
+```
+
+---
+
+### 🔹 reviews (subcollection)
+
+Each product can have multiple reviews.
+
+```
+
+products/{productId}/reviews
+└── reviewId
+├── userId: string
+├── rating: number
+├── comment: string
+├── createdAt: timestamp
+
+```
+
+---
+
+### 🔹 favorites (subcollection)
+
+Users can save products to their favorites.
+
+```
+
+users/{userId}/favorites
+└── favoriteId
+├── productId: string
+├── addedAt: timestamp
+
+````
+
+---
+
+## 📄 Sample Firestore Documents
+
+### Sample Product Document
+
+```json
+{
+  "name": "Organic Tomatoes",
+  "description": "Fresh farm-grown organic tomatoes",
+  "price": 40,
+  "quantity": 10,
+  "category": "Vegetables",
+  "imageUrl": "https://example.com/tomatoes.png",
+  "farmerId": "user_123",
+  "createdAt": "timestamp"
+}
+````
+
+---
+
+### Sample User Document
+
+```json
+{
+  "name": "Ravi Kumar",
+  "email": "ravi@example.com",
+  "role": "farmer",
+  "phone": "9876543210",
+  "createdAt": "timestamp"
+}
+```
+
+---
+
+## 🧠 Reflection
+
+### Why did you choose this structure?
+
+This schema clearly separates users, products, and orders into independent collections, making the data easy to manage and query. Subcollections are used only where necessary to maintain logical grouping.
+
+### How does this help with scalability and performance?
+
+Large datasets such as order items and reviews are stored as subcollections, preventing oversized documents and reducing Firestore read costs. This design scales efficiently as users and products grow.
+
+### Challenges faced
+
+The main challenge was deciding between embedding data versus using references and subcollections. Careful consideration was required to balance performance, cost, and simplicity.
+
+---
+
+## ✅ Conclusion
+
+This Firestore schema provides a clean and scalable foundation for the MarketBridge application. It supports real-time updates, efficient querying, and future expansion while following Firestore best practices.
+
+---
