@@ -1,4 +1,6 @@
+// lib/screens/complete_profile_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../routes.dart';
@@ -14,12 +16,11 @@ class CompleteProfileScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<CompleteProfileScreen> createState() =>
-      _CompleteProfileScreenState();
+  State<CompleteProfileScreen> createState() => _CompleteProfileScreenState();
 }
 
-class _CompleteProfileScreenState
-    extends State<CompleteProfileScreen> {
+class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
+  final _formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final locationController = TextEditingController();
@@ -29,35 +30,36 @@ class _CompleteProfileScreenState
   String farmSizeUnit = 'Acres';
   bool loading = false;
 
-  Color get themeColor =>
-      widget.role.toLowerCase() == 'buyer'
-          ? const Color(0xFF2196F3)
-          : const Color(0xFF11823F);
+  Color get themeColor => widget.role.toLowerCase() == 'buyer'
+      ? const Color(0xFF2196F3)
+      : const Color(0xFF11823F);
 
-  IconData get roleIcon =>
-      widget.role.toLowerCase() == 'buyer'
-          ? Icons.shopping_bag
-          : Icons.agriculture;
+  Color get themeLightColor => widget.role.toLowerCase() == 'buyer'
+      ? const Color(0xFFE3F2FD)
+      : const Color(0xFFE8F5E9);
 
-  Color get iconBgColor =>
-      widget.role.toLowerCase() == 'buyer'
-          ? const Color(0xFFE3F2FD)
-          : const Color(0xFFFFF3E0);
+  IconData get roleIcon => widget.role.toLowerCase() == 'buyer'
+      ? Icons.shopping_bag_rounded
+      : Icons.agriculture_rounded;
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    emailController.dispose();
+    locationController.dispose();
+    farmSizeController.dispose();
+    super.dispose();
+  }
 
   Future<void> _saveProfile() async {
-    if (nameController.text.trim().isEmpty ||
-        locationController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter required fields')),
-      );
+    if (!_formKey.currentState!.validate()) {
       return;
     }
 
     setState(() => loading = true);
 
     final user = FirebaseAuth.instance.currentUser;
-    final uid = user?.uid ??
-        FirebaseFirestore.instance.collection('users').doc().id;
+    final uid = user?.uid ?? FirebaseFirestore.instance.collection('users').doc().id;
 
     final data = {
       'uid': uid,
@@ -70,10 +72,8 @@ class _CompleteProfileScreenState
       'createdAt': FieldValue.serverTimestamp(),
     };
 
-    if (widget.role.toLowerCase() == 'farmer' &&
-        farmSizeController.text.isNotEmpty) {
-      data['farmSize'] =
-          '${farmSizeController.text.trim()} $farmSizeUnit';
+    if (widget.role.toLowerCase() == 'farmer' && farmSizeController.text.isNotEmpty) {
+      data['farmSize'] = '${farmSizeController.text.trim()} $farmSizeUnit';
     }
 
     try {
@@ -83,11 +83,17 @@ class _CompleteProfileScreenState
           .set(data, SetOptions(merge: true));
 
       if (!mounted) return;
-
       _showSuccessDialog();
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save profile')),
+        SnackBar(
+          content: const Text('Failed to save profile. Please try again.'),
+          backgroundColor: Colors.red.shade600,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
       );
     } finally {
       if (mounted) setState(() => loading = false);
@@ -99,50 +105,57 @@ class _CompleteProfileScreenState
       context: context,
       barrierDismissible: false,
       builder: (_) => Dialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.all(28),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircleAvatar(
-                radius: 36,
-                backgroundColor: themeColor.withOpacity(0.1),
-                child:
-                    Icon(Icons.check, size: 40, color: themeColor),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: themeLightColor,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.check_circle_rounded, size: 48, color: themeColor),
               ),
               const SizedBox(height: 20),
               const Text(
                 'Registration Successful!',
-                style:
-                    TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               Text(
                 'Your ${widget.role} profile has been created.',
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Color(0xFF666666)),
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
               ),
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
+                height: 48,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: themeColor,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   onPressed: () {
                     Navigator.pop(context);
                     Navigator.pushNamedAndRemoveUntil(
                       context,
                       Routes.routeHome,
-                      (_) => false,
+                          (_) => false,
                       arguments: {'role': widget.role},
                     );
                   },
-                  child: const Text('Continue'),
+                  child: const Text(
+                    'Continue',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
                 ),
               ),
             ],
@@ -154,101 +167,163 @@ class _CompleteProfileScreenState
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isTablet = screenWidth >= 600;
-    final horizontalPadding = isTablet ? 48.0 : 24.0;
-
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: themeColor,
-        title: const Text('Complete Profile'),
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return SingleChildScrollView(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: isTablet ? 520 : double.infinity,
-                ),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: horizontalPadding,
-                    vertical: 24,
-                  ),
-                  child: Column(
+      backgroundColor: themeColor,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header Section
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  Row(
                     children: [
-                      CircleAvatar(
-                        radius: isTablet ? 48 : 40,
-                        backgroundColor: iconBgColor,
-                        child: Icon(roleIcon,
-                            size: isTablet ? 44 : 36,
-                            color: themeColor),
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: () => Navigator.pop(context),
                       ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Complete Your Profile',
-                        style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700),
-                      ),
-                      const SizedBox(height: 32),
+                      const Spacer(),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(roleIcon, size: 48, color: Colors.white),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Welcome, ${widget.role}!',
+                    style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Complete your profile to get started',
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
+            // Form Section
+            Expanded(
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(30),
+                    topRight: Radius.circular(30),
+                  ),
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: ListView(
+                    padding: const EdgeInsets.all(24),
+                    children: [
                       _buildTextField(
                         controller: nameController,
                         label: 'Full Name',
-                        hint: 'Enter your name',
+                        hint: 'Enter your full name',
+                        icon: Icons.person_outline_rounded,
                         isRequired: true,
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? 'Please enter your name'
+                            : null,
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
 
                       _buildTextField(
                         controller: emailController,
-                        label: 'Email',
-                        hint: 'email@example.com',
+                        label: 'Email Address',
+                        hint: 'example@email.com',
+                        icon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
+                        validator: (v) {
+                          if (v != null && v.isNotEmpty) {
+                            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                                .hasMatch(v)) {
+                              return 'Please enter a valid email';
+                            }
+                          }
+                          return null;
+                        },
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
 
                       _buildTextField(
                         controller: locationController,
                         label: 'Location',
                         hint: 'City, District',
+                        icon: Icons.location_on_outlined,
                         isRequired: true,
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? 'Please enter your location'
+                            : null,
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
 
                       _buildLanguageDropdown(),
-                      const SizedBox(height: 20),
 
-                      if (widget.role.toLowerCase() == 'farmer')
+                      if (widget.role.toLowerCase() == 'farmer') ...[
+                        const SizedBox(height: 16),
                         _buildFarmSize(),
+                      ],
 
                       const SizedBox(height: 32),
 
                       SizedBox(
                         width: double.infinity,
-                        height: 52,
+                        height: 54,
                         child: ElevatedButton(
                           onPressed: loading ? null : _saveProfile,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: themeColor,
+                            foregroundColor: Colors.white,
+                            disabledBackgroundColor: themeColor.withOpacity(0.6),
+                            elevation: 0,
+                            shadowColor: themeColor.withOpacity(0.3),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
                           ),
                           child: loading
-                              ? const CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                )
-                              : const Text('Complete Registration'),
+                              ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2.5,
+                            ),
+                          )
+                              : const Text(
+                            'Complete Registration',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
                         ),
                       ),
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
               ),
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }
@@ -257,28 +332,71 @@ class _CompleteProfileScreenState
     required TextEditingController controller,
     required String label,
     required String hint,
+    required IconData icon,
     bool isRequired = false,
     TextInputType keyboardType = TextInputType.text,
+    String? Function(String?)? validator,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          isRequired ? '$label *' : label,
-          style: const TextStyle(fontWeight: FontWeight.w500),
+        Row(
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1A1A1A),
+              ),
+            ),
+            if (isRequired)
+              const Text(
+                ' *',
+                style: TextStyle(color: Colors.red, fontSize: 14),
+              ),
+          ],
         ),
         const SizedBox(height: 8),
-        TextField(
+        TextFormField(
           controller: controller,
           keyboardType: keyboardType,
+          textCapitalization: keyboardType == TextInputType.emailAddress
+              ? TextCapitalization.none
+              : TextCapitalization.words,
+          validator: validator,
+          style: const TextStyle(fontSize: 15),
           decoration: InputDecoration(
             hintText: hint,
+            hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+            prefixIcon: Icon(icon, color: themeColor, size: 22),
             filled: true,
-            fillColor: const Color(0xFFF5F5F5),
+            fillColor: Colors.grey.shade50,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide.none,
             ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(color: Colors.grey.shade200, width: 1),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(color: themeColor, width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Colors.red, width: 1),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Colors.red, width: 2),
+            ),
+            errorStyle: const TextStyle(fontSize: 12, height: 0.8),
           ),
         ),
       ],
@@ -286,46 +404,146 @@ class _CompleteProfileScreenState
   }
 
   Widget _buildLanguageDropdown() {
-    return DropdownButtonFormField<String>(
-      value: preferredLanguage,
-      items: const [
-        DropdownMenuItem(value: 'English', child: Text('English')),
-        DropdownMenuItem(value: 'Hindi', child: Text('Hindi')),
-        DropdownMenuItem(value: 'Local', child: Text('Local')),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Preferred Language',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF1A1A1A),
+          ),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          value: preferredLanguage,
+          items: const [
+            DropdownMenuItem(
+              value: 'English',
+              child: Text('English'),
+            ),
+            DropdownMenuItem(
+              value: 'Hindi',
+              child: Text('हिंदी (Hindi)'),
+            ),
+            DropdownMenuItem(
+              value: 'Telugu',
+              child: Text('తెలుగు (Telugu)'),
+            ),
+            DropdownMenuItem(
+              value: 'Tamil',
+              child: Text('தமிழ் (Tamil)'),
+            ),
+            DropdownMenuItem(
+              value: 'Kannada',
+              child: Text('ಕನ್ನಡ (Kannada)'),
+            ),
+          ],
+          onChanged: (v) => setState(() => preferredLanguage = v!),
+          icon: Icon(Icons.arrow_drop_down_rounded, color: themeColor, size: 28),
+          style: const TextStyle(fontSize: 15, color: Colors.black87),
+          decoration: InputDecoration(
+            prefixIcon: Icon(Icons.language_rounded, color: themeColor, size: 22),
+            filled: true,
+            fillColor: Colors.grey.shade50,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(color: Colors.grey.shade200, width: 1),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(color: themeColor, width: 2),
+            ),
+          ),
+        ),
       ],
-      onChanged: (v) => setState(() => preferredLanguage = v!),
-      decoration: const InputDecoration(
-        labelText: 'Preferred Language',
-        filled: true,
-        fillColor: Color(0xFFF5F5F5),
-        border: OutlineInputBorder(borderSide: BorderSide.none),
-      ),
     );
   }
 
   Widget _buildFarmSize() {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: TextField(
-            controller: farmSizeController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              hintText: 'Farm Size',
-              filled: true,
-              fillColor: Color(0xFFF5F5F5),
-              border: OutlineInputBorder(borderSide: BorderSide.none),
-            ),
+        const Text(
+          'Farm Size (Optional)',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF1A1A1A),
           ),
         ),
-        const SizedBox(width: 12),
-        DropdownButton<String>(
-          value: farmSizeUnit,
-          items: const [
-            DropdownMenuItem(value: 'Acres', child: Text('Acres')),
-            DropdownMenuItem(value: 'Hectares', child: Text('Ha')),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              flex: 2,
+              child: TextFormField(
+                controller: farmSizeController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                ],
+                style: const TextStyle(fontSize: 15),
+                decoration: InputDecoration(
+                  hintText: 'Enter size',
+                  hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                  prefixIcon: Icon(Icons.landscape_rounded, color: themeColor, size: 22),
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: Colors.grey.shade200, width: 1),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: themeColor, width: 2),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Container(
+                height: 52,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  border: Border.all(color: Colors.grey.shade200),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: farmSizeUnit,
+                    isExpanded: true,
+                    icon: Icon(Icons.arrow_drop_down_rounded, color: themeColor, size: 28),
+                    style: const TextStyle(fontSize: 15, color: Colors.black87),
+                    items: const [
+                      DropdownMenuItem(value: 'Acres', child: Text('Acres')),
+                      DropdownMenuItem(value: 'Hectares', child: Text('Hectares')),
+                    ],
+                    onChanged: (v) => setState(() => farmSizeUnit = v!),
+                  ),
+                ),
+              ),
+            ),
           ],
-          onChanged: (v) => setState(() => farmSizeUnit = v!),
         ),
       ],
     );
