@@ -1982,7 +1982,8 @@ The goal of this project is to show how Flutter widgets can scale proportionally
 
 ### Using MediaQuery
 
-```dart
+```
+dart
 var screenWidth = MediaQuery.of(context).size.width;
 var screenHeight = MediaQuery.of(context).size.height;
 
@@ -1998,7 +1999,8 @@ Container(
 
 ### Using LayoutBuilder
 
-```dart
+```
+dart
 LayoutBuilder(
   builder: (context, constraints) {
     if (constraints.maxWidth < 600) {
@@ -2024,7 +2026,8 @@ LayoutBuilder(
 
 ### Combined Example
 
-```dart
+```
+dart
 class ResponsiveDemo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -2129,7 +2132,8 @@ assets/
 ### Step 2: Registered Assets in `pubspec.yaml`
 Updated the Flutter configuration to include asset directories:
 
-```yaml
+```
+yaml
 flutter:
   assets:
     - assets/images/
@@ -2154,7 +2158,8 @@ Updated the following screens to use `Image.asset()` instead of emoji text:
 ### Using Image.asset() Widget
 
 **Before (Using Emoji):**
-```dart
+```
+dart
 Text(
   crop['icon'], // '🍅'
   style: const TextStyle(fontSize: 28),
@@ -2162,7 +2167,8 @@ Text(
 ```
 
 **After (Using Image Asset):**
-```dart
+```
+dart
 Image.asset(
   crop['iconPath'], // 'assets/icons/tomato.png'
   width: 32,
@@ -2182,7 +2188,8 @@ Image.asset(
 ### Data Model Update
 
 **Before:**
-```dart
+```
+dart
 {
   'name': 'Tomato',
   'icon': '🍅',
@@ -2191,7 +2198,8 @@ Image.asset(
 ```
 
 **After:**
-```dart
+```
+dart
 {
   'name': 'Tomato',
   'iconPath': 'assets/icons/tomato.png',
@@ -2231,7 +2239,8 @@ Image.asset(
 - [x] Assets registered in `pubspec.yaml` with correct indentation
 
 ### Test Commands
-```bash
+```
+bash
 # Clean and rebuild project
 flutter clean
 flutter pub get
@@ -2404,7 +2413,8 @@ users/{userId}/favorites
 
 ### Sample Product Document
 
-```json
+```
+json
 {
   "name": "Organic Tomatoes",
   "description": "Fresh farm-grown organic tomatoes",
@@ -2421,7 +2431,8 @@ users/{userId}/favorites
 
 ### Sample User Document
 
-```json
+```
+json
 {
   "name": "Ravi Kumar",
   "email": "ravi@example.com",
@@ -2454,4 +2465,462 @@ The main challenge was deciding between embedding data versus using references a
 This Firestore schema provides a clean and scalable foundation for the MarketBridge application. It supports real-time updates, efficient querying, and future expansion while following Firestore best practices.
 
 ---
-main
+
+# Market Bridge App - Sprint 2 Complete Work
+
+## What I Did This Week
+
+This week I did two big things - connected Firebase to my app and redesigned all the screens to make them look professional. Before this, my app looked basic and had no backend. Now it looks modern and is ready for real features.
+
+---
+
+## Part 1: Firebase Setup
+
+### What is Firebase?
+Firebase is like a ready-made backend server from Google. I don't need to build my own server, Firebase gives me authentication, database, storage everything for free.
+
+### Steps I Followed
+
+**1. Created Firebase Project**
+- Opened Firebase Console website
+- Clicked "Add Project" button
+- Named it "Market Bridge"
+- Turned on Google Analytics
+- Waited for it to finish setup
+
+**2. Connected My Android App**
+- Clicked Android icon in Firebase
+- Put my app package name (found it in build.gradle file)
+- Downloaded a file called `google-services.json`
+- This file is super important - it connects my app to Firebase
+
+**3. Put Config File in Right Place**
+- Moved `google-services.json` to `android/app/` folder
+- If this file is in wrong place, nothing works
+
+**4. Updated Some Files**
+Changed two gradle files to make Firebase work:
+- Added one line in `android/build.gradle`
+- Added one line in `android/app/build.gradle`
+
+**5. Added Firebase Packages**
+Added these to `pubspec.yaml`:
+```
+yaml
+firebase_core: ^3.0.0
+firebase_auth: ^5.0.0
+cloud_firestore: ^5.0.0
+```
+
+**6. Initialized Firebase**
+Added this code in `main.dart`:
+```
+dart
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(const MyApp());
+}
+```
+
+This line runs before app starts and connects to Firebase.
+
+**7. Tested Everything**
+- Ran the app with `flutter run`
+- No errors came
+- Checked Firebase Console - my app was showing as connected
+- Green dot appeared next to app name
+
+### Problems I Faced
+
+**Problem 1: App kept crashing**
+- What happened: App would crash immediately after opening
+- Why: I forgot to put `google-services.json` file
+- How I fixed: Put the file in correct location and restarted app
+
+**Problem 2: Gradle sync failed**
+- What happened: Android Studio showed gradle error
+- Why: My gradle version was too old
+- How I fixed: Updated gradle plugin version
+
+**Problem 3: Package name didn't match**
+- What happened: Firebase said package name is wrong
+- Why: Name in Firebase was different from my app
+- How I fixed: Made both names exactly same
+
+### What I Learned About Firebase
+
+1. Firebase is basically a server I don't need to build myself
+2. That `google-services.json` file is like a key - without it nothing works
+3. I must initialize Firebase before using any Firebase features
+4. This setup is one time only, after this I can use all Firebase things
+5. Package names must match exactly or it won't work
+
+---
+
+## Part 2: Complete UI Redesign
+
+### Why I Redesigned
+My app was looking very basic like a college project. All screens had plain white background, bad spacing, no shadows, everything cramped together. I wanted it to look like real professional apps.
+
+### What I Changed in Each Screen
+
+## 1. Complete Profile Screen - Total Makeover
+
+**Before Problems:**
+- Everything squeezed together with bad spacing
+- Had to scroll a lot just to fill a form
+- Plain white background looked boring
+- Input fields looked basic with no style
+- Button was small and unclear
+
+**What I Did:**
+- Added green/blue colored header at top (green for farmer, blue for buyer)
+- Put welcome message and role icon in header
+- Made white form container with curved top (looks modern)
+- Added icons to all input fields
+- Made fields bigger with rounded corners
+- Added proper spacing - 16px between fields
+- Put focus effect - field border turns green when you click
+- Made button bigger and more visible
+- Added form validation with error messages
+- Now everything fits on screen, no scrolling needed
+
+**Key Changes:**
+```
+dart
+// Green header with curved white container below
+Container with green background
+  └─ Icon in circle
+  └─ Welcome text
+  └─ White curved container for form
+      └─ All input fields with icons
+      └─ Big submit button
+```
+
+**Result:** Screen looks professional, fits without scrolling, easy to use.
+
+---
+
+## 2. Farmer Dashboard - Completely New Look
+
+**Before Problems:**
+- Stats cards looked plain and boring
+- All listings cramped together
+- No shadows or depth
+- Everything was same white color
+- Status badges looked bad
+
+**What I Did:**
+- Made green header section with white text
+- Added two stat cards in header (Monthly Sales and Active Listings)
+- Stat cards have semi-transparent white background, look modern
+- Made activity section with proper card design
+- Added dot indicators for new notifications
+- Redesigned listing cards completely:
+    - Top part has light green background with crop icon
+    - Bottom part shows price and stats
+    - Added small badges for views and inquiries
+    - Delete button is red colored
+- Added shadows to all cards
+- Made it responsive - shows list on mobile, grid on tablet
+
+**New Design Features:**
+- Gradient effect in stats cards
+- Icons with colored backgrounds
+- Active/Status badges in green
+- Card shadows for depth
+- Better spacing everywhere
+- Professional color scheme
+
+**Result:** Dashboard now looks like a real professional app, all information is clear and organized.
+
+---
+
+## 3. Marketplace Screen - Modern Shopping Look
+
+**Before Problems:**
+- Search bar looked basic
+- Crop cards had no design
+- Price was not visible clearly
+- Contact options were unclear
+- Everything looked flat
+
+**What I Did:**
+
+**Header Section:**
+- Made green header with white text
+- Added better search bar with shadow and rounded corners
+- Added filter chips (All, Vegetables, Fruits, Grains)
+- Chips change color when selected
+
+**Crop Cards:**
+- Split card into two parts:
+    - Top: Big area showing crop image (120px height, grey background)
+    - Bottom: All details (name, price, buyer, rating, distance)
+- Added star rating badge in yellow
+- Made price big and green colored (₹20/kg)
+- Added buyer avatar and distance
+- Made "View Details" button green and prominent
+
+**Details Page:**
+- Used expandable header that shows big crop image
+- When you scroll up, header shrinks
+- Made three separate cards:
+    - Product info card (name, quantity, price, rating)
+    - Buyer info card (name, avatar, distance)
+    - Description card
+- Added two action buttons at bottom:
+    - "Negotiate" button (outline style)
+    - "Contact" button (filled green)
+
+**Contact Options:**
+- Shows bottom sheet when you click contact
+- Three options: Call, WhatsApp, SMS
+- Each option has colored icon and description
+
+**Negotiate Dialog:**
+- Shows popup with text field
+- Enter your price offer
+- Send button at bottom
+
+**Result:** Marketplace now looks like professional shopping app, very easy to browse and contact sellers.
+
+---
+
+## 4. Home Screen - Modern Dashboard Look
+
+**Before Problems:**
+- Header was too big taking lot of space
+- Cards looked plain
+- Quick actions unclear
+- Grid items different sizes
+- Bottom navigation inconsistent
+
+**What I Did:**
+
+**Header:**
+- Green header with app name
+- Added Farmer Mode indicator
+- Notification and logout icons on right
+- Smaller height, takes less space
+
+**Location Card:**
+- Made gradient background card
+- Shows location with icon
+- Edit button on right
+- Border with light green color
+
+**Market Prices Grid:**
+- Clean white cards with shadows
+- Each card shows:
+    - Crop icon in rounded box
+    - Change percentage badge (green for up, red for down)
+    - Crop name and price
+- Grid adjusts - 2 columns on mobile, 3 on tablet
+
+**Quick Actions Card:**
+- Green gradient background
+- Looks like premium feature
+- Two buttons: "Post Produce" and "My Listings"
+- White buttons with icons
+- Has shadow effect
+
+**Trending Demand Card:**
+- White card with orange trending icon
+- Shows three trending items
+- Each item has:
+    - Icon in colored circle
+    - Item name
+    - Status badge (High demand / Harvest starting)
+- Different colors for different status
+
+**Bottom Navigation:**
+- Clean white background
+- Three items: Home, Marketplace, Dashboard
+- Active item is green, others grey
+- Icons are bigger and rounded
+
+**Result:** Home screen looks modern and organized, easy to see all information at once.
+
+---
+
+## Common Design Things I Used Everywhere
+
+### Colors
+- Primary Green: #11823F (for farmers)
+- Primary Blue: #2196F3 (for buyers)
+- Background: #F5F5F5 (light grey)
+- Cards: White with shadows
+
+### Spacing
+- Between small items: 8px
+- Between fields: 16px
+- Between sections: 24px
+- Screen padding: 20px
+
+### Rounded Corners
+- Small items: 8-10px
+- Buttons: 12px
+- Cards: 14-16px
+- Containers: 20px
+- Big sections: 30px
+
+### Shadows
+All cards have soft shadow:
+- Color: Black at 5% opacity
+- Blur: 8-10px
+- Offset: 0px horizontal, 2-4px down
+
+### Buttons
+- Height: 44-52px
+- Rounded corners: 12-14px
+- Primary: Green background, white text
+- Secondary: White background, green border
+
+### Text Sizes
+- Big titles: 24-26px
+- Section titles: 18-20px
+- Normal text: 14-15px
+- Small text: 12-13px
+
+### Icons
+- Big icons: 28-32px
+- Normal icons: 20-24px
+- Small icons: 16-18px
+- Always in colored circles or boxes
+
+---
+
+## What I Learned
+
+### About Firebase
+1. Firebase is basically Google's free backend service
+2. That config file is the most important thing
+3. Must initialize Firebase before app starts
+4. Setup is one time, then everything works
+5. Read error messages carefully, they tell you what's wrong
+
+### About Design
+1. Spacing is super important - good spacing makes everything look better
+2. Shadows make things look 3D and professional
+3. Rounded corners make things look modern
+4. Using same colors everywhere makes app look organized
+5. Big buttons are easier to click
+6. Icons help people understand things faster
+7. Cards with shadows look better than flat design
+8. Colored headers make app look premium
+
+### About Flutter
+1. `Container` with `BoxDecoration` can make any design
+2. `MediaQuery` tells you screen size
+3. `LayoutBuilder` helps make responsive designs
+4. `ListView` for scrolling, `GridView` for grids
+5. `showModalBottomSheet` for bottom popups
+6. `showDialog` for center popups
+7. Form validation makes app more professional
+
+---
+
+## Files I Changed
+
+```
+market_bridge/
+├── android/
+│   ├── app/
+│   │   ├── google-services.json  ← Added this
+│   │   └── build.gradle           ← Modified
+│   └── build.gradle               ← Modified
+├── lib/
+│   ├── main.dart                  ← Added Firebase init
+│   └── screens/
+│       ├── complete_profile_screen.dart    ← Completely redesigned
+│       ├── farmer_dashboard_screen.dart    ← Improved a lot
+│       ├── marketplace_screen.dart         ← Made modern
+│       └── responsive_home_enhanced.dart   ← Cleaned up
+└── pubspec.yaml                   ← Added Firebase packages
+```
+
+---
+
+## Before vs After Summary
+
+### Before:
+- No backend connection
+- Basic looking screens
+- Bad spacing everywhere
+- No shadows or depth
+- Everything white and flat
+- Looked like college project
+
+### After:
+- Connected to Firebase backend
+- Professional modern design
+- Proper spacing and layout
+- Cards with shadows
+- Nice colors and gradients
+- Looks like real app from Play Store
+
+---
+
+## Why This Matters
+
+### Firebase Connection:
+Now I can build real features:
+- User login with phone number
+- Save user data in database
+- Store product images in cloud
+- Send notifications
+- Real-time updates
+
+### UI Improvements:
+Now app looks professional:
+- Users will take it seriously
+- Easy to use and understand
+- Works on different screen sizes
+- Gives proper feedback
+- Matches modern app standards
+
+This work is the foundation for building a complete production app.
+
+---
+
+## Reflection Questions
+
+**Q1: What was most important in Firebase setup?**
+
+Answer: Two things - putting `google-services.json` file in correct location and initializing Firebase in main.dart before app starts. Without these two, nothing works. The config file tells my app which Firebase project to use, and initialization connects to Firebase servers.
+
+**Q2: What problems did you face?**
+
+Answer: Three main problems:
+1. App crashing - fixed by adding config file
+2. Gradle error - fixed by updating gradle version
+3. Package name wrong - fixed by making names match
+
+For UI, main problem was getting spacing right and making everything fit on screen. Fixed by trying different padding values until it looked good.
+
+**Q3: How does Firebase help your app?**
+
+Answer: Firebase is like having a ready server. Before Firebase, my app had no backend. Now I can save user data, do authentication, store images, everything. The setup connects my app to Firebase servers. Now when I use Firebase features, app knows where to send data.
+
+**Q4: What was hardest in UI redesign?**
+
+Answer: Making Complete Profile screen fit without scrolling was hardest. I had to make everything smaller but still look good. Tried many times with different sizes until it fit nicely on all phone sizes. Also making designs consistent across all screens took time.
+
+**Q5: How did you learn all this?**
+
+Answer: I looked at real apps like Swiggy, Zomato to see how they design things. Also watched some YouTube tutorials for Firebase setup. When I got errors, I read the error messages carefully and searched on Google. Tried things multiple times until they worked.
+
+---
+
+## Conclusion
+
+This week was super productive. I connected Firebase which is very important for app to work, and also made the entire app look professional.
+
+Hardest part was debugging Firebase errors and getting all the spacing perfect in UI. But I learned a lot about both backend integration and frontend design.
+
+I'm happy with how app looks now. Before it was embarrassing to show anyone, now it looks like a real app. Ready to build actual features on top of this.
+
+---
+
