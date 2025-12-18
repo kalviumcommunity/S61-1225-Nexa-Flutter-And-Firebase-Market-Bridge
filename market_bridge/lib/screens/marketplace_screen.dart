@@ -1,4 +1,3 @@
-// lib/screens/marketplace_screen.dart
 import 'package:flutter/material.dart';
 
 class MarketplaceScreen extends StatefulWidget {
@@ -9,9 +8,22 @@ class MarketplaceScreen extends StatefulWidget {
 }
 
 class _MarketplaceScreenState extends State<MarketplaceScreen> {
+  int _selectedIndex = 1; // Marketplace is the default selected
+
+  void _onNavTap(int index) {
+    if (_selectedIndex == index) return;
+    setState(() => _selectedIndex = index);
+    if (index == 0) {
+      Navigator.pushReplacementNamed(context, '/dashboard', arguments: {'from': 'home'},);
+    } else if (index == 1) {
+      // Already on Marketplace
+    } else if (index == 2) {
+      Navigator.pushReplacementNamed(context, '/dashboard');
+    }
+  }
+
   final searchController = TextEditingController();
 
-  // Sample data matching Figma
   final List<Map<String, dynamic>> crops = [
     {
       'name': 'Tomato',
@@ -20,7 +32,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       'buyer': 'Ramesh',
       'distance': '3km',
       'rating': 4,
-      'icon': '🍅',
+      'icon': 'assets/icons/tomato.png',
+      'isAsset': true,
     },
     {
       'name': 'Onion',
@@ -29,7 +42,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       'buyer': 'Ramesh',
       'distance': '3km',
       'rating': 4,
-      'icon': '🧅',
+      'icon': 'assets/icons/onion.png',
+      'isAsset': true,
     },
     {
       'name': 'Potato',
@@ -38,7 +52,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       'buyer': 'Ramesh',
       'distance': '3km',
       'rating': 4,
-      'icon': '🥔',
+      'icon': 'assets/icons/potato.png',
+      'isAsset': true,
     },
     {
       'name': 'Wheat',
@@ -47,7 +62,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       'buyer': 'Ramesh',
       'distance': '3km',
       'rating': 4,
-      'icon': '🌾',
+      'icon': 'assets/icons/rice.png',
+      'isAsset': true,
     },
   ];
 
@@ -59,6 +75,9 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth >= 600;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
@@ -85,34 +104,34 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       ),
       body: Column(
         children: [
-          // Header section
+          /// Header
           Container(
             color: Colors.white,
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            padding: EdgeInsets.fromLTRB(
+              screenWidth * 0.04,
+              8,
+              screenWidth * 0.04,
+              16,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
                   'Browse buyer requirements',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF666666),
-                  ),
+                  style: TextStyle(fontSize: 14, color: Color(0xFF666666)),
                 ),
                 const SizedBox(height: 12),
-                // Search bar
                 TextField(
                   controller: searchController,
                   decoration: InputDecoration(
                     hintText: 'Search crops...',
-                    hintStyle: const TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF999999),
+                    hintStyle: TextStyle(
+                      fontSize: isTablet ? 16 : 14,
+                      color: const Color(0xFF999999),
                     ),
                     prefixIcon: const Icon(
                       Icons.search,
                       color: Color(0xFF999999),
-                      size: 20,
                     ),
                     filled: true,
                     fillColor: const Color(0xFFF5F5F5),
@@ -120,31 +139,49 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                       borderRadius: BorderRadius.circular(8),
                       borderSide: BorderSide.none,
                     ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 16,
-                    ),
                   ),
                 ),
               ],
             ),
           ),
 
-          // Crop list
+          /// Crop List / Grid
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: crops.length,
-              itemBuilder: (context, index) {
-                final crop = crops[index];
-                return _buildCropCard(crop);
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                if (constraints.maxWidth < 600) {
+                  /// 📱 Mobile → List
+                  return ListView.builder(
+                    padding: EdgeInsets.all(screenWidth * 0.04),
+                    itemCount: crops.length,
+                    itemBuilder: (context, index) {
+                      return _buildCropCard(crops[index], screenWidth);
+                    },
+                  );
+                } else {
+                  /// 📲 Tablet → Grid
+                  return GridView.builder(
+                    padding: EdgeInsets.all(screenWidth * 0.04),
+                    itemCount: crops.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 20,
+                          mainAxisSpacing: 20,
+                          childAspectRatio: 1.3,
+                        ),
+                    itemBuilder: (context, index) {
+                      return _buildCropCard(crops[index], screenWidth);
+                    },
+                  );
+                }
               },
             ),
           ),
         ],
       ),
 
-      // Bottom Navigation
+      /// Bottom Navigation
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -162,9 +199,30 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildNavItem(Icons.home_outlined, 'Home', false),
-                _buildNavItem(Icons.store_outlined, 'Marketplace', true),
-                _buildNavItem(Icons.person_outline, 'Dashboard', false),
+                GestureDetector(
+                  onTap: () => _onNavTap(0),
+                  child: _buildNavItem(
+                    Icons.home_outlined,
+                    'Home',
+                    _selectedIndex == 0,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => _onNavTap(1),
+                  child: _buildNavItem(
+                    Icons.store_outlined,
+                    'Marketplace',
+                    _selectedIndex == 1,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => _onNavTap(2),
+                  child: _buildNavItem(
+                    Icons.person_outline,
+                    'Dashboard',
+                    _selectedIndex == 2,
+                  ),
+                ),
               ],
             ),
           ),
@@ -173,7 +231,9 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     );
   }
 
-  Widget _buildCropCard(Map<String, dynamic> crop) {
+  Widget _buildCropCard(Map<String, dynamic> crop, double screenWidth) {
+    final isAsset = crop['isAsset'] ?? false;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -192,10 +252,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Crop header
             Row(
               children: [
-                // Crop icon
                 Container(
                   width: 48,
                   height: 48,
@@ -204,27 +262,38 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Center(
-                    child: Text(
-                      crop['icon'],
-                      style: const TextStyle(fontSize: 28),
-                    ),
+                    child: isAsset
+                        ? Image.asset(
+                            crop['icon'],
+                            width: 32,
+                            height: 32,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(
+                                Icons.emoji_food_beverage,
+                                size: 28,
+                                color: Colors.orange,
+                              );
+                            },
+                          )
+                        : Text(
+                            crop['icon'],
+                            style: const TextStyle(fontSize: 28),
+                          ),
                   ),
                 ),
                 const SizedBox(width: 12),
-                // Crop details
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         crop['name'],
-                        style: const TextStyle(
-                          fontSize: 18,
+                        style: TextStyle(
+                          fontSize: screenWidth < 600 ? 18 : 20,
                           fontWeight: FontWeight.w700,
-                          color: Colors.black,
                         ),
                       ),
-                      const SizedBox(height: 2),
                       Text(
                         crop['quantity'],
                         style: const TextStyle(
@@ -238,84 +307,37 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               ],
             ),
             const SizedBox(height: 12),
-
-            // Price
             Text(
               crop['price'],
-              style: const TextStyle(
-                fontSize: 20,
+              style: TextStyle(
+                fontSize: screenWidth < 600 ? 20 : 24,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF11823F),
+                color: const Color(0xFF11823F),
               ),
             ),
             const SizedBox(height: 12),
-
-            // Buyer info
             Row(
               children: [
                 Text(
                   'Buyer: ${crop['buyer']}',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF666666),
-                  ),
+                  style: const TextStyle(fontSize: 13),
                 ),
                 const Spacer(),
-                Text(
-                  crop['distance'],
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF666666),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                // Rating
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.star,
-                      size: 14,
-                      color: Color(0xFFFFB800),
-                    ),
-                    const SizedBox(width: 2),
-                    Text(
-                      '${crop['rating']}',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ],
-                ),
+                const Icon(Icons.star, size: 14, color: Color(0xFFFFB800)),
+                const SizedBox(width: 4),
+                Text('${crop['rating']}'),
               ],
             ),
             const SizedBox(height: 16),
-
-            // View Requirement button
             SizedBox(
               width: double.infinity,
               height: 44,
               child: ElevatedButton(
-                onPressed: () {
-                  // Navigate to listing details
-                  _showListingDetails(crop);
-                },
+                onPressed: () => _showListingDetails(crop),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF11823F),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  elevation: 0,
                 ),
-                child: const Text(
-                  'View Requirement',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
+                child: const Text('View Requirement'),
               ),
             ),
           ],
@@ -331,15 +353,12 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
         Icon(
           icon,
           color: isActive ? const Color(0xFF11823F) : const Color(0xFF999999),
-          size: 24,
         ),
-        const SizedBox(height: 4),
         Text(
           label,
           style: TextStyle(
             fontSize: 12,
             color: isActive ? const Color(0xFF11823F) : const Color(0xFF999999),
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
           ),
         ),
       ],
@@ -349,21 +368,249 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
   void _showListingDetails(Map<String, dynamic> crop) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => ListingDetailsScreen(crop: crop),
-      ),
+      MaterialPageRoute(builder: (context) => ListingDetailsScreen(crop: crop)),
     );
   }
 }
 
-// Listing Details Screen
+/// =====================
+/// Listing Details Screen
+/// =====================
 class ListingDetailsScreen extends StatelessWidget {
   final Map<String, dynamic> crop;
 
   const ListingDetailsScreen({Key? key, required this.crop}) : super(key: key);
 
+  void _showContactOptions(BuildContext context, Map<String, dynamic> crop) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Contact ${crop['buyer']}',
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 20),
+            
+            // Call option
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF11823F).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.phone,
+                  color: Color(0xFF11823F),
+                ),
+              ),
+              title: const Text('Call Buyer'),
+              subtitle: const Text('+91 98765 43210'),
+              onTap: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Calling ${crop['buyer']}...'),
+                    backgroundColor: const Color(0xFF11823F),
+                  ),
+                );
+              },
+            ),
+            
+            // WhatsApp option
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF25D366).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.chat,
+                  color: Color(0xFF25D366),
+                ),
+              ),
+              title: const Text('WhatsApp'),
+              subtitle: const Text('Send a message'),
+              onTap: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Opening WhatsApp...'),
+                    backgroundColor: Color(0xFF25D366),
+                  ),
+                );
+              },
+            ),
+            
+            // SMS option
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.sms,
+                  color: Colors.blue,
+                ),
+              ),
+              title: const Text('Send SMS'),
+              subtitle: const Text('Text message'),
+              onTap: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Opening SMS app...'),
+                    backgroundColor: Colors.blue,
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showNegotiateDialog(BuildContext context, Map<String, dynamic> crop) {
+    final TextEditingController priceController = TextEditingController();
+    final TextEditingController messageController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Text(
+          'Negotiate Price',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Current price: ${crop['price']}',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFF666666),
+                ),
+              ),
+              const SizedBox(height: 16),
+              
+              // Your offer
+              TextField(
+                controller: priceController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Your Offer (₹/kg)',
+                  hintText: 'Enter your price',
+                  prefixIcon: const Icon(Icons.currency_rupee),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF11823F),
+                      width: 2,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              
+              // Message
+              TextField(
+                controller: messageController,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  labelText: 'Message (optional)',
+                  hintText: 'Add a note to your offer',
+                  alignLabelWithHint: true,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF11823F),
+                      width: 2,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Color(0xFF666666)),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (priceController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Please enter your offer price'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+              
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Offer of ₹${priceController.text}/kg sent to ${crop['buyer']}',
+                  ),
+                  backgroundColor: const Color(0xFF11823F),
+                  duration: const Duration(seconds: 3),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF11823F),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: const Text('Send Offer'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth >= 600;
+    final isAsset = crop['isAsset'] ?? false;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
@@ -389,19 +636,30 @@ class ListingDetailsScreen extends StatelessWidget {
             // Crop image section
             Container(
               width: double.infinity,
-              height: 280,
+              height: isTablet ? 380 : 280,
               color: const Color(0xFFF0F0F0),
               child: Center(
-                child: Text(
-                  crop['icon'],
-                  style: const TextStyle(fontSize: 120),
-                ),
+                child: isAsset
+                    ? Image.asset(
+                        crop['icon'],
+                        width: 120,
+                        height: 120,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Icon(
+                            Icons.emoji_food_beverage,
+                            size: 120,
+                            color: Colors.orange,
+                          );
+                        },
+                      )
+                    : Text(crop['icon'], style: const TextStyle(fontSize: 120)),
               ),
             ),
 
             // Details section
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(isTablet ? 32 : 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -514,7 +772,7 @@ class ListingDetailsScreen extends StatelessWidget {
 
                   // Description
                   const Text(
-                    'Description',
+                    'Details',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -523,7 +781,7 @@ class ListingDetailsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Fresh tomatoes harvested this morning. Good quality, disease-free and clean. Looking for bulk buyers in the local market.',
+                    'Fresh tomatoes harvested this morning. Good quality, suitable for wholesale and retail. Located near Vijayawada main market.',
                     style: TextStyle(
                       fontSize: 14,
                       color: Color(0xFF666666),
@@ -537,7 +795,7 @@ class ListingDetailsScreen extends StatelessWidget {
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () => _showContactOptions(context, crop),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF11823F),
                         shape: RoundedRectangleBorder(
@@ -562,7 +820,7 @@ class ListingDetailsScreen extends StatelessWidget {
                     width: double.infinity,
                     height: 50,
                     child: OutlinedButton(
-                      onPressed: () {},
+                      onPressed: () => _showNegotiateDialog(context, crop),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(
                           color: Color(0xFF11823F),

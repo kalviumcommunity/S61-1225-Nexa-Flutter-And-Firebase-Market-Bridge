@@ -1,4 +1,3 @@
-// lib/screens/buyer_marketplace_screen.dart
 import 'package:flutter/material.dart';
 import '../routes.dart';
 
@@ -11,8 +10,8 @@ class BuyerMarketplaceScreen extends StatefulWidget {
 
 class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
   final searchController = TextEditingController();
+  int _selectedIndex = 1; // Marketplace is default
 
-  // Sample data for farmer listings (what buyers see)
   final List<Map<String, dynamic>> farmerListings = [
     {
       'name': 'Tomato',
@@ -21,7 +20,8 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
       'farmer': 'Ramesh',
       'distance': '3km',
       'rating': 4.0,
-      'icon': '🍅',
+      'icon': 'assets/icons/tomato.png',
+      'isAsset': true,
     },
     {
       'name': 'Onion',
@@ -30,7 +30,8 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
       'farmer': 'Ramesh',
       'distance': '3km',
       'rating': 4.0,
-      'icon': '🧅',
+      'icon': 'assets/icons/onion.png',
+      'isAsset': true,
     },
     {
       'name': 'Potato',
@@ -39,7 +40,8 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
       'farmer': 'Ramesh',
       'distance': '3km',
       'rating': 4.0,
-      'icon': '🥔',
+      'icon': 'assets/icons/potato.png',
+      'isAsset': true,
     },
     {
       'name': 'Wheat',
@@ -48,7 +50,8 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
       'farmer': 'Ramesh',
       'distance': '3km',
       'rating': 4.0,
-      'icon': '🌾',
+      'icon': 'assets/icons/rice.png',
+      'isAsset': true,
     },
   ];
 
@@ -58,132 +61,132 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
     super.dispose();
   }
 
+  void _onNavTap(int index) {
+    if (_selectedIndex == index) return;
+    setState(() => _selectedIndex = index);
+
+    if (index == 0) {
+      Navigator.pushReplacementNamed(context, '/home');
+    } else if (index == 2) {
+      Navigator.pushReplacementNamed(context, '/dashboard');
+    }
+    // index == 1 means already on Marketplace
+  }
+
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth >= 600;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Marketplace',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: Colors.black),
-            onPressed: () {},
-          ),
-        ],
-      ),
+      appBar: _buildAppBar(),
       body: Column(
         children: [
-          // Header section
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Fresh produce from farmers',
-                  style: TextStyle(fontSize: 14, color: Color(0xFF666666)),
-                ),
-                const SizedBox(height: 12),
-                // Search bar
-                TextField(
-                  controller: searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Search crops...',
-                    hintStyle: const TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF999999),
-                    ),
-                    prefixIcon: const Icon(
-                      Icons.search,
-                      color: Color(0xFF999999),
-                      size: 20,
-                    ),
-                    filled: true,
-                    fillColor: const Color(0xFFF5F5F5),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 16,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Listings
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: farmerListings.length,
-              itemBuilder: (context, index) {
-                final listing = farmerListings[index];
-                return _buildListingCard(listing);
-              },
-            ),
-          ),
+          _buildHeader(screenWidth),
+          _buildListingsSection(screenWidth, isTablet),
         ],
       ),
+      bottomNavigationBar: _buildBottomNav(),
+    );
+  }
 
-      // Bottom Navigation
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildNavItem(
-                  Icons.home_outlined,
-                  'Home',
-                  false,
-                  () => Navigator.pop(context),
-                ),
-                _buildNavItem(Icons.store, 'Marketplace', true, () {}),
-                _buildNavItem(
-                  Icons.person_outline,
-                  'Dashboard',
-                  false,
-                  () => Navigator.pushNamed(context, Routes.routeDashboard),
-                ),
-              ],
-            ),
-          ),
+  // ============== AppBar ==============
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back, color: Colors.black),
+        onPressed: () => Navigator.pop(context),
+      ),
+      title: const Text(
+        'Marketplace',
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
   }
 
-  Widget _buildListingCard(Map<String, dynamic> listing) {
+  // ============== Header with Search ==============
+  Widget _buildHeader(double screenWidth) {
+    return Container(
+      color: Colors.white,
+      padding: EdgeInsets.symmetric(
+        horizontal: screenWidth * 0.04,
+        vertical: 16,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Fresh produce from farmers',
+            style: TextStyle(fontSize: 14, color: Color(0xFF666666)),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: searchController,
+            decoration: InputDecoration(
+              hintText: 'Search crops...',
+              filled: true,
+              fillColor: const Color(0xFFF5F5F5),
+              prefixIcon: const Icon(Icons.search),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============== Listings Section ==============
+  Widget _buildListingsSection(double screenWidth, bool isTablet) {
+    return Expanded(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth < 600) {
+            // Mobile → List View
+            return ListView.builder(
+              padding: EdgeInsets.all(screenWidth * 0.04),
+              itemCount: farmerListings.length,
+              itemBuilder: (context, index) {
+                return _buildListingCard(farmerListings[index], isTablet);
+              },
+            );
+          } else {
+            // Tablet → Grid View
+            return GridView.builder(
+              padding: EdgeInsets.all(screenWidth * 0.04),
+              itemCount: farmerListings.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 20,
+                crossAxisSpacing: 20,
+                childAspectRatio: 1.25,
+              ),
+              itemBuilder: (context, index) {
+                return _buildListingCard(farmerListings[index], isTablet);
+              },
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  // ============== Listing Card ==============
+  Widget _buildListingCard(Map<String, dynamic> listing, bool isTablet) {
+    final isAsset = listing['isAsset'] ?? false;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -195,130 +198,156 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header with icon and crop name
-            Row(
-              children: [
-                // Crop icon
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF5F5F5),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Center(
-                    child: Text(
-                      listing['icon'],
-                      style: const TextStyle(fontSize: 28),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                // Crop details
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        listing['name'],
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        listing['quantity'],
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF666666),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildListingHeader(listing, isAsset, isTablet),
+          const SizedBox(height: 12),
+          _buildListingPrice(listing, isTablet),
+          const SizedBox(height: 12),
+          _buildListingInfo(listing),
+          const SizedBox(height: 16),
+          _buildViewDetailsButton(listing),
+        ],
+      ),
+    );
+  }
 
-            // Price
-            Text(
-              listing['price'],
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF2196F3),
+  Widget _buildListingHeader(
+    Map<String, dynamic> listing,
+    bool isAsset,
+    bool isTablet,
+  ) {
+    return Row(
+      children: [
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: const Color(0xFFF5F5F5),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Center(
+            child: isAsset
+                ? Image.asset(
+                    listing['icon'],
+                    width: 32,
+                    height: 32,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(
+                        Icons.emoji_food_beverage,
+                        size: 28,
+                        color: Colors.orange,
+                      );
+                    },
+                  )
+                : Text(listing['icon'], style: const TextStyle(fontSize: 28)),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                listing['name'],
+                style: TextStyle(
+                  fontSize: isTablet ? 20 : 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              Text(
+                listing['quantity'],
+                style: const TextStyle(fontSize: 12, color: Color(0xFF666666)),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildListingPrice(Map<String, dynamic> listing, bool isTablet) {
+    return Text(
+      listing['price'],
+      style: TextStyle(
+        fontSize: isTablet ? 22 : 20,
+        fontWeight: FontWeight.w700,
+        color: const Color(0xFF2196F3),
+      ),
+    );
+  }
+
+  Widget _buildListingInfo(Map<String, dynamic> listing) {
+    return Row(
+      children: [
+        Text(
+          'Farmer: ${listing['farmer']}',
+          style: const TextStyle(fontSize: 13),
+        ),
+        const Spacer(),
+        const Icon(Icons.star, size: 14, color: Color(0xFFFFB800)),
+        const SizedBox(width: 2),
+        Text('${listing['rating']}'),
+      ],
+    );
+  }
+
+  Widget _buildViewDetailsButton(Map<String, dynamic> listing) {
+    return SizedBox(
+      width: double.infinity,
+      height: 44,
+      child: ElevatedButton(
+        onPressed: () => _showListingDetails(listing),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF2196F3),
+        ),
+        child: const Text('View Details'),
+      ),
+    );
+  }
+
+  // ============== Bottom Navigation ==============
+  Widget _buildBottomNav() {
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            GestureDetector(
+              onTap: () => _onNavTap(0),
+              child: _buildNavItem(
+                Icons.home_outlined,
+                'Home',
+                _selectedIndex == 0,
               ),
             ),
-            const SizedBox(height: 12),
-
-            // Farmer info row
-            Row(
-              children: [
-                Text(
-                  'Farmer: ${listing['farmer']}',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF666666),
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  listing['distance'],
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF666666),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                // Rating
-                Row(
-                  children: [
-                    const Icon(Icons.star, size: 14, color: Color(0xFFFFB800)),
-                    const SizedBox(width: 2),
-                    Text(
-                      '${listing['rating']}',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+            GestureDetector(
+              onTap: () => _onNavTap(1),
+              child: _buildNavItem(
+                Icons.store,
+                'Marketplace',
+                _selectedIndex == 1,
+              ),
             ),
-            const SizedBox(height: 16),
-
-            // View Details button
-            SizedBox(
-              width: double.infinity,
-              height: 44,
-              child: ElevatedButton(
-                onPressed: () {
-                  _showListingDetails(listing);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2196F3),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  elevation: 0,
-                ),
-                child: const Text(
-                  'View Details',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
+            GestureDetector(
+              onTap: () => _onNavTap(2),
+              child: _buildNavItem(
+                Icons.person_outline,
+                'Dashboard',
+                _selectedIndex == 2,
               ),
             ),
           ],
@@ -327,35 +356,23 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
     );
   }
 
-  Widget _buildNavItem(
-    IconData icon,
-    String label,
-    bool isActive,
-    VoidCallback onTap,
-  ) {
-    return InkWell(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            color: isActive ? const Color(0xFF2196F3) : const Color(0xFF999999),
-            size: 24,
+  Widget _buildNavItem(IconData icon, String label, bool active) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          color: active ? const Color(0xFF2196F3) : const Color(0xFF999999),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: active ? const Color(0xFF2196F3) : const Color(0xFF999999),
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: isActive
-                  ? const Color(0xFF2196F3)
-                  : const Color(0xFF999999),
-              fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -363,13 +380,16 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => BuyerListingDetailsScreen(listing: listing),
+        builder: (_) => BuyerListingDetailsScreen(listing: listing),
       ),
     );
   }
 }
 
-// Buyer Listing Details Screen
+// =====================================================
+// ============== LISTING DETAILS SCREEN ==============
+// =====================================================
+
 class BuyerListingDetailsScreen extends StatelessWidget {
   final Map<String, dynamic> listing;
 
@@ -378,356 +398,115 @@ class BuyerListingDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth >= 600;
+    final isAsset = listing['isAsset'] ?? false;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Listing Details',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
+      appBar: _buildAppBar(),
       body: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Crop image section
-            Container(
-              width: double.infinity,
-              height: 280,
-              color: const Color(0xFFF5F5F5),
-              child: Center(
-                child: Container(
-                  width: 200,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(100),
-                  ),
-                  child: Center(
-                    child: Text(
-                      listing['icon'],
-                      style: const TextStyle(fontSize: 120),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            // Details section
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Crop name and quantity
-                  Text(
-                    listing['name'],
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Quantity: ${listing['quantity']}',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF666666),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Price
-                  Text(
-                    listing['price'],
-                    style: const TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF2196F3),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Farmer info card
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        // Avatar
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE8E8E8),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Icon(
-                            Icons.person,
-                            color: Color(0xFF666666),
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                listing['farmer'],
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              Text(
-                                '${listing['distance']} away',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Color(0xFF666666),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Rating
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.star,
-                              size: 18,
-                              color: Color(0xFFFFB800),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${listing['rating']}.0',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Description
-                  const Text(
-                    'Details',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Fresh ${listing['name'].toLowerCase()} harvested this morning. Good quality, disease-free and clean. Available for immediate pickup or delivery within ${listing['distance']}.',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF666666),
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Contact Farmer button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        _showContactDialog(context, listing['farmer']);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2196F3),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        'Contact Farmer',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Send Offer button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: OutlinedButton(
-                      onPressed: () {
-                        _showOfferDialog(context, listing);
-                      },
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(
-                          color: Color(0xFF2196F3),
-                          width: 2,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text(
-                        'Send Offer',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF2196F3),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            _buildImageSection(isAsset, isTablet),
+            _buildDetailsSection(isTablet),
           ],
         ),
       ),
     );
   }
 
-  void _showContactDialog(BuildContext context, String farmerName) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: const [
-            Icon(Icons.phone, color: Color(0xFF2196F3)),
-            SizedBox(width: 8),
-            Text(
-              'Contact Farmer',
-              style: TextStyle(fontWeight: FontWeight.w600),
+  // ============== AppBar ==============
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      leading: const BackButton(color: Colors.black),
+      title: const Text(
+        'Listing Details',
+        style: TextStyle(color: Colors.black),
+      ),
+    );
+  }
+
+  // ============== Image Section ==============
+  Widget _buildImageSection(bool isAsset, bool isTablet) {
+    return Container(
+      height: isTablet ? 380 : 280,
+      color: const Color(0xFFF0F0F0),
+      alignment: Alignment.center,
+      child: isAsset
+          ? Image.asset(
+              listing['icon'],
+              width: 140,
+              height: 140,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                return const Icon(
+                  Icons.emoji_food_beverage,
+                  size: 120,
+                  color: Colors.orange,
+                );
+              },
+            )
+          : Text(
+              listing['icon'],
+              style: TextStyle(fontSize: isTablet ? 140 : 120),
             ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Contact $farmerName',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+    );
+  }
+
+  // ============== Details Section ==============
+  Widget _buildDetailsSection(bool isTablet) {
+    return Padding(
+      padding: EdgeInsets.all(isTablet ? 32 : 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            listing['name'],
+            style: TextStyle(
+              fontSize: isTablet ? 28 : 24,
+              fontWeight: FontWeight.w700,
             ),
-            const SizedBox(height: 8),
-            const Text('Phone: +91 98765 43210'),
-            const SizedBox(height: 16),
-            const Text(
-              'You can call or message the farmer directly.',
-              style: TextStyle(color: Colors.grey),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Opening phone dialer...'),
-                  backgroundColor: Color(0xFF2196F3),
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2196F3),
+          const SizedBox(height: 8),
+          Text('Quantity: ${listing['quantity']}'),
+          const SizedBox(height: 12),
+          Text(
+            listing['price'],
+            style: TextStyle(
+              fontSize: isTablet ? 28 : 26,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF2196F3),
             ),
-            child: const Text('Call Now'),
+          ),
+          const SizedBox(height: 16),
+          _buildInfoRow(Icons.person, 'Farmer: ${listing['farmer']}'),
+          const SizedBox(height: 8),
+          _buildInfoRow(Icons.location_on, 'Distance: ${listing['distance']}'),
+          const SizedBox(height: 8),
+          _buildInfoRow(
+            Icons.star,
+            'Rating: ${listing['rating']}/5',
+            iconColor: const Color(0xFFFFB800),
           ),
         ],
       ),
     );
   }
 
-  void _showOfferDialog(BuildContext context, Map<String, dynamic> listing) {
-    final offerController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Send Offer',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Current Price: ${listing['price']}'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: offerController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Your Offer Price',
-                hintText: 'Enter your price',
-                prefixText: '₹',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Offer sent successfully!'),
-                  backgroundColor: Color(0xFF2196F3),
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2196F3),
-            ),
-            child: const Text('Send Offer'),
-          ),
-        ],
-      ),
+  Widget _buildInfoRow(
+    IconData icon,
+    String text, {
+    Color iconColor = const Color(0xFF666666),
+  }) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: iconColor),
+        const SizedBox(width: 8),
+        Text(text),
+      ],
     );
   }
 }
