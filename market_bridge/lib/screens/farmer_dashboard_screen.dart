@@ -49,12 +49,17 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF11823F),
+        backgroundColor: Colors.white,
         elevation: 0,
         title: const Text(
           'Farmer Dashboard',
-          style: TextStyle(fontWeight: FontWeight.w600),
+          style: TextStyle(
+            color: Color(0xFF11823F),
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+          ),
         ),
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -66,18 +71,25 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
               decoration: const BoxDecoration(
                 color: Color(0xFF11823F),
                 borderRadius: BorderRadius.vertical(
-                  bottom: Radius.circular(24),
+                  bottom: Radius.circular(28),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0x22000000),
+                    blurRadius: 16,
+                    offset: Offset(0, 8),
+                  ),
+                ],
               ),
               child: Row(
                 children: [
                   _buildStatCard(
                     icon: Icons.attach_money,
-                    label: 'Sales',
+                    label: 'Sales this month',
                     value: '₹45,000',
                     isTablet: isTablet,
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 16),
                   _buildStatCard(
                     icon: Icons.inventory_2_outlined,
                     label: 'Listings',
@@ -89,7 +101,10 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
             ),
 
             Padding(
-              padding: EdgeInsets.all(isTablet ? 24 : 16),
+              padding: EdgeInsets.symmetric(
+                horizontal: isTablet ? 32 : 16,
+                vertical: 24,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -100,15 +115,15 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                       children: _recentActivity
                           .map(
                             (a) => _buildActivityRow(
-                          title: a['title'],
-                          badge: a['badge'],
-                          isNew: a['isNew'],
-                        ),
-                      )
+                              title: a['title'],
+                              badge: a['badge'],
+                              isNew: a['isNew'],
+                            ),
+                          )
                           .toList(),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 28),
 
                   /// LISTINGS TITLE
                   Row(
@@ -117,20 +132,32 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                       const Text(
                         'My Listings',
                         style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                       TextButton.icon(
                         onPressed: () {
                           Navigator.pushNamed(context, Routes.routePostProduce);
                         },
-                        icon: const Icon(Icons.add),
-                        label: const Text('Add New'),
+                        icon: const Icon(Icons.add, color: Color(0xFF11823F)),
+                        label: const Text(
+                          'Add New',
+                          style: TextStyle(
+                            color: Color(0xFF11823F),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          foregroundColor: const Color(0xFF11823F),
+                          textStyle: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
 
                   /// RESPONSIVE LISTINGS
                   LayoutBuilder(
@@ -142,11 +169,16 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                               .asMap()
                               .entries
                               .map(
-                                (entry) => _buildListingCard(
-                              listing: entry.value,
-                              onDelete: () => _deleteListing(entry.key),
-                            ),
-                          )
+                                (entry) => Column(
+                                  children: [
+                                    _buildListingCard(
+                                      listing: entry.value,
+                                      onDelete: () => _deleteListing(entry.key),
+                                    ),
+                                    const SizedBox(height: 12),
+                                  ],
+                                ),
+                              )
                               .toList(),
                         );
                       } else {
@@ -156,12 +188,12 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: _myListings.length,
                           gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 20,
-                            mainAxisSpacing: 20,
-                            childAspectRatio: 1.3,
-                          ),
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 24,
+                                mainAxisSpacing: 24,
+                                childAspectRatio: 1.3,
+                              ),
                           itemBuilder: (context, index) {
                             return _buildListingCard(
                               listing: _myListings[index],
@@ -193,21 +225,46 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
   }) {
     return Expanded(
       child: Container(
-        padding: EdgeInsets.all(isTablet ? 20 : 16),
+        padding: EdgeInsets.symmetric(
+          vertical: isTablet ? 24 : 18,
+          horizontal: isTablet ? 22 : 16,
+        ),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: const Color(0xFF11823F)),
-            const SizedBox(height: 12),
-            Text(label, style: const TextStyle(color: Color(0xFF666666))),
-            const SizedBox(height: 4),
+            Icon(
+              icon,
+              color: const Color(0xFF11823F),
+              size: isTablet ? 36 : 30,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Color(0xFF666666),
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+              ),
+            ),
+            const SizedBox(height: 6),
             Text(
               value,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF11823F),
+              ),
             ),
           ],
         ),
@@ -217,16 +274,26 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
 
   Widget _buildSectionCard({required String title, required Widget child}) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 16),
+          Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+          ),
+          const SizedBox(height: 14),
           child,
         ],
       ),
@@ -242,19 +309,26 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          Expanded(child: Text(title)),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+            ),
+          ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
             decoration: BoxDecoration(
               color: isNew
-                  ? const Color(0xFF11823F).withOpacity(0.1)
+                  ? const Color(0xFF11823F).withOpacity(0.13)
                   : Colors.grey[200],
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
             ),
             child: Text(
               badge,
               style: TextStyle(
                 color: isNew ? const Color(0xFF11823F) : Colors.grey[700],
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
               ),
             ),
           ),
@@ -270,16 +344,16 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
     final isAsset = listing['isAsset'] ?? false;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 0),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.07),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -289,91 +363,101 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
           Row(
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
                   color: const Color(0xFFF5F5F5),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Center(
                   child: isAsset
                       ? Image.asset(
-                    listing['icon'],
-                    width: 28,
-                    height: 28,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      // Fallback to generic icon if asset fails
-                      return const Icon(
-                        Icons.emoji_food_beverage,
-                        size: 24,
-                        color: Colors.orange,
-                      );
-                    },
-                  )
+                          listing['icon'],
+                          width: 34,
+                          height: 34,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            // Fallback to generic icon if asset fails
+                            return const Icon(
+                              Icons.emoji_food_beverage,
+                              size: 28,
+                              color: Colors.orange,
+                            );
+                          },
+                        )
                       : Text(
-                    listing['icon'],
-                    style: const TextStyle(fontSize: 28),
-                  ),
+                          listing['icon'],
+                          style: const TextStyle(fontSize: 32),
+                        ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 16),
               Expanded(
                 child: Text(
                   listing['crop'],
                   style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF11823F).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: const Color(0xFF11823F).withOpacity(0.13),
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 child: Text(
                   listing['status'],
                   style: const TextStyle(
                     color: Color(0xFF11823F),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
             ],
           ),
-          const Divider(height: 24),
+          const Divider(height: 28),
           Text(
             listing['price'],
             style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
               color: Color(0xFF11823F),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           Row(
             children: [
               _buildBadge('${listing['views']} views'),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               _buildBadge('${listing['inquiries']} inquiries'),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
           SizedBox(
             width: double.infinity,
-            height: 40,
+            height: 44,
             child: OutlinedButton.icon(
               onPressed: onDelete,
-              icon: const Icon(Icons.delete_outline, size: 18),
-              label: const Text('Delete Listing'),
+              icon: const Icon(Icons.delete_outline, size: 20),
+              label: const Text(
+                'Delete Listing',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.red,
-                side: const BorderSide(color: Colors.red),
+                foregroundColor: const Color(0xFF11823F),
+                side: const BorderSide(color: Color(0xFF11823F)),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                textStyle: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
                 ),
               ),
             ),
@@ -385,16 +469,17 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
 
   Widget _buildBadge(String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(
         color: const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Text(
         text,
         style: const TextStyle(
-          fontSize: 12,
+          fontSize: 13,
           color: Color(0xFF666666),
+          fontWeight: FontWeight.w600,
         ),
       ),
     );

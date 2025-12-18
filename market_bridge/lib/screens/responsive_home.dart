@@ -91,8 +91,8 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
           titleSize: 18,
           subtitleSize: 12,
           cardTitleSize: 14,
-          horizontalPadding: width * 0.055,
-          verticalPadding: height * 0.02,
+          horizontalPadding: 16,
+          verticalPadding: 16,
           sectionSpacing: 18,
           itemSpacing: 12,
           gridColumns: 2,
@@ -105,8 +105,8 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
           titleSize: 22,
           subtitleSize: 14,
           cardTitleSize: 16,
-          horizontalPadding: width * 0.06,
-          verticalPadding: height * 0.025,
+          horizontalPadding: 16,
+          verticalPadding: 16,
           sectionSpacing: 24,
           itemSpacing: 16,
           gridColumns: 3,
@@ -119,8 +119,8 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
           titleSize: 26,
           subtitleSize: 16,
           cardTitleSize: 18,
-          horizontalPadding: width * 0.08,
-          verticalPadding: height * 0.03,
+          horizontalPadding: 20,
+          verticalPadding: 20,
           sectionSpacing: 32,
           itemSpacing: 20,
           gridColumns: 4,
@@ -517,7 +517,9 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
         SizedBox(
           height: 48,
           child: OutlinedButton(
-            onPressed: () {},
+            onPressed: () {
+              _showMarketDetailsBottomSheet(context);
+            },
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: Color(0xFF2E8B57)),
               shape: RoundedRectangleBorder(
@@ -594,6 +596,145 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
             child: const BottomNavItem(
               icon: Icons.person_outline,
               label: 'Dashboard',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Market Details Bottom Sheet for Farmer
+  void _showMarketDetailsBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF11823F).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.analytics,
+                        color: Color(0xFF11823F),
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'Market Overview',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            _buildMarketStatRow(
+              'Active Buyers',
+              '156',
+              Icons.people,
+              const Color(0xFF11823F),
+            ),
+            _buildMarketStatRow(
+              'High Demand Items',
+              '12',
+              Icons.trending_up,
+              Colors.orange,
+            ),
+            _buildMarketStatRow(
+              'Market Trends',
+              'Positive',
+              Icons.show_chart,
+              Colors.teal,
+            ),
+            _buildMarketStatRow(
+              'Price Stability',
+              '87%',
+              Icons.balance,
+              Colors.blue,
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, Routes.routeMarketPlace);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF11823F),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'View Buyer Demand',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Helper method for market stats
+  Widget _buildMarketStatRow(String label, String value, IconData icon, Color color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 20, color: color),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: color,
             ),
           ),
         ],
