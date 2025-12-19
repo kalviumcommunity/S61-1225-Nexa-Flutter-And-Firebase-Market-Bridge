@@ -3,9 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PostProduceScreen extends StatefulWidget {
-  const PostProduceScreen({Key? key}) : super(key: key);
+  final Map<String, dynamic>? editListing;
+  final String? listingId;
+
+  const PostProduceScreen({
+    Key? key,
+    this.editListing,
+    this.listingId,
+  }) : super(key: key);
 
   @override
   State<PostProduceScreen> createState() => _PostProduceScreenState();
@@ -22,6 +30,7 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
   bool _isPriceNegotiable = false;
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
+  bool _isLoading = false;
 
   final List<String> _crops = [
     'Tomato',
@@ -35,6 +44,20 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
   ];
 
   final List<String> _units = ['Kg', 'Quintal', 'Ton'];
+
+  @override
+  void initState() {
+    super.initState();
+    // If editing, populate fields
+    if (widget.editListing != null) {
+      _selectedCrop = widget.editListing!['crop'];
+      _quantityController.text = widget.editListing!['quantity'].toString();
+      _selectedUnit = widget.editListing!['unit'] ?? 'Kg';
+      _priceController.text = widget.editListing!['price'].toString();
+      _isPriceNegotiable = widget.editListing!['isNegotiable'] ?? false;
+      _locationController.text = widget.editListing!['location'] ?? '';
+    }
+  }
 
   @override
   void dispose() {
@@ -58,155 +81,142 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error picking image: $e')),
-      );
+      _showSnackbar('Error picking image: $e', isError: true);
     }
   }
 
-  void _showImageSourceSheet() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Choose Photo',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildImageSourceOption(
-                      icon: Icons.camera_alt,
-                      label: 'Camera',
-                      onTap: () {
-                        Navigator.pop(context);
-                        _pickImage(ImageSource.camera);
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildImageSourceOption(
-                      icon: Icons.photo_library,
-                      label: 'Gallery',
-                      onTap: () {
-                        Navigator.pop(context);
-                        _pickImage(ImageSource.gallery);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
+  void _showSnackbar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : const Color(0xFF11823F),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
 
-  Widget _buildImageSourceOption({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF5F5F5),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey[200]!),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, size: 40, color: const Color(0xFF11823F)),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // Add new listing to Firestore
+  Future<void> _addListing() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_selectedCrop == null) {
+      _showSnackbar('Please select a crop', isError: true);
+      return;
+    }
 
-  void _publishListing() {
-    if (_formKey.currentState!.validate()) {
-      if (_selectedCrop == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please select a crop'),
-            backgroundColor: Colors.red,
-          ),
-        );
+    setState(() => _isLoading = true);
+
+    try {
+      // Validate input
+      final quantity = _quantityController.text.trim();
+      final price = _priceController.text.trim();
+      final location = _locationController.text.trim();
+
+      if (quantity.isEmpty || price.isEmpty || location.isEmpty) {
+        _showSnackbar('Please fill all fields', isError: true);
+        setState(() => _isLoading = false);
         return;
       }
 
-      // Show success dialog
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Row(
-            children: const [
-              Icon(Icons.check_circle, color: Color(0xFF11823F), size: 28),
-              SizedBox(width: 12),
-              Text(
-                'Success!',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-          content: const Text(
-            'Your produce listing has been published successfully.',
-            style: TextStyle(fontSize: 14, color: Color(0xFF666666)),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close dialog
-                Navigator.pop(context); // Go back to home
-              },
-              child: const Text(
-                'OK',
-                style: TextStyle(
-                  color: Color(0xFF11823F),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
+      // Create document data with 'name' field for marketplace
+      final data = {
+        'name': _selectedCrop, // Added for marketplace compatibility
+        'crop': _selectedCrop,
+        'quantity': double.parse(quantity),
+        'unit': _selectedUnit,
+        'price': double.parse(price),
+        'isNegotiable': _isPriceNegotiable,
+        'location': location,
+        'status': 'active',
+        'views': 0,
+        'inquiries': 0,
+        'createdAt': Timestamp.now(),
+        'updatedAt': Timestamp.now(),
+      };
+
+      // Add to Firestore
+      await FirebaseFirestore.instance.collection('products').add(data);
+
+      if (!mounted) return;
+
+      // Show success message
+      _showSnackbar('Listing published successfully!');
+
+      // Navigate back
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (!mounted) return;
+      Navigator.pop(context);
+    } catch (e) {
+      debugPrint('Error adding listing: $e');
+      _showSnackbar('Failed to publish listing: $e', isError: true);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  // Update existing listing in Firestore
+  Future<void> _updateListing() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_selectedCrop == null) {
+      _showSnackbar('Please select a crop', isError: true);
+      return;
+    }
+    if (widget.listingId == null) {
+      _showSnackbar('Listing ID not found', isError: true);
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      // Validate input
+      final quantity = _quantityController.text.trim();
+      final price = _priceController.text.trim();
+      final location = _locationController.text.trim();
+
+      if (quantity.isEmpty || price.isEmpty || location.isEmpty) {
+        _showSnackbar('Please fill all fields', isError: true);
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      // Update document in Firestore with 'name' field
+      await FirebaseFirestore.instance
+          .collection('products')
+          .doc(widget.listingId)
+          .update({
+        'name': _selectedCrop, // Added for marketplace compatibility
+        'crop': _selectedCrop,
+        'quantity': double.parse(quantity),
+        'unit': _selectedUnit,
+        'price': double.parse(price),
+        'isNegotiable': _isPriceNegotiable,
+        'location': location,
+        'updatedAt': Timestamp.now(),
+      });
+
+      if (!mounted) return;
+
+      // Show success message
+      _showSnackbar('Listing updated successfully!');
+
+      // Navigate back
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (!mounted) return;
+      Navigator.pop(context);
+    } catch (e) {
+      debugPrint('Error updating listing: $e');
+      _showSnackbar('Failed to update listing: $e', isError: true);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _publishListing() {
+    if (widget.editListing != null) {
+      _updateListing();
+    } else {
+      _addListing();
     }
   }
 
@@ -214,6 +224,7 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
   Widget build(BuildContext context) {
     final mq = MediaQuery.of(context);
     final isTablet = mq.size.width > 600;
+    final isEditing = widget.editListing != null;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -224,9 +235,9 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Post Your Produce',
-          style: TextStyle(
+        title: Text(
+          isEditing ? 'Edit Produce' : 'Post Your Produce',
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -239,259 +250,273 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
           ),
         ],
       ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(isTablet ? 24 : 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Crop Name
-              _buildSectionLabel('Crop Name'),
-              const SizedBox(height: 8),
-              _buildDropdownField(
-                hint: 'Select Crop',
-                value: _selectedCrop,
-                items: _crops,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedCrop = value;
-                  });
-                },
-              ),
-              const SizedBox(height: 20),
-
-              // Quantity and Unit Row
-              Row(
+      body: Stack(
+        children: [
+          Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(isTablet ? 24 : 16),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    flex: 2,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  // Crop Name
+                  _buildSectionLabel('Crop Name'),
+                  const SizedBox(height: 8),
+                  _buildDropdownField(
+                    hint: 'Select Crop',
+                    value: _selectedCrop,
+                    items: _crops,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedCrop = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Quantity and Unit Row
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildSectionLabel('Quantity'),
+                            const SizedBox(height: 8),
+                            _buildTextField(
+                              controller: _quantityController,
+                              hint: 'Enter Quantity',
+                              keyboardType: TextInputType.number,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Required';
+                                }
+                                if (double.tryParse(value) == null) {
+                                  return 'Invalid number';
+                                }
+                                return null;
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 1,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildSectionLabel('Unit'),
+                            const SizedBox(height: 8),
+                            _buildDropdownField(
+                              hint: 'Unit',
+                              value: _selectedUnit,
+                              items: _units,
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedUnit = value!;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Price
+                  _buildSectionLabel('Price (per unit)'),
+                  const SizedBox(height: 8),
+                  _buildTextField(
+                    controller: _priceController,
+                    hint: 'Enter amount',
+                    prefix: const Padding(
+                      padding: EdgeInsets.only(left: 16, right: 8),
+                      child: Text(
+                        '₹',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.black87,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter price';
+                      }
+                      if (double.tryParse(value) == null) {
+                        return 'Invalid price';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Price Negotiable Checkbox
+                  InkWell(
+                    onTap: () {
+                      setState(() {
+                        _isPriceNegotiable = !_isPriceNegotiable;
+                      });
+                    },
+                    child: Row(
                       children: [
-                        _buildSectionLabel('Quantity'),
-                        const SizedBox(height: 8),
-                        _buildTextField(
-                          controller: _quantityController,
-                          hint: 'Enter Quantity',
-                          keyboardType: TextInputType.number,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Required';
-                            }
-                            if (double.tryParse(value) == null) {
-                              return 'Invalid number';
-                            }
-                            return null;
-                          },
+                        Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: _isPriceNegotiable
+                                ? const Color(0xFF11823F)
+                                : Colors.white,
+                            border: Border.all(
+                              color: _isPriceNegotiable
+                                  ? const Color(0xFF11823F)
+                                  : Colors.grey[400]!,
+                              width: 2,
+                            ),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: _isPriceNegotiable
+                              ? const Icon(Icons.check,
+                              size: 16, color: Colors.white)
+                              : null,
+                        ),
+                        const SizedBox(width: 10),
+                        const Text(
+                          'Price Negotiable',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF333333),
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 1,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(height: 24),
+
+                  // Photo Section
+                  _buildSectionLabel('Photo (Optional)'),
+                  const SizedBox(height: 12),
+                  if (_selectedImage != null)
+                    Stack(
                       children: [
-                        _buildSectionLabel('Unit'),
-                        const SizedBox(height: 8),
-                        _buildDropdownField(
-                          hint: 'Unit',
-                          value: _selectedUnit,
-                          items: _units,
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedUnit = value!;
-                            });
-                          },
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(
+                            _selectedImage!,
+                            width: double.infinity,
+                            height: 200,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: InkWell(
+                            onTap: () {
+                              setState(() {
+                                _selectedImage = null;
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.black54,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildPhotoButton(
+                            icon: Icons.camera_alt,
+                            label: 'Camera',
+                            onTap: () => _pickImage(ImageSource.camera),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildPhotoButton(
+                            icon: Icons.photo_library,
+                            label: 'Gallery',
+                            onTap: () => _pickImage(ImageSource.gallery),
+                          ),
                         ),
                       ],
                     ),
+                  const SizedBox(height: 24),
+
+                  // Location
+                  _buildSectionLabel('Location'),
+                  const SizedBox(height: 8),
+                  _buildTextField(
+                    controller: _locationController,
+                    hint: 'City/District',
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter location';
+                      }
+                      return null;
+                    },
                   ),
+                  const SizedBox(height: 32),
+
+                  // Publish Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 54,
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _publishListing,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF11823F),
+                        disabledBackgroundColor: Colors.grey[400],
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 2,
+                      ),
+                      child: _isLoading
+                          ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2.5,
+                        ),
+                      )
+                          : Text(
+                        isEditing ? 'Update Listing' : 'Publish Listing',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
                 ],
               ),
-              const SizedBox(height: 20),
-
-              // Price
-              _buildSectionLabel('Price (per unit)'),
-              const SizedBox(height: 8),
-              _buildTextField(
-                controller: _priceController,
-                hint: 'Enter amount',
-                prefix: const Padding(
-                  padding: EdgeInsets.only(left: 16, right: 8),
-                  child: Text(
-                    '₹',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black87,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter price';
-                  }
-                  if (double.tryParse(value) == null) {
-                    return 'Invalid price';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 12),
-
-              // Price Negotiable Checkbox
-              InkWell(
-                onTap: () {
-                  setState(() {
-                    _isPriceNegotiable = !_isPriceNegotiable;
-                  });
-                },
-                child: Row(
-                  children: [
-                    Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: _isPriceNegotiable
-                            ? const Color(0xFF11823F)
-                            : Colors.white,
-                        border: Border.all(
-                          color: _isPriceNegotiable
-                              ? const Color(0xFF11823F)
-                              : Colors.grey[400]!,
-                          width: 2,
-                        ),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: _isPriceNegotiable
-                          ? const Icon(Icons.check,
-                          size: 16, color: Colors.white)
-                          : null,
-                    ),
-                    const SizedBox(width: 10),
-                    const Text(
-                      'Price Negotiable',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF333333),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Photo Section
-              _buildSectionLabel('Photo'),
-              const SizedBox(height: 12),
-              if (_selectedImage != null)
-                Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.file(
-                        _selectedImage!,
-                        width: double.infinity,
-                        height: 200,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: InkWell(
-                        onTap: () {
-                          setState(() {
-                            _selectedImage = null;
-                          });
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Colors.black54,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Icon(
-                            Icons.close,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-              else
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildPhotoButton(
-                        icon: Icons.camera_alt,
-                        label: 'Camera',
-                        onTap: () => _pickImage(ImageSource.camera),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildPhotoButton(
-                        icon: Icons.photo_library,
-                        label: 'Gallery',
-                        onTap: () => _pickImage(ImageSource.gallery),
-                      ),
-                    ),
-                  ],
-                ),
-              const SizedBox(height: 24),
-
-              // Location
-              _buildSectionLabel('Location'),
-              const SizedBox(height: 8),
-              _buildTextField(
-                controller: _locationController,
-                hint: 'City/District',
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter location';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 32),
-
-              // Publish Button
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton(
-                  onPressed: _publishListing,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF11823F),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 2,
-                  ),
-                  child: const Text(
-                    'Publish Listing',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

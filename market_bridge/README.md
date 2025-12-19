@@ -134,7 +134,8 @@ This section is added for the **Responsive Layout task** in Sprint-2.
 
 ## 🔧 Key Code Snippet – Detecting Screen Width
 
-```dart
+```
+dart
 final screenWidth = MediaQuery.of(context).size.width;
 final isTablet = screenWidth > 600;
 ```
@@ -254,7 +255,8 @@ Run:
 flutterfire configure
 
 Add to `pubspec.yaml`:
-```yaml
+```
+yaml
 dependencies:
   firebase_core: ^3.0.0
   firebase_auth: ^5.0.0
@@ -366,7 +368,8 @@ Future extensions:
 * Extracted and added `flutter/bin` to system PATH
 * Verified installation using:
 
-```bash
+```
+bash
 flutter doctor
 ```
 
@@ -382,7 +385,8 @@ flutter doctor
 * Successfully launched the emulator
 * Verified device detection using:
 
-```bash
+```
+bash
 flutter devices
 ```
 
@@ -391,7 +395,8 @@ flutter devices
 * Created a new Flutter project
 * Ran the default Flutter counter app using:
 
-```bash
+```
+bash
 flutter run
 ```
 
@@ -656,7 +661,8 @@ The goal is to understand when to use ListView, GridView, and their builder vari
 
 ## Combined Scrollable Views — Full Example Used in This Project
 
-```dart
+```
+dart
 class ScrollableViews extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -924,7 +930,8 @@ ListView.builder(
 
 ## 🚀 Running the App
 
-```bash
+```
+bash
 # Navigate to project directory
 cd market_bridge
 
@@ -1117,7 +1124,8 @@ I thoroughly tested form submission with all valid data to ensure successful pos
 
 ## 🚀 Running the App
 
-```bash
+```
+bash
 # Navigate to project directory
 cd market_bridge
 
@@ -1745,7 +1753,6 @@ Animations provide visual feedback, reduce perceived wait times, guide user atte
 
 ---
 
-feat/flutterfire
 # Market Bridge - Firebase SDK Integration with FlutterFire CLI
 
 ## Project Overview
@@ -1763,7 +1770,8 @@ The FlutterFire CLI was used to automate the Firebase SDK setup process across m
 #### Install Firebase Tools
 First, I installed the Firebase CLI globally using npm:
 
-```bash
+```
+bash
 npm install -g firebase-tools
 ```
 
@@ -1776,7 +1784,8 @@ added 6 packages, removed 20 packages, and changed 736 packages in 58s
 #### Install FlutterFire CLI
 Next, I installed the FlutterFire CLI using Dart's package manager:
 
-```bash
+```
+bash
 dart pub global activate flutterfire_cli
 ```
 
@@ -1790,13 +1799,15 @@ Installed executable flutterfire.
 #### Verify Installation
 I verified the installation by checking the FlutterFire CLI version:
 
-```bash
+```
+bash
 flutterfire --version
 ```
 
 **Note:** Initially encountered a "command not found" error because Git Bash doesn't recognize `.bat` files by default. Resolved by creating an alias:
 
-```bash
+```
+bash
 alias flutterfire='/c/Users/ishan/AppData/Local/Pub/Cache/bin/flutterfire.bat'
 ```
 
@@ -1806,7 +1817,8 @@ alias flutterfire='/c/Users/ishan/AppData/Local/Pub/Cache/bin/flutterfire.bat'
 
 I logged into Firebase using my Google account:
 
-```bash
+```
+bash
 firebase login
 ```
 
@@ -1821,7 +1833,8 @@ Already logged in as ishanakalikiri01@gmail.com
 
 I navigated to my Flutter project directory and ran the FlutterFire configuration command:
 
-```bash
+```
+bash
 cd market_bridge
 flutterfire configure
 ```
@@ -1837,7 +1850,8 @@ flutterfire configure
 
 I added the required Firebase packages to my `pubspec.yaml`:
 
-```yaml
+```
+yaml
 dependencies:
   flutter:
     sdk: flutter
@@ -1852,7 +1866,8 @@ dependencies:
 
 Then installed the dependencies:
 
-```bash
+```
+bash
 flutter pub get
 ```
 
@@ -3081,4 +3096,378 @@ This demonstrates the power of Firestore real-time streams.
 * **Challenges Faced:**
   Handling null data, setting up Firestore correctly, and ensuring safe access to document fields.
 
--
+---
+
+# 📝 Firestore Write & Update Operations - Market Bridge
+
+## 🎯 Project Overview
+Market Bridge is a Flutter mobile application that connects farmers directly with buyers. This update implements **secure Firestore write and update operations** for managing produce listings in real-time.
+
+---
+
+## ✨ Features Implemented Today
+
+### 1. **Add New Produce Listings**
+- Farmers can create new produce listings
+- Form includes: Crop name, Quantity, Unit, Price, Location
+- Optional photo upload from camera/gallery
+- Price negotiable checkbox
+- All data is validated before saving to Firestore
+
+### 2. **Edit Existing Listings**
+- Farmers can update their posted listings
+- Edit button on each listing card
+- Pre-fills form with existing data
+- Updates only modified fields in Firestore
+
+### 3. **Delete Listings**
+- Delete button with confirmation dialog
+- Safely removes listings from Firestore
+- Shows success/error messages
+
+### 4. **Real-Time Data Sync**
+- All screens update automatically when data changes
+- Uses Firestore `StreamBuilder` for live updates
+- No need to refresh manually
+
+### 5. **Enhanced Navigation**
+- Added bottom navigation bar (Home, Marketplace, Dashboard)
+- Back button on all screens
+- Smooth page transitions
+
+---
+
+## 🔥 Firestore Operations Explained
+
+### **1. Add Operation (Create New Document)**
+Creates a new document with auto-generated ID:
+
+```
+dart
+await FirebaseFirestore.instance.collection('products').add({
+  'crop': 'Tomato',
+  'quantity': 50.0,
+  'unit': 'Kg',
+  'price': 30.0,
+  'isNegotiable': true,
+  'location': 'Tirupati',
+  'status': 'active',
+  'views': 0,
+  'inquiries': 0,
+  'createdAt': Timestamp.now(),
+  'updatedAt': Timestamp.now(),
+});
+```
+
+**Why use `.add()`?**
+- Firestore automatically generates unique document ID
+- Perfect for creating new records
+- Prevents ID conflicts
+
+---
+
+### **2. Update Operation (Modify Existing Document)**
+Updates specific fields without affecting other data:
+
+```
+dart
+await FirebaseFirestore.instance
+    .collection('products')
+    .doc('documentId')
+    .update({
+  'crop': 'Onion',
+  'quantity': 80.0,
+  'price': 20.0,
+  'updatedAt': Timestamp.now(),
+});
+```
+
+**Why use `.update()`?**
+- Only changes specified fields
+- Keeps other fields intact
+- More efficient than rewriting entire document
+- Adds timestamp to track when modified
+
+---
+
+### **3. Set Operation (Not Used, But Important to Know)**
+Replaces entire document or creates if doesn't exist:
+
+```
+dart
+await FirebaseFirestore.instance
+    .collection('products')
+    .doc('documentId')
+    .set({
+  'crop': 'Potato',
+  'quantity': 100.0,
+  // ... all fields
+});
+```
+
+**Difference between Set and Update:**
+- `set()` - Replaces entire document (can lose data)
+- `update()` - Only changes specified fields (safer)
+
+---
+
+## 🔒 Security Best Practices Implemented
+
+### **1. Input Validation**
+```
+dart
+// Check if fields are empty
+if (quantity.isEmpty || price.isEmpty || location.isEmpty) {
+  _showSnackbar('Please fill all fields', isError: true);
+  return;
+}
+
+// Validate data types
+if (double.tryParse(quantity) == null) {
+  return 'Invalid number';
+}
+```
+
+**Why validate?**
+- Prevents empty or invalid data in database
+- Protects against crashes
+- Ensures data quality
+
+---
+
+### **2. Proper Data Types**
+```
+dart
+// ✅ CORRECT
+'quantity': double.parse(quantity),  // Number as number
+'price': double.parse(price),        // Number as number
+'isNegotiable': _isPriceNegotiable,  // Boolean as boolean
+
+// ❌ WRONG
+'quantity': quantity,  // String instead of number
+```
+
+**Why correct data types matter?**
+- Allows mathematical operations (sorting, filtering)
+- Reduces storage space
+- Prevents errors in queries
+
+---
+
+### **3. Timestamps for Tracking**
+```
+dart
+'createdAt': Timestamp.now(),  // When created
+'updatedAt': Timestamp.now(),  // When last modified
+```
+
+**Why use timestamps?**
+- Track when data was created/modified
+- Sort by newest/oldest
+- Audit trail for debugging
+
+---
+
+### **4. Error Handling**
+```
+dart
+try {
+  await FirebaseFirestore.instance.collection('products').add(data);
+  _showSnackbar('Listing published successfully!');
+} catch (e) {
+  _showSnackbar('Failed to publish: $e', isError: true);
+}
+```
+
+**Why error handling?**
+- App doesn't crash if Firestore fails
+- User knows what went wrong
+- Better user experience
+
+---
+
+### **5. Loading States**
+```
+dart
+setState(() => _isLoading = true);
+await FirebaseFirestore.instance.collection('products').add(data);
+setState(() => _isLoading = false);
+```
+
+**Why loading states?**
+- Prevents duplicate submissions
+- Shows user that action is processing
+- Improves UX
+
+---
+
+## 📊 Firestore Data Structure
+
+```
+products (collection)
+  ├── auto-generated-id-1
+  │   ├── crop: "Tomato"
+  │   ├── quantity: 50.0
+  │   ├── unit: "Kg"
+  │   ├── price: 30.0
+  │   ├── isNegotiable: true
+  │   ├── location: "Tirupati"
+  │   ├── status: "active"
+  │   ├── views: 0
+  │   ├── inquiries: 0
+  │   ├── createdAt: Timestamp
+  │   └── updatedAt: Timestamp
+  │
+  ├── auto-generated-id-2
+  │   ├── crop: "Onion"
+  │   └── ... (same fields)
+```
+
+---
+
+## 🎨 UI Features
+
+### **1. Add/Edit Produce Form**
+- Crop dropdown (Tomato, Onion, Potato, etc.)
+- Quantity input with unit selector (Kg, Quintal, Ton)
+- Price input with ₹ symbol
+- Location input
+- Optional image picker
+- Price negotiable checkbox
+- Validation on all fields
+
+### **2. Farmer Dashboard**
+- Shows all farmer's listings in real-time
+- Total value and active listings count
+- Edit and Delete buttons on each listing
+- Crop-specific icons (🍅 for Tomato, 🧅 for Onion)
+- Bottom navigation bar
+
+### **3. Marketplace**
+- Shows all products from all farmers
+- Search by crop name
+- White "View Details" button
+- Real-time updates
+- Bottom navigation bar
+
+---
+
+## 🔄 Real-Time Sync Implementation
+
+```
+dart
+StreamBuilder<QuerySnapshot>(
+  stream: FirebaseFirestore.instance
+      .collection('products')
+      .orderBy('createdAt', descending: true)
+      .snapshots(),
+  builder: (context, snapshot) {
+    if (snapshot.hasData) {
+      final listings = snapshot.data!.docs;
+      // Display listings
+    }
+  },
+)
+```
+
+---
+
+## 💡 Why Secure Writes Matter
+
+### **Problem Without Validation:**
+```
+dart
+// ❌ BAD - No validation
+await FirebaseFirestore.instance.collection('products').add({
+  'quantity': _quantityController.text,  // Could be empty or "abc"
+  'price': _priceController.text,        // Could be "hello"
+});
+```
+
+**Result:** Database full of junk data, app crashes, bad user experience
+
+---
+
+### **Solution With Validation:**
+```
+dart
+// ✅ GOOD - Proper validation
+final quantity = _quantityController.text.trim();
+if (quantity.isEmpty) return;
+if (double.tryParse(quantity) == null) return;
+
+await FirebaseFirestore.instance.collection('products').add({
+  'quantity': double.parse(quantity),  // Always valid number
+});
+```
+
+**Result:** Clean database, no crashes, happy users
+
+---
+
+## 📱 Screens Implemented
+
+1. **Post Produce Screen** - Add/Edit listings
+2. **Farmer Dashboard** - View/Edit/Delete own listings
+3. **Marketplace Screen** - Browse all products
+4. **Bottom Navigation** - Easy navigation between screens
+
+---
+
+## 🚀 How to Test
+
+1. **Add New Listing:**
+    - Go to Dashboard → Click "Add New"
+    - Fill form → Click "Publish Listing"
+    - Check Firestore Console for new document
+    - Check Dashboard for new card
+
+2. **Edit Listing:**
+    - Click "Edit" on any listing card
+    - Modify fields → Click "Update Listing"
+    - Check Firestore Console for updated fields
+    - Check Dashboard for changes
+
+3. **Delete Listing:**
+    - Click "Delete" on any listing
+    - Confirm in dialog
+    - Check Firestore Console (document gone)
+    - Check Dashboard (card removed)
+
+4. **Real-Time Sync:**
+    - Open app on two devices
+    - Add listing on device 1
+    - See it appear on device 2 instantly
+
+---
+
+## 📝 Code Files Modified
+
+1. `lib/screens/post_produce_screen.dart` - Add/Edit form
+2. `lib/screens/farmer_dashboard_screen.dart` - Dashboard with CRUD
+3. `lib/screens/marketplace_screen.dart` - Product listing
+4. `lib/routes.dart` - Navigation with arguments
+5. `lib/screens/responsive_home_enhanced.dart` - Home screen
+
+---
+
+## 🎓 Key Learnings
+
+### **1. Difference Between Add, Set, and Update**
+- **Add** - New document with auto ID
+- **Set** - Overwrites entire document
+- **Update** - Changes only specified fields
+
+### **2. Why Validation Prevents Data Corruption**
+- Empty strings cause display issues
+- Wrong data types break queries
+- Invalid data crashes app
+- Validation ensures data quality
+
+### **3. Benefits of Real-Time Sync**
+- Users see changes instantly
+- No refresh button needed
+- Better collaboration
+- Modern user experience
+
+---
