@@ -2924,3 +2924,161 @@ I'm happy with how app looks now. Before it was embarrassing to show anyone, now
 
 ---
 
+# 🛒 MarketBridge – Firestore Read Operations
+
+MarketBridge is a **Flutter + Firebase** mobile application that connects **farmers and buyers** through a simple, clean, and responsive marketplace interface.  
+This phase of the project focuses on **reading data from Cloud Firestore** and displaying it in the UI with **real-time updates**.
+
+This implementation is part of **Kalvium – Sprint 2 (Lesson 2.32: Reading Data from Firestore Collections and Documents)**.
+
+---
+
+## 📱 App Overview
+
+MarketBridge allows users to:
+- View agricultural products listed by farmers
+- See product details such as price and category
+- Experience real-time updates when product data changes in Firestore
+
+---
+
+## 🔥 Firestore Integration
+
+The app uses **Cloud Firestore** to store and retrieve marketplace data.  
+Firestore is connected using the `cloud_firestore` package and initialized during app startup.
+
+---
+
+## 🗂️ Firestore Database Structure
+
+### 📦 Collection: `products`
+
+Each product document contains:
+
+```
+json
+{
+  "name": "Tomatoes",
+  "price": 40,
+  "category": "Vegetables"
+}
+````
+
+This collection represents products listed by farmers in the marketplace.
+
+---
+
+## 📥 Reading Data from Firestore
+
+### 🔹 Read All Documents from a Collection (One-time Read)
+
+```
+dart
+final snapshot = await FirebaseFirestore.instance
+    .collection('products')
+    .get();
+
+for (var doc in snapshot.docs) {
+  print(doc.data());
+}
+```
+
+Used mainly for testing and debugging purposes.
+
+---
+
+### 🔹 Real-Time Product Listing (StreamBuilder)
+
+The main product listing screen uses **real-time streams** so that any change in Firestore is immediately reflected in the UI.
+
+```
+dart
+StreamBuilder(
+  stream: FirebaseFirestore.instance.collection('products').snapshots(),
+  builder: (context, snapshot) {
+    if (!snapshot.hasData) {
+      return CircularProgressIndicator();
+    }
+
+    final products = snapshot.data!.docs;
+
+    return ListView.builder(
+      itemCount: products.length,
+      itemBuilder: (context, index) {
+        final product = products[index];
+        return ListTile(
+          title: Text(product['name']),
+          subtitle: Text("₹${product['price']}"),
+        );
+      },
+    );
+  },
+);
+```
+
+✅ This ensures:
+
+* Automatic UI updates
+* No manual refresh
+* Real-time marketplace experience
+
+---
+
+### 🔹 Read a Single Product Document
+
+Used when viewing detailed information of a specific product.
+
+```
+dart
+FutureBuilder(
+  future: FirebaseFirestore.instance
+      .collection('products')
+      .doc('PRODUCT_ID')
+      .get(),
+  builder: (context, snapshot) {
+    if (!snapshot.hasData) {
+      return CircularProgressIndicator();
+    }
+
+    final data = snapshot.data!.data()!;
+    return Text("Product Name: ${data['name']}");
+  },
+);
+```
+
+---
+
+## 🛡️ Handling Empty or Missing Data
+
+To prevent crashes and ensure smooth UI behavior:
+
+```
+dart
+if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+  return Text("No products available");
+}
+```
+
+
+## 🔁 Real-Time Update Demo
+
+1. Open Firebase Firestore Console
+2. Update a product price or name
+3. Observe the Flutter UI updating instantly
+
+This demonstrates the power of Firestore real-time streams.
+
+---
+
+## 🧠 Reflection
+
+* **Firestore Read Method Used:**
+  `StreamBuilder` with Firestore `snapshots()`
+
+* **Why Real-Time Streams Are Useful:**
+  Real-time streams allow MarketBridge to instantly reflect product updates, price changes, or new listings without requiring users to refresh the app.
+
+* **Challenges Faced:**
+  Handling null data, setting up Firestore correctly, and ensuring safe access to document fields.
+
+-

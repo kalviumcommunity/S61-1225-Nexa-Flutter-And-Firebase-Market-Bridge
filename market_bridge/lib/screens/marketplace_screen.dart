@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MarketplaceScreen extends StatefulWidget {
   const MarketplaceScreen({Key? key}) : super(key: key);
@@ -14,7 +15,11 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     if (_selectedIndex == index) return;
     setState(() => _selectedIndex = index);
     if (index == 0) {
-      Navigator.pushReplacementNamed(context, '/dashboard', arguments: {'from': 'home'},);
+      Navigator.pushReplacementNamed(
+        context,
+        '/dashboard',
+        arguments: {'from': 'home'},
+      );
     } else if (index == 1) {
       // Already on Marketplace
     } else if (index == 2) {
@@ -145,36 +150,79 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
             ),
           ),
 
-          /// Crop List / Grid
+          /// Crop List / Grid (Firestore)
           Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                if (constraints.maxWidth < 600) {
-                  /// 📱 Mobile → List
-                  return ListView.builder(
-                    padding: EdgeInsets.all(screenWidth * 0.04),
-                    itemCount: crops.length,
-                    itemBuilder: (context, index) {
-                      return _buildCropCard(crops[index], screenWidth);
-                    },
-                  );
-                } else {
-                  /// 📲 Tablet → Grid
-                  return GridView.builder(
-                    padding: EdgeInsets.all(screenWidth * 0.04),
-                    itemCount: crops.length,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 20,
-                          mainAxisSpacing: 20,
-                          childAspectRatio: 1.3,
-                        ),
-                    itemBuilder: (context, index) {
-                      return _buildCropCard(crops[index], screenWidth);
-                    },
-                  );
+            child: StreamBuilder(
+              stream: FirebaseFirestore.instance
+                  .collection('products')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
                 }
+
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const Center(child: Text('No products available'));
+                }
+
+                final products = snapshot.data!.docs;
+
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    if (constraints.maxWidth < 600) {
+                      return ListView.builder(
+                        padding: EdgeInsets.all(screenWidth * 0.04),
+                        itemCount: products.length,
+                        itemBuilder: (context, index) {
+                          final data =
+                              products[index].data() as Map<String, dynamic>;
+
+                          final crop = {
+                            'name': data['name'] ?? 'Unknown',
+                            'quantity': '${data['quantity'] ?? 0}',
+                            'price': '₹${data['price'] ?? 0}/kg',
+                            'buyer': 'Buyer',
+                            'distance': 'Nearby',
+                            'rating': 4,
+                            'icon': '🌾',
+                            'isAsset': false,
+                          };
+
+                          return _buildCropCard(crop, screenWidth);
+                        },
+                      );
+                    } else {
+                      return GridView.builder(
+                        padding: EdgeInsets.all(screenWidth * 0.04),
+                        itemCount: products.length,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 20,
+                              mainAxisSpacing: 20,
+                              childAspectRatio: 1.3,
+                            ),
+                        itemBuilder: (context, index) {
+                          final data =
+                              products[index].data() as Map<String, dynamic>;
+
+                          final crop = {
+                            'name': data['name'] ?? 'Unknown',
+                            'quantity': '${data['quantity'] ?? 0}',
+                            'price': '₹${data['price'] ?? 0}/kg',
+                            'buyer': 'Buyer',
+                            'distance': 'Nearby',
+                            'rating': 4,
+                            'icon': '🌾',
+                            'isAsset': false,
+                          };
+
+                          return _buildCropCard(crop, screenWidth);
+                        },
+                      );
+                    }
+                  },
+                );
               },
             ),
           ),
@@ -395,13 +443,10 @@ class ListingDetailsScreen extends StatelessWidget {
           children: [
             Text(
               'Contact ${crop['buyer']}',
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-              ),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 20),
-            
+
             // Call option
             ListTile(
               leading: Container(
@@ -410,10 +455,7 @@ class ListingDetailsScreen extends StatelessWidget {
                   color: const Color(0xFF11823F).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
-                  Icons.phone,
-                  color: Color(0xFF11823F),
-                ),
+                child: const Icon(Icons.phone, color: Color(0xFF11823F)),
               ),
               title: const Text('Call Buyer'),
               subtitle: const Text('+91 98765 43210'),
@@ -427,7 +469,7 @@ class ListingDetailsScreen extends StatelessWidget {
                 );
               },
             ),
-            
+
             // WhatsApp option
             ListTile(
               leading: Container(
@@ -436,10 +478,7 @@ class ListingDetailsScreen extends StatelessWidget {
                   color: const Color(0xFF25D366).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
-                  Icons.chat,
-                  color: Color(0xFF25D366),
-                ),
+                child: const Icon(Icons.chat, color: Color(0xFF25D366)),
               ),
               title: const Text('WhatsApp'),
               subtitle: const Text('Send a message'),
@@ -453,7 +492,7 @@ class ListingDetailsScreen extends StatelessWidget {
                 );
               },
             ),
-            
+
             // SMS option
             ListTile(
               leading: Container(
@@ -462,10 +501,7 @@ class ListingDetailsScreen extends StatelessWidget {
                   color: Colors.blue.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
-                  Icons.sms,
-                  color: Colors.blue,
-                ),
+                child: const Icon(Icons.sms, color: Colors.blue),
               ),
               title: const Text('Send SMS'),
               subtitle: const Text('Text message'),
@@ -492,15 +528,10 @@ class ListingDetailsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
           'Negotiate Price',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
         ),
         content: SingleChildScrollView(
           child: Column(
@@ -509,13 +540,10 @@ class ListingDetailsScreen extends StatelessWidget {
             children: [
               Text(
                 'Current price: ${crop['price']}',
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF666666),
-                ),
+                style: const TextStyle(fontSize: 14, color: Color(0xFF666666)),
               ),
               const SizedBox(height: 16),
-              
+
               // Your offer
               TextField(
                 controller: priceController,
@@ -537,7 +565,7 @@ class ListingDetailsScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              
+
               // Message
               TextField(
                 controller: messageController,
@@ -580,7 +608,7 @@ class ListingDetailsScreen extends StatelessWidget {
                 );
                 return;
               }
-              
+
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
