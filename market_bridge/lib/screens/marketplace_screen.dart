@@ -141,7 +141,9 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('products')
+                  .where('inStock', isEqualTo: true) // Only show in-stock products
                   .orderBy('createdAt', descending: true)
+                  .limit(10)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
