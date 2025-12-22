@@ -614,7 +614,12 @@ class BuyerHomeScreen extends StatelessWidget {
                       ),
                       GestureDetector(
                         onTap: () {
-                          Navigator.pushNamed(context, Routes.routeDashboard);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const BuyerDashboardScreen(),
+                            ),
+                          );
                         },
                         child: const BottomNavItem(
                           icon: Icons.person_outline,

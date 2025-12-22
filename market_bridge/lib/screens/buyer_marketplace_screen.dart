@@ -68,7 +68,8 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
     if (index == 0) {
       Navigator.pushReplacementNamed(context, '/home');
     } else if (index == 2) {
-      Navigator.pushReplacementNamed(context, '/dashboard');
+      // Fix: Use the correct route for buyer dashboard
+      Navigator.pushReplacementNamed(context, Routes.routeDashboard);
     }
     // index == 1 means already on Marketplace
   }
@@ -84,7 +85,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
       body: Column(
         children: [
           _buildHeader(screenWidth),
-          _buildListingsSection(screenWidth, isTablet),
+          Expanded(child: _buildListingsSection(screenWidth, isTablet)),
         ],
       ),
       bottomNavigationBar: _buildBottomNav(),
@@ -147,36 +148,34 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
 
   // ============== Listings Section ==============
   Widget _buildListingsSection(double screenWidth, bool isTablet) {
-    return Expanded(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          if (constraints.maxWidth < 600) {
-            // Mobile → List View
-            return ListView.builder(
-              padding: EdgeInsets.all(screenWidth * 0.04),
-              itemCount: farmerListings.length,
-              itemBuilder: (context, index) {
-                return _buildListingCard(farmerListings[index], isTablet);
-              },
-            );
-          } else {
-            // Tablet → Grid View
-            return GridView.builder(
-              padding: EdgeInsets.all(screenWidth * 0.04),
-              itemCount: farmerListings.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 20,
-                crossAxisSpacing: 20,
-                childAspectRatio: 1.25,
-              ),
-              itemBuilder: (context, index) {
-                return _buildListingCard(farmerListings[index], isTablet);
-              },
-            );
-          }
-        },
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 600) {
+          // Mobile → List View
+          return ListView.builder(
+            padding: EdgeInsets.all(screenWidth * 0.04),
+            itemCount: farmerListings.length,
+            itemBuilder: (context, index) {
+              return _buildListingCard(farmerListings[index], isTablet);
+            },
+          );
+        } else {
+          // Tablet → Grid View
+          return GridView.builder(
+            padding: EdgeInsets.all(screenWidth * 0.04),
+            itemCount: farmerListings.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 20,
+              crossAxisSpacing: 20,
+              childAspectRatio: 1.25,
+            ),
+            itemBuilder: (context, index) {
+              return _buildListingCard(farmerListings[index], isTablet);
+            },
+          );
+        }
+      },
     );
   }
 

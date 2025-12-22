@@ -16,9 +16,9 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
     if (_selectedIndex == index) return;
     setState(() => _selectedIndex = index);
     if (index == 0) {
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, Routes.routeHome);
     } else if (index == 1) {
-      Navigator.pushReplacementNamed(context, '/marketplace');
+      Navigator.pushReplacementNamed(context, Routes.routeMarketPlace);
     } else if (index == 2) {
       // Already on Dashboard
     }
@@ -354,18 +354,21 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
 
                       final crossAxisCount = isTablet ? 2 : 1;
 
-                      return GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: _myOrders.length,
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: crossAxisCount,
-                          crossAxisSpacing: padding,
-                          mainAxisSpacing: padding,
-                          childAspectRatio: isTablet ? 1.5 : 1.8,
+                      return SizedBox(
+                        height: 300, // Fix: Give bounded height to GridView
+                        child: GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: _myOrders.length,
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: crossAxisCount,
+                            crossAxisSpacing: padding,
+                            mainAxisSpacing: padding,
+                            childAspectRatio: isTablet ? 1.5 : 1.8,
+                          ),
+                          itemBuilder: (context, index) =>
+                              _buildOrderCard(order: _myOrders[index]),
                         ),
-                        itemBuilder: (context, index) =>
-                            _buildOrderCard(order: _myOrders[index]),
                       );
                     },
                   ),
