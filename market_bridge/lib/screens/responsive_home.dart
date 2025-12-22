@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:market_bridge/screens/farmer_dashboard_screen.dart';
 import '../routes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -10,25 +11,25 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
       "name": "Tomato",
       "price": "₹20/kg",
       "change": "+5%",
-      "icon": "assets/icons/tomato.png"
+      "icon": "assets/icons/tomato.png",
     },
     {
       "name": "Onion",
       "price": "₹25/kg",
       "change": "+2%",
-      "icon": "assets/icons/onion.png"
+      "icon": "assets/icons/onion.png",
     },
     {
       "name": "Potato",
       "price": "₹12/kg",
       "change": "-3%",
-      "icon": "assets/icons/potato.png"
+      "icon": "assets/icons/potato.png",
     },
     {
       "name": "Wheat",
       "price": "₹2400/quintal",
       "change": "+8%",
-      "icon": "assets/icons/rice.png"
+      "icon": "assets/icons/rice.png",
     },
   ];
 
@@ -103,7 +104,11 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(Icons.agriculture, color: Colors.white.withOpacity(0.8), size: 16),
+                      Icon(
+                        Icons.agriculture,
+                        color: Colors.white.withOpacity(0.8),
+                        size: 16,
+                      ),
                       const SizedBox(width: 6),
                       Text(
                         'Farmer Mode',
@@ -119,15 +124,26 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
               Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 26),
+                    icon: const Icon(
+                      Icons.notifications_outlined,
+                      color: Colors.white,
+                      size: 26,
+                    ),
                     onPressed: () {},
                   ),
                   IconButton(
-                    icon: const Icon(Icons.logout, color: Colors.white, size: 24),
+                    icon: const Icon(
+                      Icons.logout,
+                      color: Colors.white,
+                      size: 24,
+                    ),
                     tooltip: 'Logout',
                     onPressed: () async {
                       await FirebaseAuth.instance.signOut();
-                      Navigator.pushReplacementNamed(context, Routes.routeSplash);
+                      Navigator.pushReplacementNamed(
+                        context,
+                        Routes.routeSplash,
+                      );
                     },
                   ),
                 ],
@@ -175,18 +191,12 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
               children: [
                 const Text(
                   'Your Location',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Tirupati, Andhra Pradesh',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                 ),
               ],
             ),
@@ -203,10 +213,7 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-      ),
+      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
     );
   }
 
@@ -269,7 +276,10 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: isPositive
                           ? Colors.green.withOpacity(0.1)
@@ -279,7 +289,9 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
                     child: Text(
                       change,
                       style: TextStyle(
-                        color: isPositive ? Colors.green.shade700 : Colors.red.shade700,
+                        color: isPositive
+                            ? Colors.green.shade700
+                            : Colors.red.shade700,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),
@@ -340,11 +352,7 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
                   color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(
-                  Icons.bolt,
-                  color: Colors.white,
-                  size: 20,
-                ),
+                child: const Icon(Icons.bolt, color: Colors.white, size: 20),
               ),
               const SizedBox(width: 12),
               const Text(
@@ -365,7 +373,8 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
                   context,
                   icon: Icons.add_box_rounded,
                   label: 'Post Produce',
-                  onTap: () => Navigator.pushNamed(context, Routes.routePostProduce),
+                  onTap: () =>
+                      Navigator.pushNamed(context, Routes.routePostProduce),
                 ),
               ),
               const SizedBox(width: 12),
@@ -374,7 +383,12 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
                   context,
                   icon: Icons.list_alt_rounded,
                   label: 'My Listings',
-                  onTap: () => Navigator.pushNamed(context, Routes.routeDashboard),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const FarmerDashboardScreen(),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -385,11 +399,11 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
   }
 
   Widget _buildActionButton(
-      BuildContext context, {
-        required IconData icon,
-        required String label,
-        required VoidCallback onTap,
-      }) {
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(12),
@@ -451,10 +465,7 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
               const SizedBox(width: 12),
               const Text(
                 'Trending Demand',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -508,10 +519,7 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
           Expanded(
             child: Text(
               name,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
             ),
           ),
           Container(
@@ -562,13 +570,15 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
                 icon: Icons.storefront_rounded,
                 label: 'Marketplace',
                 active: false,
-                onTap: () => Navigator.pushNamed(context, Routes.routeMarketPlace),
+                onTap: () =>
+                    Navigator.pushNamed(context, Routes.routeMarketPlace),
               ),
               _buildNavItem(
                 icon: Icons.person_rounded,
                 label: 'Dashboard',
                 active: false,
-                onTap: () => Navigator.pushNamed(context, Routes.routeDashboard),
+                onTap: () =>
+                    Navigator.pushNamed(context, Routes.routeDashboard),
               ),
             ],
           ),

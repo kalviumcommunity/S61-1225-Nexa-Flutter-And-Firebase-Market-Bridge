@@ -33,7 +33,6 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.green,
         useMaterial3: true,
-        // Add default page transition
         pageTransitionsTheme: const PageTransitionsTheme(
           builders: {
             TargetPlatform.android: CupertinoPageTransitionsBuilder(),
@@ -41,22 +40,17 @@ class MyApp extends StatelessWidget {
           },
         ),
       ),
-      initialRoute: Routes.routeSplash,
       onGenerateRoute: (settings) {
-        // Get the transition curve for this route
         final curve = Routes.getTransitionCurve(settings.name ?? '');
-
         switch (settings.name) {
           case Routes.routeSplash:
             return _buildFadeRoute(const SplashScreen(), settings);
-
           case Routes.routePhone:
             return _buildSlideRoute(
               const PhoneLoginScreen(),
               settings,
               curve: curve,
             );
-
           case Routes.routeOtp:
             final args = settings.arguments as Map<String, dynamic>;
             return _buildSlideRoute(
@@ -68,7 +62,6 @@ class MyApp extends StatelessWidget {
               settings,
               curve: curve,
             );
-
           case Routes.routeComplete:
             final args = settings.arguments as Map<String, dynamic>;
             return _buildScaleFadeRoute(
@@ -79,35 +72,30 @@ class MyApp extends StatelessWidget {
               settings,
               curve: curve,
             );
-
           case Routes.routeHome:
             return _buildFadeRoute(
               const RoleHomeRouter(),
               settings,
               curve: curve,
             );
-
           case Routes.routeMarketPlace:
             return _buildSlideRoute(
               const MarketplaceScreen(),
               settings,
               curve: curve,
             );
-
           case Routes.routeDashboard:
             return _buildSlideUpRoute(
               const DashboardRouter(),
               settings,
               curve: curve,
             );
-
           case Routes.routePostProduce:
             return _buildSlideUpRoute(
               const PostProduceScreen(),
               settings,
               curve: curve,
             );
-
           case Routes.routeListingDetails:
             final args = settings.arguments as Map<String, dynamic>?;
             return _buildScaleFadeRoute(
@@ -115,18 +103,28 @@ class MyApp extends StatelessWidget {
               settings,
               curve: curve,
             );
-
           case '/scrollable':
             return _buildSlideRoute(
               const ResponsiveLayout(),
               settings,
               curve: curve,
             );
-
           default:
             return _buildFadeRoute(const SplashScreen(), settings);
         }
       },
+      home: StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (ctx, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const SplashScreen();
+          }
+          if (snapshot.hasData) {
+            return const RoleHomeRouter();
+          }
+          return const PhoneLoginScreen();
+        },
+      ),
     );
   }
 
