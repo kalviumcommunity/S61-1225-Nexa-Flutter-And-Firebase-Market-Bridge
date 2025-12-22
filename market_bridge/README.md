@@ -3796,3 +3796,120 @@ Firebase Storage integration has significantly enhanced the Market Bridge app by
 
 The implementation follows best practices with proper error handling, security rules, and optimized performance. The upload flow is intuitive and provides clear feedback to users throughout the process.
 
+
+# 🔥 Firestore Queries, Filters & Ordering – Flutter App
+
+This project is part of **Kalvium Sprint-2 (Lesson 2.35)** and demonstrates how to efficiently retrieve and display Firestore data using queries, filters, sorting, and real-time updates in a Flutter application.
+
+The goal of this task is to fetch **only relevant data** from Firestore and display it dynamically in the UI using `StreamBuilder`.
+
+---
+
+## 📌 Features Implemented
+
+- Firestore queries with conditions
+- Filtering records using `where`
+- Sorting data using `orderBy`
+- Limiting results using `limit`
+- Real-time UI updates using `StreamBuilder`
+
+---
+
+## 🔧 Firestore Dependency
+
+dependencies:
+  cloud_firestore: ^5.0.0
+
+
+Installed using:
+
+flutter pub get
+
+
+---
+
+## 🗂 Firestore Data Structure
+
+**Collection:** `products`
+
+**Fields:**
+
+| Field Name | Type      | Example Value |
+| ---------- | --------- | ------------- |
+| name       | String    | Onions        |
+| price      | Number    | 40            |
+| inStock    | Boolean   | true          |
+| rating     | Number    | 4.5           |
+| createdAt  | Timestamp | current time  |
+| tags       | Array     | ["popular"]   |
+
+
+
+## 🔍 Query Types Implemented
+
+### 1️⃣ Filtering using `where`
+
+.where('inStock', isEqualTo: true)
+
+
+### 2️⃣ Sorting using `orderBy`
+
+
+.orderBy('price')
+
+
+### 3️⃣ Limiting results
+
+
+.limit(10)
+
+
+---
+
+## 🔄 Real-Time Query with StreamBuilder
+
+StreamBuilder<QuerySnapshot>(
+  stream: FirebaseFirestore.instance
+      .collection('products')
+      .where('inStock', isEqualTo: true)
+      .orderBy('price')
+      .limit(10)
+      .snapshots(),
+  builder: (context, snapshot) {
+    if (!snapshot.hasData) {
+      return CircularProgressIndicator();
+    }
+
+    final products = snapshot.data!.docs;
+
+    return ListView.builder(
+      itemCount: products.length,
+      itemBuilder: (context, index) {
+        final product = products[index];
+        return ListTile(
+          title: Text(product['name']),
+          subtitle: Text("₹${product['price']}"),
+        );
+      },
+    );
+  },
+);
+
+
+---
+
+## 🧠 Reflection
+
+In this task, I used Firestore `where` queries to filter products that are in stock and `orderBy` to sort them based on price. This improves the user experience by showing only relevant and organized data, reducing unnecessary reads and improving performance.
+
+Using `StreamBuilder` enables real-time updates, allowing the UI to reflect any changes made in Firestore instantly. While combining `where` and `orderBy`, a composite index was required, which was resolved by creating the index in the Firestore console as prompted.
+
+---
+
+## 🧪 Common Issues Faced
+
+* **Composite Index Error:**
+  Occurred when combining `where` and `orderBy`.
+  ✔ Fixed by creating the required index from Firestore console.
+
+---
