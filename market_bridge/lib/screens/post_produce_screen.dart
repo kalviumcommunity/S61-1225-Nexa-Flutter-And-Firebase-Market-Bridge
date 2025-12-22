@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class PostProduceScreen extends StatefulWidget {
   final Map<String, dynamic>? editListing;
@@ -31,6 +33,9 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
   bool _isLoading = false;
+  bool _isUploading = false;
+  double _uploadProgress = 0.0;
+  String? _existingImageUrl; // For editing existing listings
 
   final List<String> _crops = [
     'Tomato',
@@ -56,6 +61,7 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
       _priceController.text = widget.editListing!['price'].toString();
       _isPriceNegotiable = widget.editListing!['isNegotiable'] ?? false;
       _locationController.text = widget.editListing!['location'] ?? '';
+      _existingImageUrl = widget.editListing!['imageUrl'];
     }
   }
 
@@ -78,6 +84,7 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
       if (image != null) {
         setState(() {
           _selectedImage = File(image.path);
+          _existingImageUrl = null; // Clear existing URL when new image is picked
         });
       }
     } catch (e) {
@@ -94,6 +101,68 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
+  }
+
+  /// Upload image to Firebase Storage
+  Future<String?> _uploadImageToStorage(File imageFile) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        _showSnackbar('User not logged in', isError: true);
+        return null;
+      }
+
+      setState(() {
+        _isUploading = true;
+        _uploadProgress = 0.0;
+      });
+
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('users')
+          .child(user.uid)
+          .child('products')
+          .child(fileName);
+
+      final uploadTask = storageRef.putFile(imageFile);
+
+      uploadTask.snapshotEvents.listen((snapshot) {
+        setState(() {
+          _uploadProgress =
+              snapshot.bytesTransferred / snapshot.totalBytes;
+        });
+      });
+
+      await uploadTask;
+
+      final downloadUrl = await storageRef.getDownloadURL();
+
+      setState(() {
+        _isUploading = false;
+      });
+
+      debugPrint('✅ Image uploaded: $downloadUrl');
+      return downloadUrl;
+    } catch (e) {
+      debugPrint('❌ Error uploading image: $e');
+      setState(() => _isUploading = false);
+      _showSnackbar('Image upload failed', isError: true);
+      return null;
+    }
+  }
+
+  /// Delete image from Firebase Storage
+  Future<void> _deleteImageFromStorage(String imageUrl) async {
+    try {
+      final ref = FirebaseStorage.instance.refFromURL(imageUrl);
+      await ref.delete();
+      debugPrint('✅ Old image deleted successfully');
+    } catch (e) {
+      debugPrint('⚠️ Error deleting old image: $e');
+      // Don't show error to user as this is a background operation
+    }
   }
 
   // Add new listing to Firestore
@@ -118,9 +187,21 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
         return;
       }
 
+      // Upload image if selected
+      String? imageUrl;
+      if (_selectedImage != null) {
+        imageUrl = await _uploadImageToStorage(_selectedImage!);
+        if (imageUrl == null) {
+          setState(() => _isLoading = false);
+          return; // Upload failed, stop here
+        }
+      }
+
       // Create document data with 'name' field for marketplace
+      final user = FirebaseAuth.instance.currentUser;
+
       final data = {
-        'name': _selectedCrop, // Added for marketplace compatibility
+        'name': _selectedCrop,
         'crop': _selectedCrop,
         'quantity': double.parse(quantity),
         'unit': _selectedUnit,
@@ -130,6 +211,8 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
         'status': 'active',
         'views': 0,
         'inquiries': 0,
+        'imageUrl': imageUrl,
+        'ownerId': user?.uid,
         'createdAt': Timestamp.now(),
         'updatedAt': Timestamp.now(),
       };
@@ -180,6 +263,24 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
         return;
       }
 
+      String? imageUrl = _existingImageUrl;
+
+      // Upload new image if selected
+      if (_selectedImage != null) {
+        final newImageUrl = await _uploadImageToStorage(_selectedImage!);
+        if (newImageUrl == null) {
+          setState(() => _isLoading = false);
+          return; // Upload failed
+        }
+
+        // Delete old image if exists
+        if (_existingImageUrl != null && _existingImageUrl!.isNotEmpty) {
+          await _deleteImageFromStorage(_existingImageUrl!);
+        }
+
+        imageUrl = newImageUrl;
+      }
+
       // Update document in Firestore with 'name' field
       await FirebaseFirestore.instance
           .collection('products')
@@ -192,6 +293,7 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
         'price': double.parse(price),
         'isNegotiable': _isPriceNegotiable,
         'location': location,
+        'imageUrl': imageUrl,
         'updatedAt': Timestamp.now(),
       });
 
@@ -400,10 +502,78 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Photo Section
+                  // Photo Section with Upload Progress
                   _buildSectionLabel('Photo (Optional)'),
                   const SizedBox(height: 12),
-                  if (_selectedImage != null)
+
+                  // Show existing image if editing and no new image selected
+                  if (_existingImageUrl != null && _selectedImage == null)
+                    Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            _existingImageUrl!,
+                            width: double.infinity,
+                            height: 200,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Container(
+                                width: double.infinity,
+                                height: 200,
+                                color: Colors.grey[200],
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    value: loadingProgress.expectedTotalBytes != null
+                                        ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                        : null,
+                                    color: const Color(0xFF11823F),
+                                  ),
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                width: double.infinity,
+                                height: 200,
+                                color: Colors.grey[200],
+                                child: const Icon(
+                                  Icons.broken_image,
+                                  size: 60,
+                                  color: Colors.grey,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: InkWell(
+                            onTap: () {
+                              setState(() {
+                                _existingImageUrl = null;
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.black54,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  else if (_selectedImage != null)
                     Stack(
                       children: [
                         ClipRRect(
@@ -460,6 +630,45 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
                         ),
                       ],
                     ),
+
+                  // Upload Progress Indicator
+                  if (_isUploading) ...[
+                    const SizedBox(height: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Uploading image...',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF666666),
+                              ),
+                            ),
+                            Text(
+                              '${(_uploadProgress * 100).toInt()}%',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF11823F),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        LinearProgressIndicator(
+                          value: _uploadProgress,
+                          backgroundColor: Colors.grey[300],
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            Color(0xFF11823F),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+
                   const SizedBox(height: 24),
 
                   // Location
@@ -482,7 +691,7 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
                     width: double.infinity,
                     height: 54,
                     child: ElevatedButton(
-                      onPressed: _isLoading ? null : _publishListing,
+                      onPressed: (_isLoading || _isUploading) ? null : _publishListing,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF11823F),
                         disabledBackgroundColor: Colors.grey[400],
@@ -491,7 +700,7 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
                         ),
                         elevation: 2,
                       ),
-                      child: _isLoading
+                      child: (_isLoading || _isUploading)
                           ? const SizedBox(
                         width: 24,
                         height: 24,

@@ -310,6 +310,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     final unit = crop['unit'] ?? 'Kg';
     final price = crop['price'] ?? 0;
     final location = crop['location'] ?? 'Location not specified';
+    final imageUrl = crop['imageUrl'] as String?;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -331,7 +332,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
           children: [
             Row(
               children: [
-                // Crop icon from assets
+                // Display uploaded image or fallback to asset icon
                 Container(
                   width: 48,
                   height: 48,
@@ -339,8 +340,49 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                     color: const Color(0xFFF5F5F5),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Center(
-                    child: Image.asset(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: imageUrl != null && imageUrl.isNotEmpty
+                        ? Image.network(
+                      imageUrl,
+                      width: 48,
+                      height: 48,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                                  : null,
+                              color: const Color(0xFF11823F),
+                            ),
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        // Fallback to asset icon on error
+                        return Image.asset(
+                          _getAssetIconForCrop(name),
+                          width: 32,
+                          height: 32,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(
+                              Icons.eco,
+                              size: 28,
+                              color: Color(0xFF11823F),
+                            );
+                          },
+                        );
+                      },
+                    )
+                        : Image.asset(
                       _getAssetIconForCrop(name),
                       width: 32,
                       height: 32,
@@ -429,7 +471,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white, // WHITE TEXT HERE
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -439,7 +481,6 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       ),
     );
   }
-
   Widget _buildNavItem({
     required IconData icon,
     required String label,
@@ -509,6 +550,7 @@ class ListingDetailsScreen extends StatelessWidget {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -519,6 +561,7 @@ class ListingDetailsScreen extends StatelessWidget {
     final price = crop['price'] ?? 0;
     final location = crop['location'] ?? 'Location not specified';
     final isNegotiable = crop['isNegotiable'] ?? false;
+    final imageUrl = crop['imageUrl'] as String?;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -542,12 +585,49 @@ class ListingDetailsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Crop image section
+            // Crop image section - Show uploaded image or fallback
             Container(
               width: double.infinity,
               height: isTablet ? 380 : 280,
               color: const Color(0xFFF0F0F0),
-              child: Center(
+              child: imageUrl != null && imageUrl.isNotEmpty
+                  ? Image.network(
+                imageUrl,
+                width: double.infinity,
+                height: isTablet ? 380 : 280,
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
+                          : null,
+                      color: const Color(0xFF11823F),
+                    ),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  // Fallback to asset icon on error
+                  return Center(
+                    child: Image.asset(
+                      _getAssetIconForCrop(name),
+                      width: 120,
+                      height: 120,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          Icons.eco,
+                          size: 120,
+                          color: Color(0xFF11823F),
+                        );
+                      },
+                    ),
+                  );
+                },
+              )
+                  : Center(
                 child: Image.asset(
                   _getAssetIconForCrop(name),
                   width: 120,
