@@ -100,7 +100,7 @@ lib/
 
 - Flutter
 - Dart
-- Firebase 
+- Firebase
 
 ---
 
@@ -146,11 +146,11 @@ final isTablet = screenWidth > 600;
 
 dart
 LayoutBuilder(
-  builder: (context, constraints) {
-    final width = constraints.maxWidth;
-    final gridCount = width > 900 ? 4 : (width > 600 ? 2 : 1);
-    return ...;
-  },
+builder: (context, constraints) {
+final width = constraints.maxWidth;
+final gridCount = width > 900 ? 4 : (width > 600 ? 2 : 1);
+return ...;
+},
 );
 
 
@@ -186,7 +186,7 @@ LayoutBuilder(
 
 ---
 
-# Market Bridge 
+# Market Bridge
 
 MarketBridge is a Flutter-based mobile application that connects farmers and buyers through a simple, clean, and responsive marketplace interface.
 
@@ -263,7 +263,7 @@ dependencies:
   cloud_firestore: ^5.0.0
 ```
 
-Then run: 
+Then run:
 
 flutter pub get
 
@@ -529,12 +529,12 @@ When state changes, Flutter intelligently rebuilds only the affected widgets, ma
 
 ### Why separate static and reactive parts of UI?
 
- stateless_stateful
+stateless_stateful
 - Makes code cleaner and easier to maintain
 - Improves performance by reducing unnecessary rebuilds
 - Ensures UI updates happen only where needed
 - Encourages separation of concerns between layout and logic
-=======
+  =======
 ## Market Bridge – Multi-Screen Navigation (Sprint-2)
 
 This project demonstrates **multi-screen navigation in Flutter** using `Navigator`, named routes, and dynamic route arguments. The app includes authentication screens, profile completion, and a responsive home screen inspired by the Market-Bridge use case.
@@ -598,7 +598,7 @@ Navigation flow implemented using:
 ---
 
 
-## Reflection 
+## Reflection
 
 Using named routes improved readability and organization of the navigation system.
 `onGenerateRoute` was helpful for passing dynamic data like `verificationId` and `phoneNumber` to OTP and profile screens.
@@ -4168,7 +4168,8 @@ if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
 ### Challenge 4: Search Filtering with Streams
 **Problem**: Need to filter data client-side for search  
 **Solution**: Use `.where()` to filter the stream list
-```dart
+```
+dart
 final filteredDocs = snapshot.data!.docs.where((doc) {
   final data = doc.data() as Map<String, dynamic>;
   return data['crop'].toLowerCase().contains(searchQuery);
@@ -4184,7 +4185,7 @@ final filteredDocs = snapshot.data!.docs.where((doc) {
 3. **Firestore is Powerful**: Built-in real-time capabilities with simple API
 4. **User Experience Matters**: Live updates make apps feel modern and responsive
 5. **Performance Considerations**: Use `.where()` and `.orderBy()` to limit data
-=======
+
 
 # 🔥 Firestore Queries, Filters & Ordering – Flutter App
 
@@ -4207,7 +4208,7 @@ The goal of this task is to fetch **only relevant data** from Firestore and disp
 ## 🔧 Firestore Dependency
 
 dependencies:
-  cloud_firestore: ^5.0.0
+cloud_firestore: ^5.0.0
 
 
 Installed using:
@@ -4258,16 +4259,16 @@ flutter pub get
 ## 🔄 Real-Time Query with StreamBuilder
 
 StreamBuilder<QuerySnapshot>(
-  stream: FirebaseFirestore.instance
-      .collection('products')
-      .where('inStock', isEqualTo: true)
-      .orderBy('price')
-      .limit(10)
-      .snapshots(),
-  builder: (context, snapshot) {
-    if (!snapshot.hasData) {
-      return CircularProgressIndicator();
-    }
+stream: FirebaseFirestore.instance
+.collection('products')
+.where('inStock', isEqualTo: true)
+.orderBy('price')
+.limit(10)
+.snapshots(),
+builder: (context, snapshot) {
+if (!snapshot.hasData) {
+return CircularProgressIndicator();
+}
 
     final products = snapshot.data!.docs;
 
@@ -4281,7 +4282,7 @@ StreamBuilder<QuerySnapshot>(
         );
       },
     );
-  },
+},
 );
 
 
@@ -4300,6 +4301,319 @@ Using `StreamBuilder` enables real-time updates, allowing the UI to reflect any 
 * **Composite Index Error:**
   Occurred when combining `where` and `orderBy`.
   ✔ Fixed by creating the required index from Firestore console.
-
+  e5bda30234e4c42c94c09585bf79a773c99c70e4
 
 ---
+
+# Pull Request Template
+
+## PR Title
+```
+[Sprint-2] Cloud Functions Integration & Navigation Fixes – [YourTeamName]
+```
+
+## PR Description
+
+### 🎯 Overview
+This PR implements Firebase Cloud Functions for serverless backend operations and fixes navigation issues in the buyer dashboard.
+
+### ✨ Features Implemented
+
+#### 1. Cloud Functions
+- **Callable Function**: `sendWelcomeNotification` - Sends personalized welcome messages to new users
+- **Firestore Trigger**: `onProductCreated` - Auto-processes new product listings with metadata
+- **Firestore Trigger**: `onUserCreated` - Initializes user accounts with default statistics
+- **Callable Function**: `getMarketStatistics` - Provides real-time market data
+- **Scheduled Function**: `dailyPriceUpdate` - Runs daily maintenance tasks
+
+#### 2. Bug Fixes
+- ✅ Fixed buyer dashboard navigation from marketplace
+- ✅ Fixed buyer dashboard navigation from home screen
+- ✅ Fixed "My Orders" button routing
+- ✅ Fixed bottom navigation bar routing
+
+### 📁 Files Changed
+
+#### New Files
+```
+functions/
+├── index.js           (Cloud Functions implementation)
+├── package.json       (Dependencies)
+└── .gitignore
+
+lib/services/
+└── cloud_functions_service.dart  (Flutter integration)
+```
+
+#### Modified Files
+```
+lib/screens/
+├── complete_profile_screen.dart        (Added function calls)
+├── buyer_marketplace_screen.dart       (Fixed navigation)
+└── buyer_home_screen.dart              (Fixed navigation)
+
+pubspec.yaml                            (Added cloud_functions dependency)
+```
+
+### 🧪 Testing Done
+
+#### Cloud Functions Tests
+- [x] User registration triggers `onUserCreated`
+- [x] Welcome notification sent successfully
+- [x] User stats auto-initialized
+- [x] Product creation triggers `onProductCreated`
+- [x] Product metadata added automatically
+- [x] Farmer listing count incremented
+- [x] Market statistics function returns correct data
+- [x] All functions logged in Firebase Console
+
+#### Navigation Tests
+- [x] Buyer Home → Marketplace navigation works
+- [x] Buyer Home → Dashboard navigation works
+- [x] Buyer Marketplace → Dashboard navigation works
+- [x] "My Orders" button navigates correctly
+- [x] Bottom navigation works on all buyer screens
+- [x] Back navigation works correctly
+
+
+### 💡 Technical Implementation
+
+#### Cloud Functions Architecture
+```
+User Action (Flutter)
+    ↓
+Firebase Auth
+    ↓
+Firestore Write
+    ↓
+Cloud Function Trigger ⚡
+    ↓
+Auto-Processing
+    ↓
+Updated Firestore Data
+```
+
+#### Key Technologies Used
+- Firebase Cloud Functions (Node.js)
+- Firebase Admin SDK
+- Firestore Triggers
+- HTTPS Callable Functions
+- Flutter Cloud Functions Package
+
+### 📝 Reflection
+
+**Why Serverless Functions Reduce Backend Overhead:**
+
+Serverless functions eliminate traditional backend management by:
+1. **Auto-scaling**: Handles 0 to millions of requests automatically
+2. **Pay-per-use**: Only charged for actual execution time
+3. **No server management**: No need to provision, maintain, or update servers
+4. **Built-in monitoring**: Automatic logging and error tracking
+5. **Instant deployment**: Changes deploy in minutes without downtime
+
+**Function Type Selection:**
+
+I chose **callable functions** for user-initiated actions (welcome messages) because:
+- User expects immediate response
+- Need to pass data back to Flutter
+- Requires authentication context
+
+I chose **event-triggered functions** for automatic tasks (product processing) because:
+- Runs in background without blocking UI
+- No direct user interaction needed
+- Perfect for data validation and enrichment
+
+**Real-World Use Cases:**
+
+1. **E-commerce**: Process orders, update inventory, send confirmations
+2. **Social Media**: Moderate content, generate thumbnails, send notifications
+3. **Analytics**: Calculate trends, generate reports, track user behavior
+4. **Communication**: Send emails, SMS, push notifications
+5. **Data Processing**: Clean data, run ML models, generate recommendations
+6. **Integrations**: Connect with payment gateways, shipping APIs, CRMs
+
+### 🐛 Known Issues & Limitations
+
+- Functions require billing enabled on Firebase project
+- Cold start time can be 1-2 seconds for first invocation
+- Free tier limited to 2M invocations/month
+- Local testing requires Firebase emulators
+
+
+### 📚 Documentation
+
+All changes documented in:
+- `README.md` - Setup and usage instructions
+- `CLOUD_FUNCTIONS.md` - Detailed function documentation
+- Inline code comments
+- Console debug logs
+
+### ✅ Checklist
+
+- [x] Code follows project style guidelines
+- [x] All tests passing
+- [x] Functions deployed successfully
+- [x] Documentation updated
+- [x] Screenshots included
+- [x] Demo video recorded
+- [x] No console errors
+- [x] Navigation tested thoroughly
+- [x] Firebase Console verified
+
+---
+
+## Reviewer Notes
+
+**To test this PR:**
+
+1. **Setup Functions:**
+   ```
+   bash
+   cd functions
+   npm install
+   firebase deploy --only functions
+   ```
+
+2. **Test in App:**
+    - Create new user account
+    - Create product listing
+    - Check Firebase Console logs
+    - Test buyer navigation
+
+3. **Verify Firestore:**
+    - Check user documents have `stats` object
+    - Check products have auto-generated fields
+    - Check notifications collection
+
+**Key Files to Review:**
+- `functions/index.js` - Main function logic
+- `lib/services/cloud_functions_service.dart` - Flutter integration
+- `lib/screens/complete_profile_screen.dart` - Function usage
+- Navigation fixes in buyer screens
+
+---
+
+## 🔥 Firebase Cloud Functions
+
+### Overview
+
+This app uses Firebase Cloud Functions for serverless backend operations, eliminating the need for a traditional backend server.
+
+### Implemented Functions
+
+#### 1. Callable Functions (Invoked from Flutter)
+
+**sendWelcomeNotification**
+```
+dart
+final result = await CloudFunctionsService().sendWelcomeNotification(
+  userName: 'John Doe',
+  userRole: 'farmer',
+);
+```
+Sends personalized welcome message to new users.
+
+**getMarketStatistics**
+```
+dart
+final stats = await CloudFunctionsService().getMarketStatistics();
+print('Total Products: ${stats['totalProducts']}');
+```
+Returns real-time market statistics.
+
+#### 2. Firestore Triggers (Automatic)
+
+**onUserCreated**
+- Triggers when new user document is created
+- Initializes user statistics
+- Creates welcome notification
+- Sets account status
+
+**onProductCreated**
+- Triggers when new product is listed
+- Adds server timestamp
+- Updates farmer's listing count
+- Sets verification status
+
+**onProductUpdated**
+- Triggers when product is modified
+- Tracks significant price changes
+- Updates price history
+
+#### 3. Scheduled Functions
+
+**dailyPriceUpdate**
+- Runs daily at midnight (Asia/Kolkata)
+- Resets daily view counts
+- Performs maintenance tasks
+
+### Setup Instructions
+
+1. **Install Firebase CLI**
+   ```
+   bash
+   npm install -g firebase-tools
+   ```
+
+2. **Initialize Functions**
+   ```
+   bash
+   firebase init functions
+   ```
+
+3. **Deploy**
+   ```
+   bash
+   cd functions
+   npm install
+   firebase deploy --only functions
+   ```
+
+4. **Add Flutter Dependency**
+   ```
+   yaml
+   dependencies:
+     cloud_functions: ^5.0.0
+   ```
+
+### Function Logs
+
+View execution logs in:
+- Firebase Console → Functions → Logs
+- Terminal: `firebase functions:log`
+
+### Cost
+
+Functions use Firebase free tier:
+- 2M invocations/month
+- 400,000 GB-seconds
+- No credit card required for testing
+
+### Real-World Applications
+
+✅ Order processing and notifications  
+✅ Automated data validation  
+✅ Background data processing  
+✅ Integration with third-party APIs  
+✅ Scheduled maintenance tasks  
+✅ Real-time analytics
+
+---
+
+## 🐛 Bug Fixes
+
+### Fixed Buyer Dashboard Navigation
+
+**Issue:** Buyer dashboard couldn't be accessed from marketplace or home screen.
+
+**Solution:** Changed from named routes to direct MaterialPageRoute navigation.
+
+**Affected Screens:**
+- `buyer_marketplace_screen.dart`
+- `buyer_home_screen.dart`
+
+**Testing:**
+- ✅ Home → Dashboard
+- ✅ Marketplace → Dashboard
+- ✅ Bottom navigation
+- ✅ "My Orders" button

@@ -1,8 +1,9 @@
-// lib/screens/complete_profile_screen.dart
+// lib/screens/complete_profile_screen.dart (UPDATED)
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../services/cloud_functions_service.dart';
 import '../routes.dart';
 
 class CompleteProfileScreen extends StatefulWidget {
@@ -29,6 +30,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   String preferredLanguage = 'English';
   String farmSizeUnit = 'Acres';
   bool loading = false;
+
+  // Cloud Functions Service
+  final _functionsService = CloudFunctionsService();
 
   Color get themeColor => widget.role.toLowerCase() == 'buyer'
       ? const Color(0xFF2196F3)
@@ -77,18 +81,36 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     }
 
     try {
+      debugPrint('💾 Saving user profile...');
+
+      // Save to Firestore
       await FirebaseFirestore.instance
           .collection('users')
           .doc(uid)
           .set(data, SetOptions(merge: true));
 
+      debugPrint('✅ Profile saved to Firestore');
+
+      // Call Cloud Function for welcome notification
+      debugPrint('📞 Triggering welcome notification...');
+      final result = await _functionsService.sendWelcomeNotification(
+        userName: nameController.text.trim(),
+        userRole: widget.role,
+      );
+
+      if (result != null) {
+        debugPrint('✅ Welcome notification sent');
+        debugPrint('Message: ${result['message']}');
+      }
+
       if (!mounted) return;
       _showSuccessDialog();
     } catch (e) {
+      debugPrint('❌ Error saving profile: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Failed to save profile. Please try again.'),
+          content: Text('Failed to save profile: $e'),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.all(16),
@@ -419,26 +441,11 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
         DropdownButtonFormField<String>(
           value: preferredLanguage,
           items: const [
-            DropdownMenuItem(
-              value: 'English',
-              child: Text('English'),
-            ),
-            DropdownMenuItem(
-              value: 'Hindi',
-              child: Text('हिंदी (Hindi)'),
-            ),
-            DropdownMenuItem(
-              value: 'Telugu',
-              child: Text('తెలుగు (Telugu)'),
-            ),
-            DropdownMenuItem(
-              value: 'Tamil',
-              child: Text('தமிழ் (Tamil)'),
-            ),
-            DropdownMenuItem(
-              value: 'Kannada',
-              child: Text('ಕನ್ನಡ (Kannada)'),
-            ),
+            DropdownMenuItem(value: 'English', child: Text('English')),
+            DropdownMenuItem(value: 'Hindi', child: Text('हिंदी (Hindi)')),
+            DropdownMenuItem(value: 'Telugu', child: Text('తెలుగు (Telugu)')),
+            DropdownMenuItem(value: 'Tamil', child: Text('தமிழ் (Tamil)')),
+            DropdownMenuItem(value: 'Kannada', child: Text('ಕನ್ನಡ (Kannada)')),
           ],
           onChanged: (v) => setState(() => preferredLanguage = v!),
           icon: Icon(Icons.arrow_drop_down_rounded, color: themeColor, size: 28),
