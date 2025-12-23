@@ -4617,3 +4617,159 @@ Functions use Firebase free tier:
 - ✅ Marketplace → Dashboard
 - ✅ Bottom navigation
 - ✅ "My Orders" button
+
+---
+
+# Firebase Authentication & Firestore Security Rules
+
+A comprehensive guide to securing your Firebase Firestore database using Authentication and custom security rules in Flutter applications.
+
+## 📋 Overview
+
+This guide covers how to protect user data in Cloud Firestore by implementing Firebase Authentication and writing secure Firestore Rules that control read/write access to documents.
+
+## 🎯 Why Security Matters
+
+- **Protects user data** from unauthorized access
+- **Ensures authentication** before database operations
+- **Prevents malicious usage** including spam, data deletion, or tampering
+- **Enforces role-based permissions** (admin vs. regular users)
+- **Required for production** apps with real users
+
+## 🚀 Setup Instructions
+
+### 1. Add Dependencies
+
+Add these to your `pubspec.yaml`:
+
+```
+yaml
+dependencies:
+  firebase_core: ^latest
+  firebase_auth: ^latest
+  cloud_firestore: ^latest
+```
+
+Run: `flutter pub get`
+
+### 2. Initialize Firebase
+
+```
+dart
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(const MyApp());
+}
+```
+
+### 3. Enable Authentication
+
+1. Go to Firebase Console → **Authentication** → **Sign-in methods**
+2. Enable your preferred method:
+    - Email/Password
+    - Google Sign-In
+    - Phone Authentication
+    - etc.
+
+### 4. Implement Sign-In
+
+```
+dart
+final auth = FirebaseAuth.instance;
+
+Future<UserCredential> signIn(String email, String pass) {
+  return auth.signInWithEmailAndPassword(email: email, password: pass);
+}
+```
+
+## 🔐 Firestore Security Rules
+
+### ❌ Unsafe (Test Mode)
+
+```
+javascript
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;  // Never use in production!
+    }
+  }
+}
+```
+
+### ✅ Secure 
+
+```
+javascript
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}
+```
+
+**This ensures:**
+- User must be logged in
+- User can only access their own documents
+- No cross-account access
+
+## 💻 Usage Examples
+
+### Writing Data
+
+```
+dart
+final uid = FirebaseAuth.instance.currentUser!.uid;
+
+await FirebaseFirestore.instance
+    .collection('users')
+    .doc(uid)
+    .set({
+  'name': 'John Doe',
+  'lastLogin': DateTime.now(),
+});
+```
+
+### Reading Data
+
+```
+dart
+final uid = FirebaseAuth.instance.currentUser!.uid;
+
+final data = await FirebaseFirestore.instance
+    .collection('users')
+    .doc(uid)
+    .get();
+
+print(data.data());
+```
+
+### Complete Service Example
+
+```
+dart
+class FirestoreService {
+  final auth = FirebaseAuth.instance;
+  final db = FirebaseFirestore.instance;
+
+  Future<void> updateUserProfile() async {
+    final uid = auth.currentUser!.uid;
+
+    await db.collection('users').doc(uid).set({
+      'updatedAt': DateTime.now(),
+    });
+  }
+}
+```
+
+## 🧪 Testing Security Rules
+
+1. Go to Firebase Console → **Firestore** → **Rules**
+2. Open **Rules Playground**
+3. Simulate authenticated and unauthenticated requests
+4. Test both read and write operations
+
+---
