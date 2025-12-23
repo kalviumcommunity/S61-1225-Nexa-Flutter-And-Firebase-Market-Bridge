@@ -4141,7 +4141,8 @@ case Routes.routeRealtimePostProduce:
 ### Challenge 1: Connection State Handling
 **Problem**: UI shows loading forever if connection fails  
 **Solution**: Check `snapshot.connectionState` and handle errors gracefully
-```dart
+```
+dart
 if (snapshot.connectionState == ConnectionState.waiting) {
   return CircularProgressIndicator();
 }
@@ -4153,7 +4154,8 @@ if (snapshot.hasError) {
 ### Challenge 2: Empty State Management
 **Problem**: Crashes when collection is empty  
 **Solution**: Always check for data before accessing
-```dart
+```
+dart
 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
   return EmptyStateWidget();
 }
@@ -4298,6 +4300,6 @@ Using `StreamBuilder` enables real-time updates, allowing the UI to reflect any 
 * **Composite Index Error:**
   Occurred when combining `where` and `orderBy`.
   ✔ Fixed by creating the required index from Firestore console.
->>>>>>> e5bda30234e4c42c94c09585bf79a773c99c70e4
+
 
 ---
