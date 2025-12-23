@@ -100,7 +100,7 @@ lib/
 
 - Flutter
 - Dart
-- Firebase 
+- Firebase
 
 ---
 
@@ -146,11 +146,11 @@ final isTablet = screenWidth > 600;
 
 dart
 LayoutBuilder(
-  builder: (context, constraints) {
-    final width = constraints.maxWidth;
-    final gridCount = width > 900 ? 4 : (width > 600 ? 2 : 1);
-    return ...;
-  },
+builder: (context, constraints) {
+final width = constraints.maxWidth;
+final gridCount = width > 900 ? 4 : (width > 600 ? 2 : 1);
+return ...;
+},
 );
 
 
@@ -186,7 +186,7 @@ LayoutBuilder(
 
 ---
 
-# Market Bridge 
+# Market Bridge
 
 MarketBridge is a Flutter-based mobile application that connects farmers and buyers through a simple, clean, and responsive marketplace interface.
 
@@ -263,7 +263,7 @@ dependencies:
   cloud_firestore: ^5.0.0
 ```
 
-Then run: 
+Then run:
 
 flutter pub get
 
@@ -529,12 +529,12 @@ When state changes, Flutter intelligently rebuilds only the affected widgets, ma
 
 ### Why separate static and reactive parts of UI?
 
- stateless_stateful
+stateless_stateful
 - Makes code cleaner and easier to maintain
 - Improves performance by reducing unnecessary rebuilds
 - Ensures UI updates happen only where needed
 - Encourages separation of concerns between layout and logic
-=======
+  =======
 ## Market Bridge – Multi-Screen Navigation (Sprint-2)
 
 This project demonstrates **multi-screen navigation in Flutter** using `Navigator`, named routes, and dynamic route arguments. The app includes authentication screens, profile completion, and a responsive home screen inspired by the Market-Bridge use case.
@@ -598,7 +598,7 @@ Navigation flow implemented using:
 ---
 
 
-## Reflection 
+## Reflection
 
 Using named routes improved readability and organization of the navigation system.
 `onGenerateRoute` was helpful for passing dynamic data like `verificationId` and `phoneNumber` to OTP and profile screens.
@@ -4208,7 +4208,7 @@ The goal of this task is to fetch **only relevant data** from Firestore and disp
 ## 🔧 Firestore Dependency
 
 dependencies:
-  cloud_firestore: ^5.0.0
+cloud_firestore: ^5.0.0
 
 
 Installed using:
@@ -4259,16 +4259,16 @@ flutter pub get
 ## 🔄 Real-Time Query with StreamBuilder
 
 StreamBuilder<QuerySnapshot>(
-  stream: FirebaseFirestore.instance
-      .collection('products')
-      .where('inStock', isEqualTo: true)
-      .orderBy('price')
-      .limit(10)
-      .snapshots(),
-  builder: (context, snapshot) {
-    if (!snapshot.hasData) {
-      return CircularProgressIndicator();
-    }
+stream: FirebaseFirestore.instance
+.collection('products')
+.where('inStock', isEqualTo: true)
+.orderBy('price')
+.limit(10)
+.snapshots(),
+builder: (context, snapshot) {
+if (!snapshot.hasData) {
+return CircularProgressIndicator();
+}
 
     final products = snapshot.data!.docs;
 
@@ -4282,7 +4282,7 @@ StreamBuilder<QuerySnapshot>(
         );
       },
     );
-  },
+},
 );
 
 
@@ -4301,7 +4301,7 @@ Using `StreamBuilder` enables real-time updates, allowing the UI to reflect any 
 * **Composite Index Error:**
   Occurred when combining `where` and `orderBy`.
   ✔ Fixed by creating the required index from Firestore console.
-e5bda30234e4c42c94c09585bf79a773c99c70e4
+  e5bda30234e4c42c94c09585bf79a773c99c70e4
 
 ---
 
@@ -4375,32 +4375,6 @@ pubspec.yaml                            (Added cloud_functions dependency)
 - [x] Bottom navigation works on all buyer screens
 - [x] Back navigation works correctly
 
-### 📸 Screenshots
-
-#### 1. Cloud Functions Deployed
-![Functions Deployed](link-to-screenshot)
-
-#### 2. Firebase Console Logs
-![Function Logs](link-to-screenshot)
-
-#### 3. Welcome Notification
-![Welcome Message](link-to-screenshot)
-
-#### 4. Firestore Auto-Generated Data
-![Firestore Data](link-to-screenshot)
-
-#### 5. Working Buyer Dashboard
-![Buyer Dashboard](link-to-screenshot)
-
-### 🎥 Demo Video
-[Link to 1-2 minute demo video]
-
-**Video shows:**
-- Cloud Function deployment
-- User registration flow
-- Function execution in Firebase Console
-- Firestore updates
-- Navigation improvements
 
 ### 💡 Technical Implementation
 
@@ -4465,14 +4439,6 @@ I chose **event-triggered functions** for automatic tasks (product processing) b
 - Free tier limited to 2M invocations/month
 - Local testing requires Firebase emulators
 
-### 🚀 Future Enhancements
-
-- [ ] Add FCM push notifications
-- [ ] Implement order processing workflow
-- [ ] Create scheduled price alerts
-- [ ] Add email notifications
-- [ ] Integrate payment processing
-- [ ] Build analytics dashboard
 
 ### 📚 Documentation
 
@@ -4501,7 +4467,8 @@ All changes documented in:
 **To test this PR:**
 
 1. **Setup Functions:**
-   ```bash
+   ```
+   bash
    cd functions
    npm install
    firebase deploy --only functions
@@ -4651,3 +4618,158 @@ Functions use Firebase free tier:
 - ✅ Bottom navigation
 - ✅ "My Orders" button
 
+---
+
+# Firebase Authentication & Firestore Security Rules
+
+A comprehensive guide to securing your Firebase Firestore database using Authentication and custom security rules in Flutter applications.
+
+## 📋 Overview
+
+This guide covers how to protect user data in Cloud Firestore by implementing Firebase Authentication and writing secure Firestore Rules that control read/write access to documents.
+
+## 🎯 Why Security Matters
+
+- **Protects user data** from unauthorized access
+- **Ensures authentication** before database operations
+- **Prevents malicious usage** including spam, data deletion, or tampering
+- **Enforces role-based permissions** (admin vs. regular users)
+- **Required for production** apps with real users
+
+## 🚀 Setup Instructions
+
+### 1. Add Dependencies
+
+Add these to your `pubspec.yaml`:
+
+```
+yaml
+dependencies:
+  firebase_core: ^latest
+  firebase_auth: ^latest
+  cloud_firestore: ^latest
+```
+
+Run: `flutter pub get`
+
+### 2. Initialize Firebase
+
+```
+dart
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(const MyApp());
+}
+```
+
+### 3. Enable Authentication
+
+1. Go to Firebase Console → **Authentication** → **Sign-in methods**
+2. Enable your preferred method:
+    - Email/Password
+    - Google Sign-In
+    - Phone Authentication
+    - etc.
+
+### 4. Implement Sign-In
+
+```
+dart
+final auth = FirebaseAuth.instance;
+
+Future<UserCredential> signIn(String email, String pass) {
+  return auth.signInWithEmailAndPassword(email: email, password: pass);
+}
+```
+
+## 🔐 Firestore Security Rules
+
+### ❌ Unsafe (Test Mode)
+
+```
+javascript
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;  // Never use in production!
+    }
+  }
+}
+```
+
+### ✅ Secure 
+
+```
+javascript
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}
+```
+
+**This ensures:**
+- User must be logged in
+- User can only access their own documents
+- No cross-account access
+
+## 💻 Usage Examples
+
+### Writing Data
+
+```
+dart
+final uid = FirebaseAuth.instance.currentUser!.uid;
+
+await FirebaseFirestore.instance
+    .collection('users')
+    .doc(uid)
+    .set({
+  'name': 'John Doe',
+  'lastLogin': DateTime.now(),
+});
+```
+
+### Reading Data
+
+```
+dart
+final uid = FirebaseAuth.instance.currentUser!.uid;
+
+final data = await FirebaseFirestore.instance
+    .collection('users')
+    .doc(uid)
+    .get();
+
+print(data.data());
+```
+
+### Complete Service Example
+
+```
+dart
+class FirestoreService {
+  final auth = FirebaseAuth.instance;
+  final db = FirebaseFirestore.instance;
+
+  Future<void> updateUserProfile() async {
+    final uid = auth.currentUser!.uid;
+
+    await db.collection('users').doc(uid).set({
+      'updatedAt': DateTime.now(),
+    });
+  }
+}
+```
+
+## 🧪 Testing Security Rules
+
+1. Go to Firebase Console → **Firestore** → **Rules**
+2. Open **Rules Playground**
+3. Simulate authenticated and unauthenticated requests
+4. Test both read and write operations
+
+---
