@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:market_bridge/screens/farmer_dashboard_screen.dart';
 import '../routes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:market_bridge/screens/realtime_dashboard_screen.dart';
+
 class ResponsiveHomeEnhanced extends StatelessWidget {
   const ResponsiveHomeEnhanced({Key? key}) : super(key: key);
 
@@ -378,18 +378,6 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildActionButton(
-                      context,
-                      icon: Icons.update_rounded,
-                      label: 'Real-Time Dashboard',
-                      onTap: () => Navigator.pushNamed(context, Routes.routeRealtimeDashboard),
-                    ),
-                  ),
-                ],
-              ),
               Expanded(
                 child: _buildActionButton(
                   context,
@@ -411,11 +399,11 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
   }
 
   Widget _buildActionButton(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
+      BuildContext context, {
+        required IconData icon,
+        required String label,
+        required VoidCallback onTap,
+      }) {
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(12),
