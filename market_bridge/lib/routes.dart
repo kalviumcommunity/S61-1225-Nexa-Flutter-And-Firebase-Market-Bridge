@@ -21,7 +21,7 @@ class Routes {
   static const String routePostProduce = '/post-produce';
   static const String routeDashboard = '/farmer-dashboard';
   static const String routeScrollable = '/scrollable';
-  static const String routeRealtimeDashboard = '/realtime-dashboard';
+
   /// Animation duration for route transitions
   static const Duration transitionDuration = Duration(milliseconds: 400);
 
@@ -122,11 +122,6 @@ class Routes {
           ),
           settings,
           curve: curve,
-        );
-
-      case routeRealtimeDashboard:
-        return MaterialPageRoute(
-          builder: (_) => const RealtimeDashboardScreen(),
         );
 
       case routeScrollable:
