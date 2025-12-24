@@ -4773,3 +4773,278 @@ class FirestoreService {
 4. Test both read and write operations
 
 ---
+
+# 🌾 MarketBridge
+
+**Connecting Farmers and Buyers Directly**
+
+MarketBridge is a Flutter-based mobile application that bridges the gap between farmers and buyers, enabling direct trade of agricultural produce. The platform provides a seamless marketplace experience with real-time notifications, role-based dashboards, and comprehensive form validation.
+
+---
+
+## 📱 Features
+
+### 🔐 Authentication & Onboarding
+- **Phone Number Authentication** via Firebase Auth
+- **OTP Verification** for secure login
+- **Role-Based Registration** (Farmer/Buyer)
+- **Complete Profile Setup** with comprehensive validation
+- Multi-language support (English, Hindi, Telugu, Tamil, Kannada)
+
+### 👨‍🌾 For Farmers
+- Post agricultural produce listings
+- Real-time dashboard with sales analytics
+- Manage inventory and pricing
+- Track buyer inquiries
+- Farm size tracking (Acres/Hectares)
+
+### 🛒 For Buyers
+- Browse marketplace with live listings
+- Search and filter produce
+- Contact farmers directly
+- Track purchase history
+- Personalized buyer dashboard
+
+### 🔔 Notifications
+- **Firebase Cloud Messaging (FCM)** integration
+- Welcome notifications on registration
+- Real-time alerts for new listings and inquiries
+- Background and foreground notification handling
+- Local notification service for enhanced UX
+
+### 🎨 User Experience
+- **Smooth Page Transitions** with custom animations
+- **Role-Based Theming** (Green for Farmers, Blue for Buyers)
+- **Responsive UI** with adaptive layouts
+- **Form Validation** with real-time feedback
+- Loading states and error handling
+
+---
+
+### Key Packages
+```yaml
+dependencies:
+  firebase_core: ^2.24.2
+  firebase_auth: ^4.16.0
+  cloud_firestore: ^4.14.0
+  firebase_messaging: ^14.7.10
+  flutter_local_notifications: ^16.3.0
+```
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Flutter SDK (3.0 or higher)
+- Dart SDK (3.0 or higher)
+- Firebase project with:
+    - Authentication (Phone provider enabled)
+    - Cloud Firestore
+    - Cloud Messaging
+    - Cloud Functions (optional)
+- Android Studio / VS Code
+- Android SDK / Xcode (for iOS)
+
+---
+
+## 📋 Form Validation Features
+
+The **Complete Profile Screen** implements comprehensive form validation following Flutter best practices:
+
+### ✅ Implemented Validations
+
+#### **Name Validation**
+- ✅ Required field
+- ✅ Minimum 2 characters
+- ✅ Only letters and spaces allowed
+- ✅ Real-time validation feedback
+
+#### **Email Validation**
+- ✅ Optional field
+- ✅ RFC-compliant email format
+- ✅ Dual-layer regex validation
+- ✅ Format example: `user@example.com`
+
+#### **Location Validation**
+- ✅ Required field
+- ✅ Minimum 3 characters
+- ✅ Accepts letters, spaces, and commas
+- ✅ Format example: `City, District`
+
+#### **Farm Size Validation** (Farmers only)
+- ✅ Optional field
+- ✅ Numeric input only
+- ✅ Must be positive number
+- ✅ Maximum value check (100,000)
+- ✅ Unit selection (Acres/Hectares)
+
+### Validation Features
+```
+dart
+// Auto-validation on user interaction
+autovalidateMode: AutovalidateMode.onUserInteraction
+
+// Form submission validation
+if (!_formKey.currentState!.validate()) {
+  // Show error SnackBar
+  return;
+}
+```
+
+---
+
+## 🎨 Design System
+
+### Color Scheme
+| Role | Primary | Light |
+|------|---------|-------|
+| Farmer | `#11823F` | `#E8F5E9` |
+| Buyer | `#2196F3` | `#E3F2FD` |
+
+### Typography
+- **Headers**: Bold, 24-26px
+- **Body**: Regular, 14-16px
+- **Captions**: Regular, 12-14px
+
+### Animations
+- **Page Transitions**: 400-600ms with custom curves
+- **Loading States**: Circular progress indicators
+- **Success Dialogs**: Scale + Fade transitions
+
+---
+
+## 🔔 Push Notifications Setup
+
+### Android Configuration
+
+1. **Update `AndroidManifest.xml`**
+```
+xml
+<manifest>
+  <uses-permission android:name="android.permission.INTERNET"/>
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+  
+  <application>
+    <!-- Firebase Messaging Service -->
+    <service
+      android:name="com.google.firebase.messaging.FirebaseMessagingService"
+      android:exported="false">
+      <intent-filter>
+        <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+      </intent-filter>
+    </service>
+  </application>
+</manifest>
+```
+
+2. **Request Notification Permission** (Android 13+)
+```
+dart
+await FirebaseMessaging.instance.requestPermission(
+  alert: true,
+  badge: true,
+  sound: true,
+);
+```
+
+### iOS Configuration
+
+1. **Update `Info.plist`**
+```
+xml
+<key>UIBackgroundModes</key>
+<array>
+  <string>fetch</string>
+  <string>remote-notification</string>
+</array>
+```
+
+2. **Enable Push Notifications** in Xcode:
+    - Target → Signing & Capabilities → + Capability → Push Notifications
+
+---
+
+## 🗺️ Navigation Flow
+
+```
+SplashScreen
+    ↓
+PhoneLoginScreen (Select Role)
+    ↓
+OtpVerifyScreen
+    ↓
+CompleteProfileScreen (with validation)
+    ↓
+RoleHomeRouter
+    ├─→ FarmerDashboardScreen
+    │       ├─→ PostProduceScreen
+    │       └─→ MarketplaceScreen
+    └─→ BuyerDashboardScreen
+            └─→ MarketplaceScreen
+```
+
+---
+
+## 📊 Firestore Data Structure
+
+### Users Collection
+```
+javascript
+/users/{uid}
+{
+  uid: string,
+  name: string,
+  email: string,
+  phone: string,
+  location: string,
+  preferredLanguage: string,
+  role: "Farmer" | "Buyer",
+  farmSize?: string,  // Only for farmers
+  createdAt: Timestamp
+}
+```
+
+### Listings Collection
+```
+javascript
+/listings/{listingId}
+{
+  listingId: string,
+  farmerId: string,
+  farmerName: string,
+  cropName: string,
+  quantity: number,
+  unit: string,
+  pricePerUnit: number,
+  location: string,
+  harvestDate: Timestamp,
+  description: string,
+  imageUrls: string[],
+  createdAt: Timestamp,
+  status: "active" | "sold" | "inactive"
+}
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+#### Firebase Not Initialized
+```
+Error: Firebase has not been initialized
+```
+**Solution**: Ensure `Firebase.initializeApp()` is called before `runApp()`
+
+#### Notifications Not Working
+```
+Notifications not appearing on Android 13+
+```
+**Solution**: Request notification permission explicitly:
+```dart
+await FirebaseMessaging.instance.requestPermission();
+```
+
+---
