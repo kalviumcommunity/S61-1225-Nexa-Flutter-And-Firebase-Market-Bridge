@@ -5047,4 +5047,64 @@ Notifications not appearing on Android 13+
 await FirebaseMessaging.instance.requestPermission();
 ```
 
+
+# 📱 Bottom Navigation Implementation – Flutter
+
+## Overview
+
+This task focuses on designing a smooth and user-friendly navigation system using Flutter’s **BottomNavigationBar**. The goal is to allow users to switch between primary screens easily while preserving screen state and ensuring optimal performance.
+
+---
+
+## Features Implemented
+
+* Multi-tab navigation using **BottomNavigationBar**
+* Screen switching using **PageView** for smooth transitions
+* State preservation between tabs
+* Clean UI with icons and labels
+* Responsive and user-friendly navigation flow
+* Follows real-world app UX standards
+
+---
+
+## Screens Included
+
+| Tab     | Purpose                    |
+| ------- | -------------------------- |
+| Home    | Displays main dashboard    |
+| Search  | Allows searching content   |
+| Profile | Shows user profile details |
+
+---
+
+## Concepts Used
+
+* BottomNavigationBar
+* PageController & PageView
+* IndexedStack for state preservation
+* Scaffold layout
+* Flutter Material Icons
+* UI/UX best practices
+
+---
+
+## Learning Outcomes
+
+* Learned how to manage tab navigation
+* Understood state preservation across tabs
+* Implemented smoother transitions using PageView
+* Applied UI/UX rules for mobile navigation
+* Built scalable multi-screen navigation architecture
+
+---
+
+## Result
+
+The app now provides:
+
+* Fast screen switching
+* Persistent tab state
+* Clean bottom navigation UI
+* Improved user experience
+
 ---
