@@ -1,4 +1,7 @@
+// lib/screens/buyer_marketplace_screen.dart
 import 'package:flutter/material.dart';
+import 'buyer_home_screen.dart';
+import 'buyer_dashboard_screen.dart';
 import '../routes.dart';
 
 class BuyerMarketplaceScreen extends StatefulWidget {
@@ -66,13 +69,17 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
     setState(() => _selectedIndex = index);
 
     if (index == 0) {
-      Navigator.pushReplacementNamed(context, '/home');
-    } else if (index == 2) {
-      // Use the correct route for buyer dashboard, pass role
-      Navigator.pushReplacementNamed(
+      // Navigate to buyer home
+      Navigator.pushAndRemoveUntil(
         context,
-        Routes.routeBuyerDashboard,
-        arguments: {'role': 'buyer'},
+        MaterialPageRoute(builder: (context) => const BuyerHomeScreen()),
+            (route) => false,
+      );
+    } else if (index == 2) {
+      // Navigate to buyer dashboard
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const BuyerDashboardScreen()),
       );
     }
     // index == 1 means already on Marketplace
@@ -99,16 +106,16 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
   // ============== AppBar ==============
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFF2196F3),
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.black),
+        icon: const Icon(Icons.arrow_back, color: Colors.white),
         onPressed: () => Navigator.pop(context),
       ),
       title: const Text(
         'Marketplace',
         style: TextStyle(
-          color: Colors.black,
+          color: Colors.white,
           fontSize: 20,
           fontWeight: FontWeight.w600,
         ),
@@ -138,7 +145,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
               hintText: 'Search crops...',
               filled: true,
               fillColor: const Color(0xFFF5F5F5),
-              prefixIcon: const Icon(Icons.search),
+              prefixIcon: const Icon(Icons.search, color: Color(0xFF2196F3)),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide.none,
@@ -217,10 +224,10 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
   }
 
   Widget _buildListingHeader(
-    Map<String, dynamic> listing,
-    bool isAsset,
-    bool isTablet,
-  ) {
+      Map<String, dynamic> listing,
+      bool isAsset,
+      bool isTablet,
+      ) {
     return Row(
       children: [
         Container(
@@ -233,18 +240,18 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
           child: Center(
             child: isAsset
                 ? Image.asset(
-                    listing['icon'],
-                    width: 32,
-                    height: 32,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Icon(
-                        Icons.emoji_food_beverage,
-                        size: 28,
-                        color: Colors.orange,
-                      );
-                    },
-                  )
+              listing['icon'],
+              width: 32,
+              height: 32,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                return const Icon(
+                  Icons.emoji_food_beverage,
+                  size: 28,
+                  color: Colors.orange,
+                );
+              },
+            )
                 : Text(listing['icon'], style: const TextStyle(fontSize: 28)),
           ),
         ),
@@ -305,8 +312,14 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
         onPressed: () => _showListingDetails(listing),
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF2196F3),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
-        child: const Text('View Details'),
+        child: const Text(
+          'View Details',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
     );
   }
@@ -397,7 +410,7 @@ class BuyerListingDetailsScreen extends StatelessWidget {
   final Map<String, dynamic> listing;
 
   const BuyerListingDetailsScreen({Key? key, required this.listing})
-    : super(key: key);
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -422,12 +435,12 @@ class BuyerListingDetailsScreen extends StatelessWidget {
   // ============== AppBar ==============
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFF2196F3),
       elevation: 0,
-      leading: const BackButton(color: Colors.black),
+      leading: const BackButton(color: Colors.white),
       title: const Text(
         'Listing Details',
-        style: TextStyle(color: Colors.black),
+        style: TextStyle(color: Colors.white),
       ),
     );
   }
@@ -440,22 +453,22 @@ class BuyerListingDetailsScreen extends StatelessWidget {
       alignment: Alignment.center,
       child: isAsset
           ? Image.asset(
-              listing['icon'],
-              width: 140,
-              height: 140,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) {
-                return const Icon(
-                  Icons.emoji_food_beverage,
-                  size: 120,
-                  color: Colors.orange,
-                );
-              },
-            )
+        listing['icon'],
+        width: 140,
+        height: 140,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) {
+          return const Icon(
+            Icons.emoji_food_beverage,
+            size: 120,
+            color: Colors.orange,
+          );
+        },
+      )
           : Text(
-              listing['icon'],
-              style: TextStyle(fontSize: isTablet ? 140 : 120),
-            ),
+        listing['icon'],
+        style: TextStyle(fontSize: isTablet ? 140 : 120),
+      ),
     );
   }
 
@@ -500,7 +513,6 @@ class BuyerListingDetailsScreen extends StatelessWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () {
-                    // TODO: Implement contact farmer (e.g., open chat or call)
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Contact Farmer feature coming soon!')),
                     );
@@ -517,7 +529,6 @@ class BuyerListingDetailsScreen extends StatelessWidget {
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    // TODO: Implement place order logic
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Order placed! (Demo only)')),
                     );
@@ -539,10 +550,10 @@ class BuyerListingDetailsScreen extends StatelessWidget {
   }
 
   Widget _buildInfoRow(
-    IconData icon,
-    String text, {
-    Color iconColor = const Color(0xFF666666),
-  }) {
+      IconData icon,
+      String text, {
+        Color iconColor = const Color(0xFF666666),
+      }) {
     return Row(
       children: [
         Icon(icon, size: 18, color: iconColor),

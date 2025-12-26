@@ -4698,7 +4698,11 @@ service cloud.firestore {
 }
 ```
 
+<<<<<<< HEAD
+### ✅ Secure
+=======
 ### ✅ Secure 
+>>>>>>> ecc2b4016e618add02e8bd0b43f44ead6e75739d
 
 ```
 javascript
@@ -5043,6 +5047,9 @@ Error: Firebase has not been initialized
 Notifications not appearing on Android 13+
 ```
 **Solution**: Request notification permission explicitly:
+
+```
+
 ```dart
 await FirebaseMessaging.instance.requestPermission();
 ```
