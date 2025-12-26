@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:market_bridge/local_notification_service.dart';
+import 'package:market_bridge/screens/map_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/phone_login_screen.dart';
 import 'screens/otp_verify_screen.dart';
@@ -136,6 +137,12 @@ class MyApp extends StatelessWidget {
             final args = settings.arguments as Map<String, dynamic>?;
             return _buildScaleFadeRoute(
               ListingDetailsScreen(crop: args?['crop'] ?? {}),
+              settings,
+              curve: curve,
+            );
+          case Routes.routeMap:
+            return _buildFadeRoute(
+              const MapScreen(),
               settings,
               curve: curve,
             );
