@@ -1,3 +1,12 @@
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>This app requires location access to show your current position on the map and help you find nearby farmers and markets.</string>
+
+<key>NSLocationAlwaysUsageDescription</key>
+<string>This app requires location access to provide location-based services even when the app is in the background.</string>
+
+<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+<string>This app requires location access to show your current position and provide location-based features.</string>
+
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -41,6 +50,21 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+
+	<!-- Location Permissions -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app requires location access to show your current position on the map and help you find nearby farmers and markets.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app requires location access to provide location-based services.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app requires location access to show your current position and provide location-based features.</string>
+
+	<!-- Camera Permission (already have this for image picker) -->
+	<key>NSCameraUsageDescription</key>
+	<string>This app requires camera access to take photos of your produce.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app requires photo library access to select images.</string>
+
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
