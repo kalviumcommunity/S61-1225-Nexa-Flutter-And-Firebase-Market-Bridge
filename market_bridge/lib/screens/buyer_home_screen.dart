@@ -6,9 +6,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'buyer_marketplace_screen.dart';
 
 class BuyerHomeScreen extends StatelessWidget {
-    // Mocked order count and new items for contextual quick actions
-    int get orderCount => 3; // Replace with real data fetch
-    int get newItemsCount => 2; // Replace with real data fetch
+  int get orderCount => 3;
+  int get newItemsCount => 2;
+
   const BuyerHomeScreen({Key? key}) : super(key: key);
 
   Future<void> _showLogoutDialog(BuildContext context) async {
@@ -258,13 +258,13 @@ class BuyerHomeScreen extends StatelessWidget {
                           shrinkWrap: true,
                           itemCount: produce.length,
                           gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: gridCount,
-                                mainAxisExtent: isTablet ? 140 : 120,
-                                crossAxisSpacing: 12,
-                                mainAxisSpacing: 12,
-                                childAspectRatio: 1,
-                              ),
+                          SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: gridCount,
+                            mainAxisExtent: isTablet ? 140 : 120,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                            childAspectRatio: 1,
+                          ),
                           itemBuilder: (context, index) {
                             final item = produce[index];
                             final change = item['change'] ?? '';
@@ -294,38 +294,29 @@ class BuyerHomeScreen extends StatelessWidget {
                                         width: 40,
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFF7F7F7),
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
+                                          borderRadius: BorderRadius.circular(8),
                                         ),
                                         child: Center(
                                           child: isAsset
                                               ? Image.asset(
-                                                  item['icon'],
-                                                  width: 24,
-                                                  height: 24,
-                                                  fit: BoxFit.contain,
-                                                  errorBuilder:
-                                                      (
-                                                        context,
-                                                        error,
-                                                        stackTrace,
-                                                      ) {
-                                                        return const Icon(
-                                                          Icons
-                                                              .emoji_food_beverage,
-                                                          size: 20,
-                                                          color: Colors.orange,
-                                                        );
-                                                      },
-                                                )
+                                            item['icon'],
+                                            width: 24,
+                                            height: 24,
+                                            fit: BoxFit.contain,
+                                            errorBuilder: (context, error, stackTrace) {
+                                              return const Icon(
+                                                Icons.emoji_food_beverage,
+                                                size: 20,
+                                                color: Colors.orange,
+                                              );
+                                            },
+                                          )
                                               : Text(
-                                                  item['icon'] ?? '🥬',
-                                                  style: TextStyle(
-                                                    fontSize:
-                                                        screenWidth * 0.045,
-                                                  ),
-                                                ),
+                                            item['icon'] ?? '🥬',
+                                            style: TextStyle(
+                                              fontSize: screenWidth * 0.045,
+                                            ),
+                                          ),
                                         ),
                                       ),
                                       const Spacer(),
@@ -338,9 +329,7 @@ class BuyerHomeScreen extends StatelessWidget {
                                           color: isPositive
                                               ? Colors.green.withOpacity(0.08)
                                               : Colors.red.withOpacity(0.06),
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
+                                          borderRadius: BorderRadius.circular(12),
                                         ),
                                         child: Text(
                                           change,
@@ -416,10 +405,13 @@ class BuyerHomeScreen extends StatelessWidget {
                                       children: [
                                         ElevatedButton.icon(
                                           onPressed: () {
-                                            Navigator.pushNamed(
+                                            // FIXED: Navigate to buyer marketplace
+                                            Navigator.push(
                                               context,
-                                              Routes.routeMarketPlace,
-                                              arguments: {'role': 'buyer'},
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                const BuyerMarketplaceScreen(),
+                                              ),
                                             );
                                           },
                                           icon: const Icon(
@@ -466,9 +458,13 @@ class BuyerHomeScreen extends StatelessWidget {
                                       children: [
                                         ElevatedButton.icon(
                                           onPressed: () {
-                                            Navigator.pushNamed(
+                                            // Navigate to buyer dashboard
+                                            Navigator.push(
                                               context,
-                                              Routes.routeBuyerDashboard,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                const BuyerDashboardScreen(),
+                                              ),
                                             );
                                           },
                                           icon: const Icon(
@@ -605,7 +601,7 @@ class BuyerHomeScreen extends StatelessWidget {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      const BuyerMarketplaceScreen(),
+                                  const BuyerMarketplaceScreen(),
                                 ),
                               );
                             },
@@ -664,7 +660,7 @@ class BuyerHomeScreen extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                                  const BuyerMarketplaceScreen(),
+                              const BuyerMarketplaceScreen(),
                             ),
                           );
                         },
@@ -700,9 +696,9 @@ class BuyerHomeScreen extends StatelessWidget {
 
   // Market Details Bottom Sheet
   void _showMarketDetailsBottomSheet(
-    BuildContext context,
-    double cardTitleSize,
-  ) {
+      BuildContext context,
+      double cardTitleSize,
+      ) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -803,13 +799,12 @@ class BuyerHomeScreen extends StatelessWidget {
     );
   }
 
-  // Helper method for market stats
   Widget _buildMarketStat(
-    String label,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
+      String label,
+      String value,
+      IconData icon,
+      Color color,
+      ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Row(
