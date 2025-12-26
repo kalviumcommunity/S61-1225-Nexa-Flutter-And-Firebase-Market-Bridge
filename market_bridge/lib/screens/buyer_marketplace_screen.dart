@@ -68,8 +68,12 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
     if (index == 0) {
       Navigator.pushReplacementNamed(context, '/home');
     } else if (index == 2) {
-      // Fix: Use the correct route for buyer dashboard
-      Navigator.pushReplacementNamed(context, Routes.routeDashboard);
+      // Use the correct route for buyer dashboard, pass role
+      Navigator.pushReplacementNamed(
+        context,
+        Routes.routeBuyerDashboard,
+        arguments: {'role': 'buyer'},
+      );
     }
     // index == 1 means already on Marketplace
   }
@@ -408,7 +412,7 @@ class BuyerListingDetailsScreen extends StatelessWidget {
         child: Column(
           children: [
             _buildImageSection(isAsset, isTablet),
-            _buildDetailsSection(isTablet),
+            _buildDetailsSection(context, isTablet),
           ],
         ),
       ),
@@ -456,7 +460,7 @@ class BuyerListingDetailsScreen extends StatelessWidget {
   }
 
   // ============== Details Section ==============
-  Widget _buildDetailsSection(bool isTablet) {
+  Widget _buildDetailsSection(BuildContext context, bool isTablet) {
     return Padding(
       padding: EdgeInsets.all(isTablet ? 32 : 20),
       child: Column(
@@ -489,6 +493,45 @@ class BuyerListingDetailsScreen extends StatelessWidget {
             Icons.star,
             'Rating: ${listing['rating']}/5',
             iconColor: const Color(0xFFFFB800),
+          ),
+          const SizedBox(height: 28),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    // TODO: Implement contact farmer (e.g., open chat or call)
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Contact Farmer feature coming soon!')),
+                    );
+                  },
+                  icon: const Icon(Icons.chat, color: Color(0xFF2196F3)),
+                  label: const Text('Contact Farmer', style: TextStyle(color: Color(0xFF2196F3))),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color(0xFF2196F3)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    // TODO: Implement place order logic
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Order placed! (Demo only)')),
+                    );
+                  },
+                  icon: const Icon(Icons.shopping_cart_checkout),
+                  label: const Text('Place Order'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2196F3),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

@@ -1,8 +1,10 @@
 // lib/main.dart
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:market_bridge/local_notification_service.dart';
 import 'screens/splash_screen.dart';
 import 'screens/phone_login_screen.dart';
 import 'screens/otp_verify_screen.dart';
@@ -16,9 +18,43 @@ import 'screens/responsive_layout.dart';
 import 'routes.dart';
 import 'firebase_options.dart';
 
+/// Background handler (top-level)
+Future<void> firebaseBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+}
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // Android 13+
+  await FirebaseMessaging.instance.requestPermission(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+
+  await LocalNotificationService.initialize();
+
+  String? token = await FirebaseMessaging.instance.getToken();
+  print("FCM Token: $token");
+
+  // Background handler (NO UI work here)
+  FirebaseMessaging.onBackgroundMessage(firebaseBackgroundHandler);
+
+  // Foreground notifications
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    final notification = message.notification;
+    if (notification != null) {
+      LocalNotificationService.show(
+        notification.title ?? 'MarketBridge',
+        notification.body ?? '',
+      );
+    }
+  });
+
   runApp(const MyApp());
 }
 

@@ -1,1 +1,42 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"market-bridge-6ef72","appId":"1:977175503820:android:4ff43c58d56bf407eb7369","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"market-bridge-6ef72","configurations":{"android":"1:977175503820:android:4ff43c58d56bf407eb7369","ios":"1:977175503820:ios:9c4f050d9711c06eeb7369","macos":"1:977175503820:ios:9c4f050d9711c06eeb7369","web":"1:977175503820:web:e457c3f426cc6ea0eb7369","windows":"1:977175503820:web:ce345754a5aaf92eeb7369"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "market-bridge-6ef72",
+          "appId": "1:977175503820:android:4ff43c58d56bf407eb7369",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "market-bridge-6ef72",
+          "configurations": {
+            "android": "1:977175503820:android:4ff43c58d56bf407eb7369",
+            "ios": "1:977175503820:ios:9c4f050d9711c06eeb7369",
+            "macos": "1:977175503820:ios:9c4f050d9711c06eeb7369",
+            "web": "1:977175503820:web:e457c3f426cc6ea0eb7369",
+            "windows": "1:977175503820:web:ce345754a5aaf92eeb7369"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "disallowLegacyRuntimeConfig": true,
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint"
+      ]
+    }
+  ]
+}

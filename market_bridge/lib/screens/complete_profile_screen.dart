@@ -1,8 +1,9 @@
-// lib/screens/complete_profile_screen.dart
+// lib/screens/complete_profile_screen.dart (ENHANCED WITH VALIDATIONS)
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../services/cloud_functions_service.dart';
 import '../routes.dart';
 
 class CompleteProfileScreen extends StatefulWidget {
@@ -30,6 +31,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   String farmSizeUnit = 'Acres';
   bool loading = false;
 
+  // Cloud Functions Service
+  final _functionsService = CloudFunctionsService();
+
   Color get themeColor => widget.role.toLowerCase() == 'buyer'
       ? const Color(0xFF2196F3)
       : const Color(0xFF11823F);
@@ -51,8 +55,99 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     super.dispose();
   }
 
+  // ============================================
+  // VALIDATION METHODS (Following Documentation)
+  // ============================================
+
+  /// Validates full name (required, min 2 characters, only letters and spaces)
+  String? _validateName(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Name is required';
+    }
+    if (value.trim().length < 2) {
+      return 'Name must be at least 2 characters';
+    }
+    // Check if name contains only letters and spaces
+    final nameRegex = RegExp(r'^[a-zA-Z\s]+$');
+    if (!nameRegex.hasMatch(value.trim())) {
+      return 'Name can only contain letters';
+    }
+    return null;
+  }
+
+  /// Validates email address (optional but must be valid if provided)
+  String? _validateEmail(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return null; // Email is optional
+    }
+
+    // Email regex validation (as per documentation)
+    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+    if (!emailRegex.hasMatch(value.trim())) {
+      return 'Enter a valid email address';
+    }
+
+    // Additional check for common email format
+    final detailedEmailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!detailedEmailRegex.hasMatch(value.trim())) {
+      return 'Enter a valid email format (e.g., user@example.com)';
+    }
+
+    return null;
+  }
+
+  /// Validates location (required, min 3 characters)
+  String? _validateLocation(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Location is required';
+    }
+    if (value.trim().length < 3) {
+      return 'Location must be at least 3 characters';
+    }
+    // Check for valid location format (letters, spaces, commas)
+    final locationRegex = RegExp(r'^[a-zA-Z\s,]+$');
+    if (!locationRegex.hasMatch(value.trim())) {
+      return 'Location can only contain letters, spaces, and commas';
+    }
+    return null;
+  }
+
+  /// Validates farm size (optional, must be positive number if provided)
+  String? _validateFarmSize(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return null; // Farm size is optional
+    }
+
+    final numValue = double.tryParse(value.trim());
+    if (numValue == null) {
+      return 'Enter a valid number';
+    }
+
+    if (numValue <= 0) {
+      return 'Farm size must be greater than 0';
+    }
+
+    if (numValue > 100000) {
+      return 'Farm size seems too large';
+    }
+
+    return null;
+  }
+
+  /// Main form validation and submission
   Future<void> _saveProfile() async {
+    // Validate all fields
     if (!_formKey.currentState!.validate()) {
+      // Show error message if validation fails
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please fix all errors before submitting'),
+          backgroundColor: Colors.red.shade600,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      );
       return;
     }
 
@@ -77,18 +172,36 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     }
 
     try {
+      debugPrint('💾 Saving user profile...');
+
+      // Save to Firestore
       await FirebaseFirestore.instance
           .collection('users')
           .doc(uid)
           .set(data, SetOptions(merge: true));
 
+      debugPrint('✅ Profile saved to Firestore');
+
+      // Call Cloud Function for welcome notification
+      debugPrint('📞 Triggering welcome notification...');
+      final result = await _functionsService.sendWelcomeNotification(
+        userName: nameController.text.trim(),
+        userRole: widget.role,
+      );
+
+      if (result != null) {
+        debugPrint('✅ Welcome notification sent');
+        debugPrint('Message: ${result['message']}');
+      }
+
       if (!mounted) return;
       _showSuccessDialog();
     } catch (e) {
+      debugPrint('❌ Error saving profile: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Failed to save profile. Please try again.'),
+          content: Text('Failed to save profile: $e'),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.all(16),
@@ -231,50 +344,42 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                   child: ListView(
                     padding: const EdgeInsets.all(24),
                     children: [
+                      // Name Field with Validation
                       _buildTextField(
                         controller: nameController,
                         label: 'Full Name',
                         hint: 'Enter your full name',
                         icon: Icons.person_outline_rounded,
                         isRequired: true,
-                        validator: (v) => (v == null || v.trim().isEmpty)
-                            ? 'Please enter your name'
-                            : null,
+                        validator: _validateName,
                       ),
                       const SizedBox(height: 16),
 
+                      // Email Field with Validation
                       _buildTextField(
                         controller: emailController,
                         label: 'Email Address',
                         hint: 'example@email.com',
                         icon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
-                        validator: (v) {
-                          if (v != null && v.isNotEmpty) {
-                            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                                .hasMatch(v)) {
-                              return 'Please enter a valid email';
-                            }
-                          }
-                          return null;
-                        },
+                        validator: _validateEmail,
                       ),
                       const SizedBox(height: 16),
 
+                      // Location Field with Validation
                       _buildTextField(
                         controller: locationController,
                         label: 'Location',
                         hint: 'City, District',
                         icon: Icons.location_on_outlined,
                         isRequired: true,
-                        validator: (v) => (v == null || v.trim().isEmpty)
-                            ? 'Please enter your location'
-                            : null,
+                        validator: _validateLocation,
                       ),
                       const SizedBox(height: 16),
 
                       _buildLanguageDropdown(),
 
+                      // Farm Size Field with Validation (only for farmers)
                       if (widget.role.toLowerCase() == 'farmer') ...[
                         const SizedBox(height: 16),
                         _buildFarmSize(),
@@ -366,6 +471,8 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
               : TextCapitalization.words,
           validator: validator,
           style: const TextStyle(fontSize: 15),
+          // Auto-validate after first submit attempt
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
@@ -419,26 +526,11 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
         DropdownButtonFormField<String>(
           value: preferredLanguage,
           items: const [
-            DropdownMenuItem(
-              value: 'English',
-              child: Text('English'),
-            ),
-            DropdownMenuItem(
-              value: 'Hindi',
-              child: Text('हिंदी (Hindi)'),
-            ),
-            DropdownMenuItem(
-              value: 'Telugu',
-              child: Text('తెలుగు (Telugu)'),
-            ),
-            DropdownMenuItem(
-              value: 'Tamil',
-              child: Text('தமிழ் (Tamil)'),
-            ),
-            DropdownMenuItem(
-              value: 'Kannada',
-              child: Text('ಕನ್ನಡ (Kannada)'),
-            ),
+            DropdownMenuItem(value: 'English', child: Text('English')),
+            DropdownMenuItem(value: 'Hindi', child: Text('हिंदी (Hindi)')),
+            DropdownMenuItem(value: 'Telugu', child: Text('తెలుగు (Telugu)')),
+            DropdownMenuItem(value: 'Tamil', child: Text('தமிழ் (Tamil)')),
+            DropdownMenuItem(value: 'Kannada', child: Text('ಕನ್ನಡ (Kannada)')),
           ],
           onChanged: (v) => setState(() => preferredLanguage = v!),
           icon: Icon(Icons.arrow_drop_down_rounded, color: themeColor, size: 28),
@@ -492,6 +584,8 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                 ],
+                validator: _validateFarmSize,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 style: const TextStyle(fontSize: 15),
                 decoration: InputDecoration(
                   hintText: 'Enter size',
@@ -515,6 +609,15 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                     borderRadius: BorderRadius.circular(14),
                     borderSide: BorderSide(color: themeColor, width: 2),
                   ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: Colors.red, width: 1),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: Colors.red, width: 2),
+                  ),
+                  errorStyle: const TextStyle(fontSize: 12, height: 0.8),
                 ),
               ),
             ),
