@@ -21,7 +21,6 @@ import 'firebase_options.dart';
 /// Background handler (top-level)
 Future<void> firebaseBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  // ❌ DO NOT show notifications here — system handles it
 }
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

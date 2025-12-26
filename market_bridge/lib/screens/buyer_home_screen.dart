@@ -6,7 +6,36 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'buyer_marketplace_screen.dart';
 
 class BuyerHomeScreen extends StatelessWidget {
+    // Mocked order count and new items for contextual quick actions
+    int get orderCount => 3; // Replace with real data fetch
+    int get newItemsCount => 2; // Replace with real data fetch
   const BuyerHomeScreen({Key? key}) : super(key: key);
+
+  Future<void> _showLogoutDialog(BuildContext context) async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
+    if (shouldLogout == true) {
+      await FirebaseAuth.instance.signOut();
+    }
+  }
 
   List<Map<String, dynamic>> get produce => [
     {
@@ -144,9 +173,7 @@ class BuyerHomeScreen extends StatelessWidget {
                         child: IconButton(
                           icon: const Icon(Icons.logout, color: Colors.white),
                           tooltip: 'Logout',
-                          onPressed: () async {
-                            await FirebaseAuth.instance.signOut();
-                          },
+                          onPressed: () => _showLogoutDialog(context),
                         ),
                       ),
                     ],
@@ -353,7 +380,7 @@ class BuyerHomeScreen extends StatelessWidget {
 
                         const SizedBox(height: 18),
 
-                        // Quick Actions - Buyer themed
+                        // Quick Actions - Buyer themed (contextual)
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -385,67 +412,101 @@ class BuyerHomeScreen extends StatelessWidget {
                               Row(
                                 children: [
                                   Expanded(
-                                    child: ElevatedButton.icon(
-                                      onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                const BuyerMarketplaceScreen(),
+                                    child: Stack(
+                                      children: [
+                                        ElevatedButton.icon(
+                                          onPressed: () {
+                                            Navigator.pushNamed(
+                                              context,
+                                              Routes.routeMarketPlace,
+                                              arguments: {'role': 'buyer'},
+                                            );
+                                          },
+                                          icon: const Icon(
+                                            Icons.storefront,
+                                            color: Colors.black87,
                                           ),
-                                        );
-                                      },
-                                      icon: const Icon(
-                                        Icons.storefront,
-                                        color: Colors.black87,
-                                      ),
-                                      label: const Text(
-                                        'Browse Produce',
-                                        style: TextStyle(color: Colors.black87),
-                                      ),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.white,
-                                        elevation: 0,
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 10,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            30,
+                                          label: Text(
+                                            'Browse Produce${newItemsCount > 0 ? '  (+$newItemsCount new)' : ''}',
+                                            style: const TextStyle(color: Colors.black87),
+                                          ),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.white,
+                                            elevation: 0,
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 10,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(30),
+                                            ),
                                           ),
                                         ),
-                                      ),
+                                        if (newItemsCount > 0)
+                                          Positioned(
+                                            right: 12,
+                                            top: 6,
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: Colors.red,
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              child: Text(
+                                                '+$newItemsCount',
+                                                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                      ],
                                     ),
                                   ),
                                   const SizedBox(width: 10),
                                   Expanded(
-                                    child: ElevatedButton.icon(
-                                      onPressed: () {
-                                        Navigator.pushNamed(
-                                          context,
-                                          Routes.routeDashboard,
-                                        );
-                                      },
-                                      icon: const Icon(
-                                        Icons.receipt_long,
-                                        color: Colors.black87,
-                                      ),
-                                      label: const Text(
-                                        'My Orders',
-                                        style: TextStyle(color: Colors.black87),
-                                      ),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.white,
-                                        elevation: 0,
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 10,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            30,
+                                    child: Stack(
+                                      children: [
+                                        ElevatedButton.icon(
+                                          onPressed: () {
+                                            Navigator.pushNamed(
+                                              context,
+                                              Routes.routeBuyerDashboard,
+                                            );
+                                          },
+                                          icon: const Icon(
+                                            Icons.receipt_long,
+                                            color: Colors.black87,
+                                          ),
+                                          label: Text(
+                                            'My Orders${orderCount > 0 ? '  ($orderCount)' : ''}',
+                                            style: const TextStyle(color: Colors.black87),
+                                          ),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.white,
+                                            elevation: 0,
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 10,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(30),
+                                            ),
                                           ),
                                         ),
-                                      ),
+                                        if (orderCount > 0)
+                                          Positioned(
+                                            right: 12,
+                                            top: 6,
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: Colors.green,
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              child: Text(
+                                                '$orderCount',
+                                                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                      ],
                                     ),
                                   ),
                                 ],
