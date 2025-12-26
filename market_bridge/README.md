@@ -5115,3 +5115,65 @@ The app now provides:
 * Improved user experience
 
 ---
+
+# 📍 Day Task Completed: User Location Access & Map Markers
+
+## ✅ What Was Implemented
+
+Implemented user location access and interactive map markers for the Market Bridge Flutter app, following the Kalvium SPG lesson 2.41.
+
+## 🎯 Features Added
+
+### 1. **User Location Access**
+- Real-time GPS location retrieval using `geolocator` package
+- Proper permission handling for Android & iOS
+- Graceful error handling for denied permissions
+- Loading states during location fetch
+
+### 2. **Interactive Map Display**
+- Google Maps integration with user-centered view
+- Animated camera movements to user location
+- Green custom marker at user's current position
+- Blue dot indicator for real-time position tracking
+- My Location floating action button
+
+### 3. **UI Enhancements**
+- Bottom info card displaying current coordinates
+- Refresh button to reload location
+- Professional loading indicators
+- Error messages for permission denial
+- Responsive design (mobile + tablet support)
+- Market Bridge green theme integration (#11823F)
+
+## 📦 Dependencies Added
+
+```
+yaml
+geolocator: ^13.0.2
+```
+
+## 🔧 Files Modified
+
+1. **`pubspec.yaml`** - Added geolocator dependency
+2. **`lib/screens/map_screen.dart`** - Complete rewrite with location features
+3. **`ios/Runner/Info.plist`** - Added iOS location permission strings
+
+## ✨ Key Implementations
+
+- ✅ Permission request flow (Android & iOS)
+- ✅ `getCurrentPosition()` with high accuracy
+- ✅ Dynamic marker placement at user location
+- ✅ Info windows on marker tap
+- ✅ Camera animation to user position
+- ✅ Error handling for location services
+- ✅ Loading states for better UX
+
+## 🚀 How It Works
+
+1. User opens map screen
+2. App requests location permission
+3. Shows loading indicator while fetching GPS
+4. Map centers on user's actual location
+5. Green marker placed at user position
+6. Coordinates displayed in bottom card
+7. Refresh button available to reload location
