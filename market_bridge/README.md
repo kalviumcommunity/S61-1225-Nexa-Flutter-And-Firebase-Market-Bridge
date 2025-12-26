@@ -100,7 +100,7 @@ lib/
 
 - Flutter
 - Dart
-- Firebase 
+- Firebase
 
 ---
 
@@ -146,11 +146,11 @@ final isTablet = screenWidth > 600;
 
 dart
 LayoutBuilder(
-  builder: (context, constraints) {
-    final width = constraints.maxWidth;
-    final gridCount = width > 900 ? 4 : (width > 600 ? 2 : 1);
-    return ...;
-  },
+builder: (context, constraints) {
+final width = constraints.maxWidth;
+final gridCount = width > 900 ? 4 : (width > 600 ? 2 : 1);
+return ...;
+},
 );
 
 
@@ -186,7 +186,7 @@ LayoutBuilder(
 
 ---
 
-# Market Bridge 
+# Market Bridge
 
 MarketBridge is a Flutter-based mobile application that connects farmers and buyers through a simple, clean, and responsive marketplace interface.
 
@@ -263,7 +263,7 @@ dependencies:
   cloud_firestore: ^5.0.0
 ```
 
-Then run: 
+Then run:
 
 flutter pub get
 
@@ -529,12 +529,12 @@ When state changes, Flutter intelligently rebuilds only the affected widgets, ma
 
 ### Why separate static and reactive parts of UI?
 
- stateless_stateful
+stateless_stateful
 - Makes code cleaner and easier to maintain
 - Improves performance by reducing unnecessary rebuilds
 - Ensures UI updates happen only where needed
 - Encourages separation of concerns between layout and logic
-=======
+  =======
 ## Market Bridge – Multi-Screen Navigation (Sprint-2)
 
 This project demonstrates **multi-screen navigation in Flutter** using `Navigator`, named routes, and dynamic route arguments. The app includes authentication screens, profile completion, and a responsive home screen inspired by the Market-Bridge use case.
@@ -598,7 +598,7 @@ Navigation flow implemented using:
 ---
 
 
-## Reflection 
+## Reflection
 
 Using named routes improved readability and organization of the navigation system.
 `onGenerateRoute` was helpful for passing dynamic data like `verificationId` and `phoneNumber` to OTP and profile screens.
@@ -4141,7 +4141,8 @@ case Routes.routeRealtimePostProduce:
 ### Challenge 1: Connection State Handling
 **Problem**: UI shows loading forever if connection fails  
 **Solution**: Check `snapshot.connectionState` and handle errors gracefully
-```dart
+```
+dart
 if (snapshot.connectionState == ConnectionState.waiting) {
   return CircularProgressIndicator();
 }
@@ -4153,7 +4154,8 @@ if (snapshot.hasError) {
 ### Challenge 2: Empty State Management
 **Problem**: Crashes when collection is empty  
 **Solution**: Always check for data before accessing
-```dart
+```
+dart
 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
   return EmptyStateWidget();
 }
@@ -4166,7 +4168,8 @@ if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
 ### Challenge 4: Search Filtering with Streams
 **Problem**: Need to filter data client-side for search  
 **Solution**: Use `.where()` to filter the stream list
-```dart
+```
+dart
 final filteredDocs = snapshot.data!.docs.where((doc) {
   final data = doc.data() as Map<String, dynamic>;
   return data['crop'].toLowerCase().contains(searchQuery);
@@ -4182,7 +4185,7 @@ final filteredDocs = snapshot.data!.docs.where((doc) {
 3. **Firestore is Powerful**: Built-in real-time capabilities with simple API
 4. **User Experience Matters**: Live updates make apps feel modern and responsive
 5. **Performance Considerations**: Use `.where()` and `.orderBy()` to limit data
-=======
+
 
 # 🔥 Firestore Queries, Filters & Ordering – Flutter App
 
@@ -4205,7 +4208,7 @@ The goal of this task is to fetch **only relevant data** from Firestore and disp
 ## 🔧 Firestore Dependency
 
 dependencies:
-  cloud_firestore: ^5.0.0
+cloud_firestore: ^5.0.0
 
 
 Installed using:
@@ -4256,16 +4259,16 @@ flutter pub get
 ## 🔄 Real-Time Query with StreamBuilder
 
 StreamBuilder<QuerySnapshot>(
-  stream: FirebaseFirestore.instance
-      .collection('products')
-      .where('inStock', isEqualTo: true)
-      .orderBy('price')
-      .limit(10)
-      .snapshots(),
-  builder: (context, snapshot) {
-    if (!snapshot.hasData) {
-      return CircularProgressIndicator();
-    }
+stream: FirebaseFirestore.instance
+.collection('products')
+.where('inStock', isEqualTo: true)
+.orderBy('price')
+.limit(10)
+.snapshots(),
+builder: (context, snapshot) {
+if (!snapshot.hasData) {
+return CircularProgressIndicator();
+}
 
     final products = snapshot.data!.docs;
 
@@ -4279,7 +4282,7 @@ StreamBuilder<QuerySnapshot>(
         );
       },
     );
-  },
+},
 );
 
 
@@ -4298,6 +4301,811 @@ Using `StreamBuilder` enables real-time updates, allowing the UI to reflect any 
 * **Composite Index Error:**
   Occurred when combining `where` and `orderBy`.
   ✔ Fixed by creating the required index from Firestore console.
->>>>>>> e5bda30234e4c42c94c09585bf79a773c99c70e4
+  e5bda30234e4c42c94c09585bf79a773c99c70e4
+
+---
+
+# Pull Request Template
+
+## PR Title
+```
+[Sprint-2] Cloud Functions Integration & Navigation Fixes – [YourTeamName]
+```
+
+## PR Description
+
+### 🎯 Overview
+This PR implements Firebase Cloud Functions for serverless backend operations and fixes navigation issues in the buyer dashboard.
+
+### ✨ Features Implemented
+
+#### 1. Cloud Functions
+- **Callable Function**: `sendWelcomeNotification` - Sends personalized welcome messages to new users
+- **Firestore Trigger**: `onProductCreated` - Auto-processes new product listings with metadata
+- **Firestore Trigger**: `onUserCreated` - Initializes user accounts with default statistics
+- **Callable Function**: `getMarketStatistics` - Provides real-time market data
+- **Scheduled Function**: `dailyPriceUpdate` - Runs daily maintenance tasks
+
+#### 2. Bug Fixes
+- ✅ Fixed buyer dashboard navigation from marketplace
+- ✅ Fixed buyer dashboard navigation from home screen
+- ✅ Fixed "My Orders" button routing
+- ✅ Fixed bottom navigation bar routing
+
+### 📁 Files Changed
+
+#### New Files
+```
+functions/
+├── index.js           (Cloud Functions implementation)
+├── package.json       (Dependencies)
+└── .gitignore
+
+lib/services/
+└── cloud_functions_service.dart  (Flutter integration)
+```
+
+#### Modified Files
+```
+lib/screens/
+├── complete_profile_screen.dart        (Added function calls)
+├── buyer_marketplace_screen.dart       (Fixed navigation)
+└── buyer_home_screen.dart              (Fixed navigation)
+
+pubspec.yaml                            (Added cloud_functions dependency)
+```
+
+### 🧪 Testing Done
+
+#### Cloud Functions Tests
+- [x] User registration triggers `onUserCreated`
+- [x] Welcome notification sent successfully
+- [x] User stats auto-initialized
+- [x] Product creation triggers `onProductCreated`
+- [x] Product metadata added automatically
+- [x] Farmer listing count incremented
+- [x] Market statistics function returns correct data
+- [x] All functions logged in Firebase Console
+
+#### Navigation Tests
+- [x] Buyer Home → Marketplace navigation works
+- [x] Buyer Home → Dashboard navigation works
+- [x] Buyer Marketplace → Dashboard navigation works
+- [x] "My Orders" button navigates correctly
+- [x] Bottom navigation works on all buyer screens
+- [x] Back navigation works correctly
+
+
+### 💡 Technical Implementation
+
+#### Cloud Functions Architecture
+```
+User Action (Flutter)
+    ↓
+Firebase Auth
+    ↓
+Firestore Write
+    ↓
+Cloud Function Trigger ⚡
+    ↓
+Auto-Processing
+    ↓
+Updated Firestore Data
+```
+
+#### Key Technologies Used
+- Firebase Cloud Functions (Node.js)
+- Firebase Admin SDK
+- Firestore Triggers
+- HTTPS Callable Functions
+- Flutter Cloud Functions Package
+
+### 📝 Reflection
+
+**Why Serverless Functions Reduce Backend Overhead:**
+
+Serverless functions eliminate traditional backend management by:
+1. **Auto-scaling**: Handles 0 to millions of requests automatically
+2. **Pay-per-use**: Only charged for actual execution time
+3. **No server management**: No need to provision, maintain, or update servers
+4. **Built-in monitoring**: Automatic logging and error tracking
+5. **Instant deployment**: Changes deploy in minutes without downtime
+
+**Function Type Selection:**
+
+I chose **callable functions** for user-initiated actions (welcome messages) because:
+- User expects immediate response
+- Need to pass data back to Flutter
+- Requires authentication context
+
+I chose **event-triggered functions** for automatic tasks (product processing) because:
+- Runs in background without blocking UI
+- No direct user interaction needed
+- Perfect for data validation and enrichment
+
+**Real-World Use Cases:**
+
+1. **E-commerce**: Process orders, update inventory, send confirmations
+2. **Social Media**: Moderate content, generate thumbnails, send notifications
+3. **Analytics**: Calculate trends, generate reports, track user behavior
+4. **Communication**: Send emails, SMS, push notifications
+5. **Data Processing**: Clean data, run ML models, generate recommendations
+6. **Integrations**: Connect with payment gateways, shipping APIs, CRMs
+
+### 🐛 Known Issues & Limitations
+
+- Functions require billing enabled on Firebase project
+- Cold start time can be 1-2 seconds for first invocation
+- Free tier limited to 2M invocations/month
+- Local testing requires Firebase emulators
+
+
+### 📚 Documentation
+
+All changes documented in:
+- `README.md` - Setup and usage instructions
+- `CLOUD_FUNCTIONS.md` - Detailed function documentation
+- Inline code comments
+- Console debug logs
+
+### ✅ Checklist
+
+- [x] Code follows project style guidelines
+- [x] All tests passing
+- [x] Functions deployed successfully
+- [x] Documentation updated
+- [x] Screenshots included
+- [x] Demo video recorded
+- [x] No console errors
+- [x] Navigation tested thoroughly
+- [x] Firebase Console verified
+
+---
+
+## Reviewer Notes
+
+**To test this PR:**
+
+1. **Setup Functions:**
+   ```
+   bash
+   cd functions
+   npm install
+   firebase deploy --only functions
+   ```
+
+2. **Test in App:**
+    - Create new user account
+    - Create product listing
+    - Check Firebase Console logs
+    - Test buyer navigation
+
+3. **Verify Firestore:**
+    - Check user documents have `stats` object
+    - Check products have auto-generated fields
+    - Check notifications collection
+
+**Key Files to Review:**
+- `functions/index.js` - Main function logic
+- `lib/services/cloud_functions_service.dart` - Flutter integration
+- `lib/screens/complete_profile_screen.dart` - Function usage
+- Navigation fixes in buyer screens
+
+---
+
+## 🔥 Firebase Cloud Functions
+
+### Overview
+
+This app uses Firebase Cloud Functions for serverless backend operations, eliminating the need for a traditional backend server.
+
+### Implemented Functions
+
+#### 1. Callable Functions (Invoked from Flutter)
+
+**sendWelcomeNotification**
+```
+dart
+final result = await CloudFunctionsService().sendWelcomeNotification(
+  userName: 'John Doe',
+  userRole: 'farmer',
+);
+```
+Sends personalized welcome message to new users.
+
+**getMarketStatistics**
+```
+dart
+final stats = await CloudFunctionsService().getMarketStatistics();
+print('Total Products: ${stats['totalProducts']}');
+```
+Returns real-time market statistics.
+
+#### 2. Firestore Triggers (Automatic)
+
+**onUserCreated**
+- Triggers when new user document is created
+- Initializes user statistics
+- Creates welcome notification
+- Sets account status
+
+**onProductCreated**
+- Triggers when new product is listed
+- Adds server timestamp
+- Updates farmer's listing count
+- Sets verification status
+
+**onProductUpdated**
+- Triggers when product is modified
+- Tracks significant price changes
+- Updates price history
+
+#### 3. Scheduled Functions
+
+**dailyPriceUpdate**
+- Runs daily at midnight (Asia/Kolkata)
+- Resets daily view counts
+- Performs maintenance tasks
+
+### Setup Instructions
+
+1. **Install Firebase CLI**
+   ```
+   bash
+   npm install -g firebase-tools
+   ```
+
+2. **Initialize Functions**
+   ```
+   bash
+   firebase init functions
+   ```
+
+3. **Deploy**
+   ```
+   bash
+   cd functions
+   npm install
+   firebase deploy --only functions
+   ```
+
+4. **Add Flutter Dependency**
+   ```
+   yaml
+   dependencies:
+     cloud_functions: ^5.0.0
+   ```
+
+### Function Logs
+
+View execution logs in:
+- Firebase Console → Functions → Logs
+- Terminal: `firebase functions:log`
+
+### Cost
+
+Functions use Firebase free tier:
+- 2M invocations/month
+- 400,000 GB-seconds
+- No credit card required for testing
+
+### Real-World Applications
+
+✅ Order processing and notifications  
+✅ Automated data validation  
+✅ Background data processing  
+✅ Integration with third-party APIs  
+✅ Scheduled maintenance tasks  
+✅ Real-time analytics
+
+---
+
+## 🐛 Bug Fixes
+
+### Fixed Buyer Dashboard Navigation
+
+**Issue:** Buyer dashboard couldn't be accessed from marketplace or home screen.
+
+**Solution:** Changed from named routes to direct MaterialPageRoute navigation.
+
+**Affected Screens:**
+- `buyer_marketplace_screen.dart`
+- `buyer_home_screen.dart`
+
+**Testing:**
+- ✅ Home → Dashboard
+- ✅ Marketplace → Dashboard
+- ✅ Bottom navigation
+- ✅ "My Orders" button
+
+---
+
+# Firebase Authentication & Firestore Security Rules
+
+A comprehensive guide to securing your Firebase Firestore database using Authentication and custom security rules in Flutter applications.
+
+## 📋 Overview
+
+This guide covers how to protect user data in Cloud Firestore by implementing Firebase Authentication and writing secure Firestore Rules that control read/write access to documents.
+
+## 🎯 Why Security Matters
+
+- **Protects user data** from unauthorized access
+- **Ensures authentication** before database operations
+- **Prevents malicious usage** including spam, data deletion, or tampering
+- **Enforces role-based permissions** (admin vs. regular users)
+- **Required for production** apps with real users
+
+## 🚀 Setup Instructions
+
+### 1. Add Dependencies
+
+Add these to your `pubspec.yaml`:
+
+```
+yaml
+dependencies:
+  firebase_core: ^latest
+  firebase_auth: ^latest
+  cloud_firestore: ^latest
+```
+
+Run: `flutter pub get`
+
+### 2. Initialize Firebase
+
+```
+dart
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(const MyApp());
+}
+```
+
+### 3. Enable Authentication
+
+1. Go to Firebase Console → **Authentication** → **Sign-in methods**
+2. Enable your preferred method:
+    - Email/Password
+    - Google Sign-In
+    - Phone Authentication
+    - etc.
+
+### 4. Implement Sign-In
+
+```
+dart
+final auth = FirebaseAuth.instance;
+
+Future<UserCredential> signIn(String email, String pass) {
+  return auth.signInWithEmailAndPassword(email: email, password: pass);
+}
+```
+
+## 🔐 Firestore Security Rules
+
+### ❌ Unsafe (Test Mode)
+
+```
+javascript
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;  // Never use in production!
+    }
+  }
+}
+```
+
+### ✅ Secure
+
+```
+javascript
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}
+```
+
+**This ensures:**
+- User must be logged in
+- User can only access their own documents
+- No cross-account access
+
+## 💻 Usage Examples
+
+### Writing Data
+
+```
+dart
+final uid = FirebaseAuth.instance.currentUser!.uid;
+
+await FirebaseFirestore.instance
+    .collection('users')
+    .doc(uid)
+    .set({
+  'name': 'John Doe',
+  'lastLogin': DateTime.now(),
+});
+```
+
+### Reading Data
+
+```
+dart
+final uid = FirebaseAuth.instance.currentUser!.uid;
+
+final data = await FirebaseFirestore.instance
+    .collection('users')
+    .doc(uid)
+    .get();
+
+print(data.data());
+```
+
+### Complete Service Example
+
+```
+dart
+class FirestoreService {
+  final auth = FirebaseAuth.instance;
+  final db = FirebaseFirestore.instance;
+
+  Future<void> updateUserProfile() async {
+    final uid = auth.currentUser!.uid;
+
+    await db.collection('users').doc(uid).set({
+      'updatedAt': DateTime.now(),
+    });
+  }
+}
+```
+
+## 🧪 Testing Security Rules
+
+1. Go to Firebase Console → **Firestore** → **Rules**
+2. Open **Rules Playground**
+3. Simulate authenticated and unauthenticated requests
+4. Test both read and write operations
+
+---
+
+# 🌾 MarketBridge
+
+**Connecting Farmers and Buyers Directly**
+
+MarketBridge is a Flutter-based mobile application that bridges the gap between farmers and buyers, enabling direct trade of agricultural produce. The platform provides a seamless marketplace experience with real-time notifications, role-based dashboards, and comprehensive form validation.
+
+---
+
+## 📱 Features
+
+### 🔐 Authentication & Onboarding
+- **Phone Number Authentication** via Firebase Auth
+- **OTP Verification** for secure login
+- **Role-Based Registration** (Farmer/Buyer)
+- **Complete Profile Setup** with comprehensive validation
+- Multi-language support (English, Hindi, Telugu, Tamil, Kannada)
+
+### 👨‍🌾 For Farmers
+- Post agricultural produce listings
+- Real-time dashboard with sales analytics
+- Manage inventory and pricing
+- Track buyer inquiries
+- Farm size tracking (Acres/Hectares)
+
+### 🛒 For Buyers
+- Browse marketplace with live listings
+- Search and filter produce
+- Contact farmers directly
+- Track purchase history
+- Personalized buyer dashboard
+
+### 🔔 Notifications
+- **Firebase Cloud Messaging (FCM)** integration
+- Welcome notifications on registration
+- Real-time alerts for new listings and inquiries
+- Background and foreground notification handling
+- Local notification service for enhanced UX
+
+### 🎨 User Experience
+- **Smooth Page Transitions** with custom animations
+- **Role-Based Theming** (Green for Farmers, Blue for Buyers)
+- **Responsive UI** with adaptive layouts
+- **Form Validation** with real-time feedback
+- Loading states and error handling
+
+---
+
+### Key Packages
+```yaml
+dependencies:
+  firebase_core: ^2.24.2
+  firebase_auth: ^4.16.0
+  cloud_firestore: ^4.14.0
+  firebase_messaging: ^14.7.10
+  flutter_local_notifications: ^16.3.0
+```
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Flutter SDK (3.0 or higher)
+- Dart SDK (3.0 or higher)
+- Firebase project with:
+    - Authentication (Phone provider enabled)
+    - Cloud Firestore
+    - Cloud Messaging
+    - Cloud Functions (optional)
+- Android Studio / VS Code
+- Android SDK / Xcode (for iOS)
+
+---
+
+## 📋 Form Validation Features
+
+The **Complete Profile Screen** implements comprehensive form validation following Flutter best practices:
+
+### ✅ Implemented Validations
+
+#### **Name Validation**
+- ✅ Required field
+- ✅ Minimum 2 characters
+- ✅ Only letters and spaces allowed
+- ✅ Real-time validation feedback
+
+#### **Email Validation**
+- ✅ Optional field
+- ✅ RFC-compliant email format
+- ✅ Dual-layer regex validation
+- ✅ Format example: `user@example.com`
+
+#### **Location Validation**
+- ✅ Required field
+- ✅ Minimum 3 characters
+- ✅ Accepts letters, spaces, and commas
+- ✅ Format example: `City, District`
+
+#### **Farm Size Validation** (Farmers only)
+- ✅ Optional field
+- ✅ Numeric input only
+- ✅ Must be positive number
+- ✅ Maximum value check (100,000)
+- ✅ Unit selection (Acres/Hectares)
+
+### Validation Features
+```
+dart
+// Auto-validation on user interaction
+autovalidateMode: AutovalidateMode.onUserInteraction
+
+// Form submission validation
+if (!_formKey.currentState!.validate()) {
+  // Show error SnackBar
+  return;
+}
+```
+
+---
+
+## 🎨 Design System
+
+### Color Scheme
+| Role | Primary | Light |
+|------|---------|-------|
+| Farmer | `#11823F` | `#E8F5E9` |
+| Buyer | `#2196F3` | `#E3F2FD` |
+
+### Typography
+- **Headers**: Bold, 24-26px
+- **Body**: Regular, 14-16px
+- **Captions**: Regular, 12-14px
+
+### Animations
+- **Page Transitions**: 400-600ms with custom curves
+- **Loading States**: Circular progress indicators
+- **Success Dialogs**: Scale + Fade transitions
+
+---
+
+## 🔔 Push Notifications Setup
+
+### Android Configuration
+
+1. **Update `AndroidManifest.xml`**
+```
+xml
+<manifest>
+  <uses-permission android:name="android.permission.INTERNET"/>
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+  
+  <application>
+    <!-- Firebase Messaging Service -->
+    <service
+      android:name="com.google.firebase.messaging.FirebaseMessagingService"
+      android:exported="false">
+      <intent-filter>
+        <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+      </intent-filter>
+    </service>
+  </application>
+</manifest>
+```
+
+2. **Request Notification Permission** (Android 13+)
+```
+dart
+await FirebaseMessaging.instance.requestPermission(
+  alert: true,
+  badge: true,
+  sound: true,
+);
+```
+
+### iOS Configuration
+
+1. **Update `Info.plist`**
+```
+xml
+<key>UIBackgroundModes</key>
+<array>
+  <string>fetch</string>
+  <string>remote-notification</string>
+</array>
+```
+
+2. **Enable Push Notifications** in Xcode:
+    - Target → Signing & Capabilities → + Capability → Push Notifications
+
+---
+
+## 🗺️ Navigation Flow
+
+```
+SplashScreen
+    ↓
+PhoneLoginScreen (Select Role)
+    ↓
+OtpVerifyScreen
+    ↓
+CompleteProfileScreen (with validation)
+    ↓
+RoleHomeRouter
+    ├─→ FarmerDashboardScreen
+    │       ├─→ PostProduceScreen
+    │       └─→ MarketplaceScreen
+    └─→ BuyerDashboardScreen
+            └─→ MarketplaceScreen
+```
+
+---
+
+## 📊 Firestore Data Structure
+
+### Users Collection
+```
+javascript
+/users/{uid}
+{
+  uid: string,
+  name: string,
+  email: string,
+  phone: string,
+  location: string,
+  preferredLanguage: string,
+  role: "Farmer" | "Buyer",
+  farmSize?: string,  // Only for farmers
+  createdAt: Timestamp
+}
+```
+
+### Listings Collection
+```
+javascript
+/listings/{listingId}
+{
+  listingId: string,
+  farmerId: string,
+  farmerName: string,
+  cropName: string,
+  quantity: number,
+  unit: string,
+  pricePerUnit: number,
+  location: string,
+  harvestDate: Timestamp,
+  description: string,
+  imageUrls: string[],
+  createdAt: Timestamp,
+  status: "active" | "sold" | "inactive"
+}
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+#### Firebase Not Initialized
+```
+Error: Firebase has not been initialized
+```
+**Solution**: Ensure `Firebase.initializeApp()` is called before `runApp()`
+
+#### Notifications Not Working
+```
+Notifications not appearing on Android 13+
+```
+**Solution**: Request notification permission explicitly:
+```
+dart
+await FirebaseMessaging.instance.requestPermission();
+```
+
+
+# 📱 Bottom Navigation Implementation – Flutter
+
+## Overview
+
+This task focuses on designing a smooth and user-friendly navigation system using Flutter’s **BottomNavigationBar**. The goal is to allow users to switch between primary screens easily while preserving screen state and ensuring optimal performance.
+
+---
+
+## Features Implemented
+
+* Multi-tab navigation using **BottomNavigationBar**
+* Screen switching using **PageView** for smooth transitions
+* State preservation between tabs
+* Clean UI with icons and labels
+* Responsive and user-friendly navigation flow
+* Follows real-world app UX standards
+
+---
+
+## Screens Included
+
+| Tab     | Purpose                    |
+| ------- | -------------------------- |
+| Home    | Displays main dashboard    |
+| Search  | Allows searching content   |
+| Profile | Shows user profile details |
+
+---
+
+## Concepts Used
+
+* BottomNavigationBar
+* PageController & PageView
+* IndexedStack for state preservation
+* Scaffold layout
+* Flutter Material Icons
+* UI/UX best practices
+
+---
+
+## Learning Outcomes
+
+* Learned how to manage tab navigation
+* Understood state preservation across tabs
+* Implemented smoother transitions using PageView
+* Applied UI/UX rules for mobile navigation
+* Built scalable multi-screen navigation architecture
+
+---
+
+## Result
+
+The app now provides:
+
+* Fast screen switching
+* Persistent tab state
+* Clean bottom navigation UI
+* Improved user experience
 
 ---
