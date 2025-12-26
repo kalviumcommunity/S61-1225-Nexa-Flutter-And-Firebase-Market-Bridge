@@ -1,5 +1,6 @@
 // lib/screens/buyer_dashboard_screen.dart
 import 'package:flutter/material.dart';
+import 'package:market_bridge/screens/buyer_home_screen.dart';
 import '../routes.dart';
 
 class BuyerDashboardScreen extends StatefulWidget {
@@ -16,9 +17,9 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
     if (_selectedIndex == index) return;
     setState(() => _selectedIndex = index);
     if (index == 0) {
-      Navigator.pushReplacementNamed(context, Routes.routeHome);
+      Navigator.pushReplacementNamed(context, Routes.routeHome, arguments: {'role': 'buyer'});
     } else if (index == 1) {
-      Navigator.pushReplacementNamed(context, Routes.routeMarketPlace);
+      Navigator.pushReplacementNamed(context, Routes.routeMarketPlace, arguments: {'role': 'buyer'});
     } else if (index == 2) {
       // Already on Dashboard
     }
@@ -165,7 +166,12 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const BuyerHomeScreen()),
+              (route) => false,
+            );
+          },
         ),
         title: Row(
           children: const [
@@ -188,195 +194,189 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header Section
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(padding),
-              decoration: const BoxDecoration(
-                color: Color(0xFF2196F3),
-                borderRadius: BorderRadius.vertical(
-                  bottom: Radius.circular(24),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Track your orders and interests',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: isTablet ? 16 : 14,
-                    ),
-                  ),
-                  SizedBox(height: padding),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      return isTablet
-                          ? Row(
-                              children: [
-                                _buildStatCard(
-                                  icon: Icons.receipt_long,
-                                  label: 'Total Orders',
-                                  value: '8',
-                                  screenWidth: screenWidth,
-                                ),
-                                SizedBox(width: padding),
-                                _buildStatCard(
-                                  icon: Icons.attach_money,
-                                  label: 'Total Spent',
-                                  value: '₹32,000',
-                                  screenWidth: screenWidth,
-                                ),
-                              ],
-                            )
-                          : Column(
-                              children: [
-                                _buildStatCard(
-                                  icon: Icons.receipt_long,
-                                  label: 'Total Orders',
-                                  value: '8',
-                                  screenWidth: screenWidth,
-                                ),
-                                SizedBox(height: padding),
-                                _buildStatCard(
-                                  icon: Icons.attach_money,
-                                  label: 'Total Spent',
-                                  value: '₹32,000',
-                                  screenWidth: screenWidth,
-                                ),
-                              ],
-                            );
-                    },
-                  ),
-                ],
+      body: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          // Header Section
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(padding),
+            decoration: const BoxDecoration(
+              color: Color(0xFF2196F3),
+              borderRadius: BorderRadius.vertical(
+                bottom: Radius.circular(24),
               ),
             ),
-
-            Padding(
-              padding: EdgeInsets.all(padding),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Quick Actions
-                  _buildSectionCard(
-                    title: 'Quick Actions',
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () {},
-                            icon: const Icon(Icons.storefront, size: 20),
-                            label: const Text('Browse Produce'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF2196F3),
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(
-                                vertical: isTablet ? 16 : 12,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: padding),
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () {},
-                            icon: const Icon(
-                              Icons.notifications,
-                              size: 20,
-                              color: Color(0xFF2196F3),
-                            ),
-                            label: const Text('Set Alerts'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: const Color(0xFF2196F3),
-                              side: const BorderSide(color: Color(0xFF2196F3)),
-                              padding: EdgeInsets.symmetric(
-                                vertical: isTablet ? 16 : 12,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Track your orders and interests',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: isTablet ? 16 : 14,
                   ),
+                ),
+                SizedBox(height: padding),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    return isTablet
+                        ? Row(
+                            children: [
+                              _buildStatCard(
+                                icon: Icons.receipt_long,
+                                label: 'Total Orders',
+                                value: '8',
+                                screenWidth: screenWidth,
+                              ),
+                              SizedBox(width: padding),
+                              _buildStatCard(
+                                icon: Icons.attach_money,
+                                label: 'Total Spent',
+                                value: '₹32,000',
+                                screenWidth: screenWidth,
+                              ),
+                            ],
+                          )
+                        : Column(
+                            children: [
+                              _buildStatCard(
+                                icon: Icons.receipt_long,
+                                label: 'Total Orders',
+                                value: '8',
+                                screenWidth: screenWidth,
+                              ),
+                              SizedBox(height: padding),
+                              _buildStatCard(
+                                icon: Icons.attach_money,
+                                label: 'Total Spent',
+                                value: '₹32,000',
+                                screenWidth: screenWidth,
+                              ),
+                            ],
+                          );
+                  },
+                ),
+              ],
+            ),
+          ),
 
-                  SizedBox(height: padding),
-
-                  // My Orders Header
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Padding(
+            padding: EdgeInsets.all(padding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Quick Actions
+                _buildSectionCard(
+                  title: 'Quick Actions',
+                  child: Row(
                     children: [
-                      Text(
-                        'My Orders',
-                        style: TextStyle(
-                          fontSize: isTablet ? 22 : 18,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF333333),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.pushNamed(context, Routes.routeMarketPlace, arguments: {'role': 'buyer'});
+                          },
+                          icon: const Icon(Icons.storefront, size: 20),
+                          label: const Text('Browse Produce'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF2196F3),
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(
+                              vertical: isTablet ? 16 : 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
                         ),
                       ),
-                      TextButton(
-                        onPressed: () {},
-                        child: Row(
-                          children: const [
-                            Text(
-                              'View all',
-                              style: TextStyle(
-                                color: Color(0xFF2196F3),
-                                fontWeight: FontWeight.w600,
-                              ),
+                      SizedBox(width: padding),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Alert settings coming soon!')),
+                            );
+                          },
+                          icon: const Icon(
+                            Icons.notifications,
+                            size: 20,
+                            color: Color(0xFF2196F3),
+                          ),
+                          label: const Text('Set Alerts'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF2196F3),
+                            side: const BorderSide(color: Color(0xFF2196F3)),
+                            padding: EdgeInsets.symmetric(
+                              vertical: isTablet ? 16 : 12,
                             ),
-                            SizedBox(width: 4),
-                            Icon(
-                              Icons.arrow_forward,
-                              size: 16,
-                              color: Color(0xFF2196F3),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                          ],
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: padding / 2),
+                ),
 
-                  // Orders Grid/List
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      if (_myOrders.isEmpty) return _buildEmptyState(padding);
+                SizedBox(height: padding),
 
-                      final crossAxisCount = isTablet ? 2 : 1;
-
-                      return SizedBox(
-                        height: 300, // Fix: Give bounded height to GridView
-                        child: GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _myOrders.length,
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: crossAxisCount,
-                            crossAxisSpacing: padding,
-                            mainAxisSpacing: padding,
-                            childAspectRatio: isTablet ? 1.5 : 1.8,
+                // My Orders Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'My Orders',
+                      style: TextStyle(
+                        fontSize: isTablet ? 22 : 18,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF333333),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('View all orders coming soon!')),
+                        );
+                      },
+                      child: Row(
+                        children: const [
+                          Text(
+                            'View all',
+                            style: TextStyle(
+                              color: Color(0xFF2196F3),
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                          itemBuilder: (context, index) =>
-                              _buildOrderCard(order: _myOrders[index]),
-                        ),
-                      );
-                    },
+                          SizedBox(width: 4),
+                          Icon(
+                            Icons.arrow_forward,
+                            size: 16,
+                            color: Color(0xFF2196F3),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: padding / 2),
+
+                // Orders List
+                if (_myOrders.isEmpty)
+                  _buildEmptyState(padding)
+                else
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _myOrders.length,
+                    separatorBuilder: (context, index) => SizedBox(height: padding),
+                    itemBuilder: (context, index) => _buildOrderCard(order: _myOrders[index]),
                   ),
-                ],
-              ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -632,6 +632,44 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
             ],
           ),
           const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    // TODO: Implement cancel order logic
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Order cancelled! (Demo only)')),
+                    );
+                  },
+                  icon: const Icon(Icons.cancel, color: Color(0xFF2196F3)),
+                  label: const Text('Cancel Order', style: TextStyle(color: Color(0xFF2196F3))),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color(0xFF2196F3)),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    // TODO: Implement support request logic
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Support request sent! (Demo only)')),
+                    );
+                  },
+                  icon: const Icon(Icons.help_outline, color: Color(0xFF2196F3)),
+                  label: const Text('Request Support', style: TextStyle(color: Color(0xFF2196F3))),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color(0xFF2196F3)),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
@@ -689,7 +727,7 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
           SizedBox(height: padding),
           ElevatedButton.icon(
             onPressed: () =>
-                Navigator.pushNamed(context, Routes.routeMarketPlace),
+                Navigator.pushNamed(context, Routes.routeMarketPlace, arguments: {'role': 'buyer'}),
             icon: const Icon(Icons.storefront),
             label: const Text('Browse Marketplace'),
             style: ElevatedButton.styleFrom(

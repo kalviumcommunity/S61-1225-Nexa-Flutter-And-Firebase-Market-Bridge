@@ -1,5 +1,7 @@
 // lib/routes.dart
 import 'package:flutter/material.dart';
+import 'package:market_bridge/screens/buyer_dashboard_screen.dart';
+import 'package:market_bridge/screens/buyer_marketplace_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/phone_login_screen.dart';
 import 'screens/otp_verify_screen.dart';
@@ -20,6 +22,7 @@ class Routes {
   static const String routeListingDetails = '/listing-details';
   static const String routePostProduce = '/post-produce';
   static const String routeDashboard = '/farmer-dashboard';
+  static const String routeBuyerDashboard = '/buyer-dashboard';
   static const String routeScrollable = '/scrollable';
 
   /// Animation duration for route transitions
@@ -100,15 +103,33 @@ class Routes {
         );
 
       case routeMarketPlace:
-        return _buildPageRoute(
-          const MarketplaceScreen(),
-          settings,
-          curve: curve,
-        );
+        // Use BuyerMarketplaceScreen for buyers, MarketplaceScreen for others
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null && args['role'] == 'buyer') {
+          return _buildPageRoute(
+            const BuyerMarketplaceScreen(),
+            settings,
+            curve: curve,
+          );
+        } else {
+          return _buildPageRoute(
+            const MarketplaceScreen(),
+            settings,
+            curve: curve,
+          );
+        }
 
       case routeDashboard:
         return _buildPageRoute(
           const FarmerDashboardScreen(),
+          settings,
+          curve: curve,
+        );
+      case routeBuyerDashboard:
+        return _buildPageRoute(
+          // Import is implied
+          // ignore: prefer_const_constructors
+          BuyerDashboardScreen(),
           settings,
           curve: curve,
         );
