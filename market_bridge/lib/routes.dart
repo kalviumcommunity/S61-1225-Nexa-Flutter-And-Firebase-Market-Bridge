@@ -11,6 +11,7 @@ import 'screens/marketplace_screen.dart';
 import 'screens/farmer_dashboard_screen.dart';
 import 'screens/post_produce_screen.dart';
 import 'screens/responsive_layout.dart';
+import 'screens/map_screen.dart';
 
 class Routes {
   static const String routeSplash = '/';
@@ -24,6 +25,7 @@ class Routes {
   static const String routeDashboard = '/farmer-dashboard';
   static const String routeBuyerDashboard = '/buyer-dashboard';
   static const String routeScrollable = '/scrollable';
+  static const String routeMap = '/map';
 
   /// Animation duration for route transitions
   static const Duration transitionDuration = Duration(milliseconds: 400);
@@ -55,11 +57,7 @@ class Routes {
 
     switch (settings.name) {
       case routeSplash:
-        return _buildPageRoute(
-          const SplashScreen(),
-          settings,
-          curve: curve,
-        );
+        return _buildPageRoute(const SplashScreen(), settings, curve: curve);
 
       case routePhone:
         return _buildPageRoute(
@@ -82,6 +80,9 @@ class Routes {
           settings,
           curve: curve,
         );
+
+      case routeMap:
+        return _buildPageRoute(const MapScreen(), settings, curve: curve);
 
       case routeComplete:
         final args = settings.arguments as Map<String, dynamic>?;
@@ -159,10 +160,10 @@ class Routes {
 
   /// Build a page route with smooth transitions
   static PageRoute _buildPageRoute(
-      Widget page,
-      RouteSettings settings, {
-        Curve curve = Curves.easeInOut,
-      }) {
+    Widget page,
+    RouteSettings settings, {
+    Curve curve = Curves.easeInOut,
+  }) {
     return PageRouteBuilder(
       settings: settings,
       transitionDuration: transitionDuration,
@@ -212,11 +213,7 @@ class Routes {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.error_outline,
-                  size: 80,
-                  color: Colors.red,
-                ),
+                const Icon(Icons.error_outline, size: 80, color: Colors.red),
                 const SizedBox(height: 24),
                 Text(
                   message,

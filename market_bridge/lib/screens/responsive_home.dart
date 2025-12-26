@@ -58,6 +58,17 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
                   children: [
                     _buildWelcomeCard(),
                     const SizedBox(height: 20),
+                    // View Map Button below location
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pushNamed(context, Routes.routeMap);
+                        },
+                        icon: const Icon(Icons.map),
+                        label: const Text('View Map'),
+                      ),
+                    ),
 
                     _buildSectionTitle("Today's Market Prices"),
                     const SizedBox(height: 12),

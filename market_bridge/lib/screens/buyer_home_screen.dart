@@ -188,6 +188,16 @@ class BuyerHomeScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         // Location Card
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.pushNamed(context, Routes.routeMap);
+                            },
+                            icon: const Icon(Icons.map),
+                            label: const Text('View Map'),
+                          ),
+                        ),
                         Container(
                           padding: const EdgeInsets.all(16),
                           margin: const EdgeInsets.only(top: 6, bottom: 12),
