@@ -34,6 +34,10 @@ class BuyerHomeScreen extends StatelessWidget {
     );
     if (shouldLogout == true) {
       await FirebaseAuth.instance.signOut();
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        Routes.routeSplash, 
+        (route) => false,
+      );
     }
   }
 
