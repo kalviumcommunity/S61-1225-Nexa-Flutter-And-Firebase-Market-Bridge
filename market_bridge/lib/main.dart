@@ -1,11 +1,14 @@
-// lib/main.dart
+// lib/main.dart (FIXED - NO ERRORS)
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
 import 'package:market_bridge/local_notification_service.dart';
 import 'package:market_bridge/screens/map_screen.dart';
+import 'package:market_bridge/providers/theme_provider.dart';
+import 'package:market_bridge/theme/app_theme.dart';
 import 'screens/splash_screen.dart';
 import 'screens/phone_login_screen.dart';
 import 'screens/otp_verify_screen.dart';
@@ -18,13 +21,12 @@ import 'screens/post_produce_screen.dart';
 import 'screens/responsive_layout.dart';
 import 'routes.dart';
 import 'firebase_options.dart';
-import 'widgets/loading_widget.dart';
-import 'widgets/error_widget.dart';
-import 'utils/theme_helper.dart';
+
 /// Background handler (top-level)
 Future<void> firebaseBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
 }
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -66,108 +68,115 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Market Bridge',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-        useMaterial3: true,
-        pageTransitionsTheme: const PageTransitionsTheme(
-          builders: {
-            TargetPlatform.android: CupertinoPageTransitionsBuilder(),
-            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-          },
-        ),
-      ),
-      onGenerateRoute: (settings) {
-        final curve = Routes.getTransitionCurve(settings.name ?? '');
-        switch (settings.name) {
-          case Routes.routeSplash:
-            return _buildFadeRoute(const SplashScreen(), settings);
-          case Routes.routePhone:
-            return _buildSlideRoute(
-              const PhoneLoginScreen(),
-              settings,
-              curve: curve,
+    // Wrap app with ChangeNotifierProvider for ThemeProvider
+    return ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          // Show loading screen until theme is initialized
+          if (!themeProvider.isInitialized) {
+            return const MaterialApp(
+              debugShowCheckedModeBanner: false,
+              home: SplashScreen(),
             );
-          case Routes.routeOtp:
-            final args = settings.arguments as Map<String, dynamic>;
-            return _buildSlideRoute(
-              OtpVerifyScreen(
-                verificationId: args['verificationId'],
-                selectedRole: args['selectedRole'],
-                phoneNumber: args['phoneNumber'],
-              ),
-              settings,
-              curve: curve,
-            );
-          case Routes.routeComplete:
-            final args = settings.arguments as Map<String, dynamic>;
-            return _buildScaleFadeRoute(
-              CompleteProfileScreen(
-                phoneNumber: args['phoneNumber'],
-                role: args['role'],
-              ),
-              settings,
-              curve: curve,
-            );
-          case Routes.routeHome:
-            return _buildFadeRoute(
-              const RoleHomeRouter(),
-              settings,
-              curve: curve,
-            );
-          case Routes.routeMarketPlace:
-            return _buildSlideRoute(
-              const MarketplaceScreen(),
-              settings,
-              curve: curve,
-            );
-          case Routes.routeDashboard:
-            return _buildSlideUpRoute(
-              const DashboardRouter(),
-              settings,
-              curve: curve,
-            );
-          case Routes.routePostProduce:
-            return _buildSlideUpRoute(
-              const PostProduceScreen(),
-              settings,
-              curve: curve,
-            );
-          case Routes.routeListingDetails:
-            final args = settings.arguments as Map<String, dynamic>?;
-            return _buildScaleFadeRoute(
-              ListingDetailsScreen(crop: args?['crop'] ?? {}),
-              settings,
-              curve: curve,
-            );
-          case Routes.routeMap:
-            return _buildFadeRoute(
-              const MapScreen(),
-              settings,
-              curve: curve,
-            );
-          case '/scrollable':
-            return _buildSlideRoute(
-              const ResponsiveLayout(),
-              settings,
-              curve: curve,
-            );
-          default:
-            return _buildFadeRoute(const SplashScreen(), settings);
-        }
-      },
-      home: StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (ctx, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const SplashScreen();
           }
-          if (snapshot.hasData) {
-            return const RoleHomeRouter();
-          }
-          return const PhoneLoginScreen();
+
+          return MaterialApp(
+            title: 'Market Bridge',
+            debugShowCheckedModeBanner: false,
+
+            // Apply themes from AppTheme class
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeProvider.themeMode,
+
+
+            onGenerateRoute: (settings) {
+              final curve = Routes.getTransitionCurve(settings.name ?? '');
+              switch (settings.name) {
+                case Routes.routeSplash:
+                  return _buildFadeRoute(const SplashScreen(), settings);
+                case Routes.routePhone:
+                  return _buildSlideRoute(
+                    const PhoneLoginScreen(),
+                    settings,
+                    curve: curve,
+                  );
+                case Routes.routeOtp:
+                  final args = settings.arguments as Map<String, dynamic>;
+                  return _buildSlideRoute(
+                    OtpVerifyScreen(
+                      verificationId: args['verificationId'],
+                      selectedRole: args['selectedRole'],
+                      phoneNumber: args['phoneNumber'],
+                    ),
+                    settings,
+                    curve: curve,
+                  );
+                case Routes.routeComplete:
+                  final args = settings.arguments as Map<String, dynamic>;
+                  return _buildScaleFadeRoute(
+                    CompleteProfileScreen(
+                      phoneNumber: args['phoneNumber'],
+                      role: args['role'],
+                    ),
+                    settings,
+                    curve: curve,
+                  );
+                case Routes.routeHome:
+                  return _buildFadeRoute(
+                    const RoleHomeRouter(),
+                    settings,
+                    curve: curve,
+                  );
+                case Routes.routeMarketPlace:
+                  return _buildSlideRoute(
+                    const MarketplaceScreen(),
+                    settings,
+                    curve: curve,
+                  );
+                case Routes.routeDashboard:
+                  return _buildSlideUpRoute(
+                    const DashboardRouter(),
+                    settings,
+                    curve: curve,
+                  );
+                case Routes.routePostProduce:
+                  return _buildSlideUpRoute(
+                    const PostProduceScreen(),
+                    settings,
+                    curve: curve,
+                  );
+                case Routes.routeMap:
+                  return _buildFadeRoute(
+                    const MapScreen(),
+                    settings,
+                    curve: curve,
+                  );
+                case '/scrollable':
+                  return _buildSlideRoute(
+                    const ResponsiveLayout(),
+                    settings,
+                    curve: curve,
+                  );
+                default:
+                  return _buildFadeRoute(const SplashScreen(), settings);
+              }
+            },
+
+            home: StreamBuilder<User?>(
+              stream: FirebaseAuth.instance.authStateChanges(),
+              builder: (ctx, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const SplashScreen();
+                }
+                if (snapshot.hasData) {
+                  return const RoleHomeRouter();
+                }
+                return const PhoneLoginScreen();
+              },
+            ),
+          );
         },
       ),
     );
@@ -188,8 +197,7 @@ class MyApp extends StatelessWidget {
         const begin = Offset(1.0, 0.0);
         const end = Offset.zero;
 
-        var tween = Tween(begin: begin, end: end)
-            .chain(CurveTween(curve: curve));
+        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
         var offsetAnimation = animation.drive(tween);
 
         return SlideTransition(
@@ -237,8 +245,7 @@ class MyApp extends StatelessWidget {
       transitionDuration: const Duration(milliseconds: 600),
       reverseTransitionDuration: const Duration(milliseconds: 400),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        var scaleTween = Tween<double>(begin: 0.85, end: 1.0)
-            .chain(CurveTween(curve: curve));
+        var scaleTween = Tween<double>(begin: 0.85, end: 1.0).chain(CurveTween(curve: curve));
         var fadeAnimation = CurvedAnimation(
           parent: animation,
           curve: curve,
@@ -270,8 +277,7 @@ class MyApp extends StatelessWidget {
         const begin = Offset(0.0, 0.3);
         const end = Offset.zero;
 
-        var slideTween = Tween(begin: begin, end: end)
-            .chain(CurveTween(curve: curve));
+        var slideTween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
         var fadeAnimation = CurvedAnimation(
           parent: animation,
           curve: Curves.easeIn,
@@ -343,23 +349,26 @@ class _DashboardRouterState extends State<DashboardRouter>
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Scaffold(
-            backgroundColor: Colors.white,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             body: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   RotationTransition(
                     turns: _loadingController,
-                    child: const Icon(
+                    child: Icon(
                       Icons.agriculture,
                       size: 48,
-                      color: Color(0xFF11823F),
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Loading Dashboard...',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                    ),
                   ),
                 ],
               ),

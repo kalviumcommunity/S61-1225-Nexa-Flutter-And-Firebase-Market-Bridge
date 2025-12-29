@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:market_bridge/screens/farmer_dashboard_screen.dart';
 import '../routes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../widgets/settings_menu.dart';
 
 class ResponsiveHomeEnhanced extends StatelessWidget {
   const ResponsiveHomeEnhanced({Key? key}) : super(key: key);
@@ -65,6 +66,13 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF11823F),
+      appBar: AppBar(
+        title: const Text('Farmer Dashboard'),
+        actions: [
+          const ThemeToggleButton(),
+          const SettingsMenu(),
+        ],
+      ),
       body: SafeArea(
         child: Column(
           children: [
