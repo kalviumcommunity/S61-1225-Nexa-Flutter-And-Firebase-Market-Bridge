@@ -5407,3 +5407,369 @@ StreamBuilder<QuerySnapshot>(
 - Use server-side validation for critical operations
 
 ---
+
+# Task 2.47: Handling Errors, Loaders, and Empty States Gracefully
+
+## 📋 Task Overview
+Implemented comprehensive error handling, loading states, and empty states across the Market Bridge application following best UX practices.
+
+---
+
+## ✅ Implementation Summary
+
+### **1. Created Reusable Widget Components**
+
+Created three reusable widgets in `lib/widgets/` directory:
+
+#### **LoadingWidget** (`loading_widget.dart`)
+- Displays circular progress indicator
+- Customizable color and message
+- Used across all async operations
+
+```
+dart
+LoadingWidget(
+  message: 'Loading your listings...',
+  color: Color(0xFF11823F),
+)
+```
+
+#### **ErrorStateWidget** (`error_state_widget.dart`)
+- User-friendly error messages
+- Retry button functionality
+- Customizable icon and title
+- Never exposes technical error details to users
+
+```
+dart
+ErrorStateWidget(
+  message: 'Unable to load data. Please check your connection.',
+  onRetry: () => setState(() {}),
+)
+```
+
+#### **EmptyStateWidget** (`empty_state_widget.dart`)
+- Clear messaging when no data exists
+- Call-to-action buttons
+- Custom icons for different contexts
+- Helpful instructions for users
+
+```
+dart
+EmptyStateWidget(
+  title: 'No listings yet',
+  message: 'Start by adding your first produce',
+  icon: Icons.inventory_2_outlined,
+  actionButton: ElevatedButton(...),
+)
+```
+
+---
+
+## 🎯 Implementation Across Screens
+
+### **1. Role Home Router** (`role_home_router.dart`)
+**Status:** ✅ **Fully Implemented**
+
+**Features:**
+- ✅ Animated loading screen with rotation and scale transitions
+- ✅ Comprehensive error handling with retry functionality
+- ✅ Responsive design for mobile and tablet
+- ✅ Graceful fallback to login on authentication errors
+
+**Loading State:**
+```
+dart
+Widget _buildLoadingScreen() {
+  return Scaffold(
+    body: Center(
+      child: Column(
+        children: [
+          ScaleTransition(...),
+          LinearProgressIndicator(...),
+        ],
+      ),
+    ),
+  );
+}
+```
+
+**Error State:**
+```
+dart
+Widget _buildErrorScreen(String message) {
+  return Scaffold(
+    body: Center(
+      child: Column(
+        children: [
+          Icon(Icons.error_outline_rounded, size: 80),
+          Text(message),
+          Row([
+            OutlinedButton.icon('Sign Out'),
+            ElevatedButton.icon('Retry'),
+          ]),
+        ],
+      ),
+    ),
+  );
+}
+```
+
+---
+
+### **2. Farmer Dashboard** (`farmer_dashboard_screen.dart`)
+**Status:** ✅ **Fully Implemented**
+
+**Features:**
+- ✅ Loading state with CircularProgressIndicator
+- ✅ Error state with retry functionality
+- ✅ Empty state with call-to-action button
+- ✅ User authentication checks
+- ✅ Firestore query filtering by `ownerId`
+
+---
+
+### **3. Buyer Dashboard** (`buyer_dashboard_screen.dart`)
+**Status:** ✅ **Fully Implemented**
+
+**Features:**
+- ✅ Loading state for orders
+- ✅ Error state with retry
+- ✅ Empty state with marketplace CTA
+- ✅ Authentication checks
+- ✅ Dynamic stats calculation
+
+**Implementation:**
+```
+dart
+StreamBuilder<QuerySnapshot>(
+  stream: FirebaseFirestore.instance
+      .collection('orders')
+      .where('buyerId', isEqualTo: currentUser.uid)
+      .orderBy('createdAt', descending: true)
+      .snapshots(),
+  builder: (context, snapshot) {
+    // Loading, Error, Empty, Success states handled
+  },
+)
+```
+
+---
+
+### **4. Marketplace Screen** (`marketplace_screen.dart`)
+**Status:** ✅ **Fully Implemented**
+
+**Features:**
+- ✅ Loading state
+- ✅ Error state with retry
+- ✅ Empty state (no products)
+- ✅ No search results state
+- ✅ Real-time Firestore integration
+
+**Additional States:**
+```
+dart
+Widget _buildLoadingState() { ... }
+Widget _buildErrorState(String error) { ... }
+Widget _buildEmptyState() { ... }
+Widget _buildNoSearchResults() { ... }
+```
+
+---
+
+### **5. Post Produce Screen** (`post_produce_screen.dart`)
+**Status:** ✅ **Fully Implemented**
+
+**Features:**
+- ✅ Upload progress indicator
+- ✅ Loading state during submission
+- ✅ Error handling with user-friendly messages
+- ✅ Form validation
+- ✅ Image upload progress tracking
+
+
+---
+
+## 📊 State Management Summary
+
+| Screen | Loading ✓ | Error ✓ | Empty ✓ | User Auth ✓ |
+|--------|-----------|---------|---------|-------------|
+| Role Home Router | ✅ | ✅ | ✅ | ✅ |
+
+| Farmer Dashboard | ✅ | ✅ | ✅ | ✅ |
+| Buyer Dashboard | ✅ | ✅ | ✅ | ✅ |
+| Marketplace | ✅ | ✅ | ✅ | N/A |
+| Post Produce | ✅ | ✅ | N/A | ✅ |
+
+---
+
+## 🚀 Best Practices Implemented
+
+### **1. User Experience**
+- ✅ Never show blank screens
+- ✅ Always provide context and instructions
+- ✅ Use friendly, non-technical error messages
+- ✅ Include retry buttons where appropriate
+- ✅ Show progress indicators for long operations
+
+### **2. Error Handling**
+- ✅ Technical errors logged with `debugPrint()`
+- ✅ User-friendly messages shown in UI
+- ✅ Stack traces never exposed to users
+- ✅ Graceful fallbacks for authentication errors
+
+### **3. Loading States**
+- ✅ Appropriate loaders for different contexts
+- ✅ Progress indicators for file uploads
+- ✅ Responsive animations
+- ✅ Helpful loading messages
+
+### **4. Empty States**
+- ✅ Clear messaging
+- ✅ Contextual icons
+- ✅ Call-to-action buttons
+- ✅ Helpful instructions
+
+---
+
+## 🔧 Technical Implementation
+
+### **Authentication Checks**
+```
+dart
+final currentUser = FirebaseAuth.instance.currentUser;
+
+if (currentUser == null) {
+  return Center(
+    child: Column(
+      children: [
+        Icon(Icons.person_off, size: 64),
+        Text('Please log in to view your dashboard'),
+      ],
+    ),
+  );
+}
+```
+
+
+### **Error Logging**
+```
+dart
+try {
+  // Operation
+} catch (e, stackTrace) {
+  debugPrint('❌ Error: $e');
+  debugPrint('Stack trace: $stackTrace');
+  _showSnackbar('Operation failed. Please try again.', isError: true);
+}
+```
+
+---
+
+## 📱 Responsive Design
+
+All states are responsive and adapt to:
+- **Mobile devices** (< 600px width)
+- **Tablets** (600px - 900px width)
+- **Large screens** (> 900px width)
+
+```
+dart
+final isTablet = screenWidth >= 600;
+
+// Adjust padding, font sizes, and layouts
+padding: EdgeInsets.all(isTablet ? 24 : 16)
+fontSize: isTablet ? 20 : 16
+```
+
+---
+
+## 🎯 Key Achievements
+
+1. **✅ Zero blank screens** - Every state has meaningful UI
+2. **✅ User-friendly errors** - No technical jargon
+3. **✅ Consistent patterns** - Same approach across all screens
+4. **✅ Reusable components** - DRY principle followed
+5. **✅ Graceful degradation** - Appropriate fallbacks
+6. **✅ Accessibility** - Clear messaging and visual hierarchy
+
+---
+
+## 📝 Files Modified/Created
+
+### **Created:**
+1. `lib/widgets/loading_widget.dart`
+2. `lib/widgets/error_state_widget.dart`
+3. `lib/widgets/empty_state_widget.dart`
+4. `lib/utils/theme_helper.dart`
+
+### **Enhanced:**
+1. `lib/screens/role_home_router.dart`
+2. `lib/screens/farmer_dashboard_screen.dart`
+3. `lib/screens/buyer_dashboard_screen.dart`
+4. `lib/screens/marketplace_screen.dart`
+5. `lib/screens/post_produce_screen.dart`
+
+---
+
+## 🎨 Theme Helper Utility
+
+### **ThemeHelper Class** (`lib/utils/theme_helper.dart`)
+
+Created a utility class to manage role-based theming throughout the app:
+
+**Features:**
+- ✅ Dynamic color theming based on user role
+- ✅ Consistent UI colors (Green for Farmers, Blue for Buyers)
+- ✅ Status badge colors and backgrounds
+- ✅ Role-specific icons
+
+
+**Color Scheme:**
+
+| Role | Primary Color | Light Color | Icon |
+|------|--------------|-------------|------|
+| Farmer | Green (#11823F) | Light Green (#E8F5E9) | 🌾 agriculture_rounded |
+| Buyer | Blue (#2196F3) | Light Blue (#E3F2FD) | 🛍️ shopping_bag_rounded |
+| Default | Green (#11823F) | Light Green (#E8F5E9) | 👤 person |
+
+**Status Colors:**
+
+| Status | Text Color | Background |
+|--------|-----------|------------|
+| Active/Confirmed | Green [700] | Green 10% |
+| Pending | Orange [700] | Orange 10% |
+| Delivered | Blue [700] | Blue 10% |
+| Cancelled | Red [700] | Red 10% |
+
+**Benefits:**
+1. **Consistency** - Centralized color management
+2. **Maintainability** - Easy to update theme colors
+3. **Scalability** - Simple to add new roles or statuses
+4. **Clean Code** - Eliminates color hardcoding across screens
+
+---
+
+## 🧪 Testing Scenarios
+
+### **Test Cases Covered:**
+
+1. **Loading States:**
+    - ✅ App opens and loads user data
+    - ✅ Dashboard fetches listings from Firestore
+    - ✅ Image uploads show progress
+
+2. **Error States:**
+    - ✅ Network disconnected
+    - ✅ Firestore permission denied
+    - ✅ Invalid user authentication
+    - ✅ Image upload failure
+
+3. **Empty States:**
+    - ✅ No listings in farmer dashboard
+    - ✅ No orders in buyer dashboard
+    - ✅ No search results in marketplace
+    - ✅ No products available
+
+---
+

@@ -1,7 +1,12 @@
 // lib/screens/buyer_dashboard_screen.dart
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../routes.dart';
-
+import '../widgets/loading_widget.dart';
+import '../widgets/error_widget.dart';
+import '../widgets/empty_state_widget.dart';
+import '../utils/theme_helper.dart';
 class BuyerDashboardScreen extends StatefulWidget {
   const BuyerDashboardScreen({Key? key}) : super(key: key);
 
@@ -10,28 +15,6 @@ class BuyerDashboardScreen extends StatefulWidget {
 }
 
 class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
-  // Sample orders data
-  final List<Map<String, dynamic>> _myOrders = [
-    {
-      'crop': 'Tomato',
-      'quantity': '2 quintal',
-      'price': '₹20/kg',
-      'farmer': 'Kumar',
-      'status': 'pending',
-      'date': '2 days ago',
-      'icon': '🍅',
-    },
-    {
-      'crop': 'Onion',
-      'quantity': '2 quintal',
-      'price': '₹20/kg',
-      'farmer': 'Kumar',
-      'status': 'confirmed',
-      'date': '2 days ago',
-      'icon': '🧅',
-    },
-  ];
-
   String _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'confirmed':
@@ -77,10 +60,10 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
-          children: [
-            const Icon(Icons.local_shipping, color: Color(0xFF2196F3)),
-            const SizedBox(width: 8),
-            const Text(
+          children: const [
+            Icon(Icons.local_shipping, color: Color(0xFF2196F3)),
+            SizedBox(width: 8),
+            Text(
               'Track Order',
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
@@ -91,15 +74,15 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Order: ${order['crop']}',
+              'Order: ${order['crop'] ?? order['productName'] ?? 'Unknown'}',
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 8),
-            Text('Quantity: ${order['quantity']}'),
-            Text('Farmer: ${order['farmer']}'),
+            Text('Quantity: ${order['quantity'] ?? 'N/A'}'),
+            Text('Farmer: ${order['farmerName'] ?? 'N/A'}'),
             const SizedBox(height: 16),
             const Text(
               'Tracking information will be available soon.',
@@ -121,6 +104,7 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
   Widget build(BuildContext context) {
     final mq = MediaQuery.of(context);
     final isTablet = mq.size.width > 600;
+    final currentUser = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -152,7 +136,21 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: currentUser == null
+          ? Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.person_off, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              'Please log in to view your dashboard',
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      )
+          : SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -177,22 +175,42 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      _buildStatCard(
-                        icon: Icons.receipt_long,
-                        label: 'Total Orders',
-                        value: '8',
-                        isTablet: isTablet,
-                      ),
-                      const SizedBox(width: 12),
-                      _buildStatCard(
-                        icon: Icons.attach_money,
-                        label: 'Total Spent',
-                        value: '₹32,000',
-                        isTablet: isTablet,
-                      ),
-                    ],
+                  StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('orders')
+                        .where('buyerId', isEqualTo: currentUser.uid)
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      int totalOrders = 0;
+                      double totalSpent = 0;
+
+                      if (snapshot.hasData) {
+                        totalOrders = snapshot.data!.docs.length;
+                        for (var doc in snapshot.data!.docs) {
+                          final data = doc.data() as Map<String, dynamic>;
+                          final total = (data['totalAmount'] ?? 0).toDouble();
+                          totalSpent += total;
+                        }
+                      }
+
+                      return Row(
+                        children: [
+                          _buildStatCard(
+                            icon: Icons.receipt_long,
+                            label: 'Total Orders',
+                            value: '$totalOrders',
+                            isTablet: isTablet,
+                          ),
+                          const SizedBox(width: 12),
+                          _buildStatCard(
+                            icon: Icons.attach_money,
+                            label: 'Total Spent',
+                            value: '₹${totalSpent.toStringAsFixed(0)}',
+                            isTablet: isTablet,
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),
@@ -210,7 +228,9 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
                       children: [
                         Expanded(
                           child: ElevatedButton.icon(
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.pushNamed(context, Routes.routeMarketPlace);
+                            },
                             icon: const Icon(Icons.storefront, size: 20),
                             label: const Text('Browse Produce'),
                             style: ElevatedButton.styleFrom(
@@ -284,12 +304,62 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
                   const SizedBox(height: 12),
 
                   // Orders List
-                  if (_myOrders.isEmpty)
-                    _buildEmptyState()
-                  else
-                    ..._myOrders.map((order) {
-                      return _buildOrderCard(order: order);
-                    }).toList(),
+                  StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('orders')
+                        .where('buyerId', isEqualTo: currentUser.uid)
+                        .orderBy('createdAt', descending: true)
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(40),
+                            child: CircularProgressIndicator(
+                              color: Color(0xFF2196F3),
+                            ),
+                          ),
+                        );
+                      }
+
+                      if (snapshot.hasError) {
+                        return Container(
+                          padding: const EdgeInsets.all(40),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            children: [
+                              Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'Unable to load orders',
+                                style: TextStyle(fontSize: 16, color: Colors.grey),
+                              ),
+                              const SizedBox(height: 8),
+                              TextButton(
+                                onPressed: () => setState(() {}),
+                                child: const Text('Retry'),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                        return _buildEmptyState();
+                      }
+
+                      final orders = snapshot.data!.docs;
+                      return Column(
+                        children: orders.map((doc) {
+                          final order = doc.data() as Map<String, dynamic>;
+                          return _buildOrderCard(order: order);
+                        }).toList(),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -325,7 +395,9 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
                   icon: Icons.store_outlined,
                   label: 'Marketplace',
                   isActive: false,
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.pushNamed(context, Routes.routeMarketPlace);
+                  },
                 ),
                 _buildNavItem(
                   icon: Icons.person,
@@ -436,6 +508,33 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
   }
 
   Widget _buildOrderCard({required Map<String, dynamic> order}) {
+    final productName = order['crop'] ?? order['productName'] ?? 'Unknown Product';
+    final quantity = order['quantity'] ?? 'N/A';
+    final price = order['price'] ?? order['pricePerUnit'] ?? 0;
+    final farmerName = order['farmer'] ?? order['farmerName'] ?? 'Unknown';
+    final status = order['status'] ?? 'pending';
+    final icon = order['icon'] ?? '🌱';
+
+    String dateDisplay = 'N/A';
+    if (order['date'] != null) {
+      dateDisplay = order['date'];
+    } else if (order['createdAt'] != null) {
+      final timestamp = order['createdAt'] as Timestamp;
+      final date = timestamp.toDate();
+      final now = DateTime.now();
+      final difference = now.difference(date);
+
+      if (difference.inDays == 0) {
+        dateDisplay = 'Today';
+      } else if (difference.inDays == 1) {
+        dateDisplay = '1 day ago';
+      } else if (difference.inDays < 7) {
+        dateDisplay = '${difference.inDays} days ago';
+      } else {
+        dateDisplay = '${(difference.inDays / 7).floor()} weeks ago';
+      }
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -453,7 +552,6 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header with icon and status
           Row(
             children: [
               Container(
@@ -465,7 +563,7 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
                 ),
                 child: Center(
                   child: Text(
-                    order['icon'],
+                    icon,
                     style: const TextStyle(fontSize: 28),
                   ),
                 ),
@@ -476,7 +574,7 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      order['crop'],
+                      productName,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -485,7 +583,7 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      order['quantity'],
+                      '$quantity',
                       style: const TextStyle(
                         fontSize: 12,
                         color: Color(0xFF666666),
@@ -495,18 +593,17 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
                 ),
               ),
               Container(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: _getStatusBgColor(order['status']),
+                  color: _getStatusBgColor(status),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  order['status'],
+                  status,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: _getStatusTextColor(order['status']),
+                    color: _getStatusTextColor(status),
                   ),
                 ),
               ),
@@ -515,9 +612,8 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
 
           const Divider(height: 24),
 
-          // Price
           Text(
-            order['price'],
+            order['price'] != null ? order['price'] : '₹$price',
             style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -527,11 +623,10 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
 
           const SizedBox(height: 12),
 
-          // Farmer and date info
           Row(
             children: [
               Text(
-                'From: ${order['farmer']}',
+                'From: $farmerName',
                 style: const TextStyle(
                   fontSize: 13,
                   color: Color(0xFF666666),
@@ -539,7 +634,7 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
               ),
               const Spacer(),
               Text(
-                order['date'],
+                dateDisplay,
                 style: const TextStyle(
                   fontSize: 13,
                   color: Color(0xFF666666),
@@ -550,7 +645,6 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
 
           const SizedBox(height: 16),
 
-          // Action button
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
@@ -654,8 +748,7 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
             label,
             style: TextStyle(
               fontSize: 12,
-              color:
-              isActive ? const Color(0xFF2196F3) : const Color(0xFF999999),
+              color: isActive ? const Color(0xFF2196F3) : const Color(0xFF999999),
               fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
             ),
           ),

@@ -1,8 +1,11 @@
 // lib/screens/farmer_dashboard_screen.dart
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../routes.dart';
-
+import '../widgets/loading_widget.dart';
+import '../widgets/error_widget.dart';
+import '../widgets/empty_state_widget.dart';
 class FarmerDashboardScreen extends StatefulWidget {
   const FarmerDashboardScreen({Key? key}) : super(key: key);
 
@@ -31,8 +34,10 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
         return '🥬';
       case 'wheat':
         return '🌾';
+      case 'rice':
+        return '🌾';
       default:
-        return '🌱'; // Default for unknown crops
+        return '🌱';
     }
   }
 
@@ -41,13 +46,10 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
     setState(() => _selectedIndex = index);
 
     if (index == 0) {
-      // Navigate to Home
       Navigator.pushReplacementNamed(context, Routes.routeHome);
     } else if (index == 1) {
-      // Navigate to Marketplace
       Navigator.pushReplacementNamed(context, Routes.routeMarketPlace);
     }
-    // index 2 is Dashboard (current screen)
   }
 
   Future<void> _deleteListing(String docId) async {
@@ -91,10 +93,50 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
     );
   }
 
+  void _showDeleteConfirmation(String docId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Delete Listing?',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+        ),
+        content: const Text(
+          'Are you sure you want to delete this listing? This action cannot be undone.',
+          style: TextStyle(fontSize: 14, color: Color(0xFF666666)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Color(0xFF666666)),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _deleteListing(docId);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth >= 600;
+    final currentUser = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
       backgroundColor: const Color(0xFF11823F),
@@ -134,14 +176,17 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                   const SizedBox(height: 20),
                   // Stats Cards Row
                   StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance
+                    stream: currentUser != null
+                        ? FirebaseFirestore.instance
                         .collection('products')
-                        .snapshots(),
+                        .where('ownerId', isEqualTo: currentUser.uid)
+                        .snapshots()
+                        : const Stream.empty(),
                     builder: (context, snapshot) {
                       int listingCount = 0;
                       double totalValue = 0;
 
-                      if (snapshot.hasData) {
+                      if (snapshot.hasData && snapshot.data != null) {
                         listingCount = snapshot.data!.docs.length;
                         for (var doc in snapshot.data!.docs) {
                           final data = doc.data() as Map<String, dynamic>;
@@ -186,9 +231,24 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                     topRight: Radius.circular(30),
                   ),
                 ),
-                child: StreamBuilder<QuerySnapshot>(
+                child: currentUser == null
+                    ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.person_off, size: 64, color: Colors.grey[400]),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Please log in to view your dashboard',
+                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                )
+                    : StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
                       .collection('products')
+                      .where('ownerId', isEqualTo: currentUser.uid)
                       .orderBy('createdAt', descending: true)
                       .snapshots(),
                   builder: (context, snapshot) {
@@ -196,6 +256,27 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                       return const Center(
                         child: CircularProgressIndicator(
                           color: Color(0xFF11823F),
+                        ),
+                      );
+                    }
+
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Unable to load listings',
+                              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                            ),
+                            const SizedBox(height: 8),
+                            TextButton(
+                              onPressed: () => setState(() {}),
+                              child: const Text('Retry'),
+                            ),
+                          ],
                         ),
                       );
                     }
@@ -556,45 +637,6 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen> {
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showDeleteConfirmation(String docId) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Delete Listing?',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-        ),
-        content: const Text(
-          'Are you sure you want to delete this listing? This action cannot be undone.',
-          style: TextStyle(fontSize: 14, color: Color(0xFF666666)),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: Color(0xFF666666)),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _deleteListing(docId);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            child: const Text('Delete'),
           ),
         ],
       ),
