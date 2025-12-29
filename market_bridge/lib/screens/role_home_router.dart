@@ -1,8 +1,12 @@
 // lib/screens/role_home_router.dart
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
+import '../routes.dart';
+import '../widgets/loading_widget.dart';
+import '../widgets/error_widget.dart';
+import '../widgets/empty_state_widget.dart';
+import '../utils/theme_helper.dart';
 import 'buyer_home_screen.dart';
 import 'responsive_home.dart';
 
@@ -52,23 +56,32 @@ class _RoleHomeRouterState extends State<RoleHomeRouter>
   Future<String?> _getUserRole() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return null;
+      if (user == null) {
+        debugPrint('❌ No authenticated user found');
+        return null;
+      }
 
+      debugPrint('✅ Fetching role for user: ${user.uid}');
       final doc = await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
           .get();
 
-      return doc.data()?['role'] as String?;
-    } catch (e) {
-      debugPrint('Role fetch error: $e');
+      if (!doc.exists) {
+        debugPrint('⚠️ User document does not exist');
+        return null;
+      }
+
+      final role = doc.data()?['role'] as String?;
+      debugPrint('✅ User role: $role');
+      return role;
+    } catch (e, stackTrace) {
+      debugPrint('❌ Error fetching user role: $e');
+      debugPrint('Stack trace: $stackTrace');
       return null;
     }
   }
 
-  /// =======================
-  /// LOADING SCREEN (Responsive)
-  /// =======================
   Widget _buildLoadingScreen() {
     return Scaffold(
       backgroundColor: Colors.white,
@@ -78,8 +91,9 @@ class _RoleHomeRouterState extends State<RoleHomeRouter>
           final screenHeight = MediaQuery.of(context).size.height;
           final isTablet = screenWidth >= 600;
 
-          final iconSize =
-              isTablet ? constraints.maxWidth * 0.12 : constraints.maxWidth * 0.2;
+          final iconSize = isTablet
+              ? constraints.maxWidth * 0.12
+              : constraints.maxWidth * 0.2;
           final iconInnerSize = iconSize * 0.5;
 
           return Center(
@@ -100,8 +114,7 @@ class _RoleHomeRouterState extends State<RoleHomeRouter>
                         height: iconSize,
                         decoration: BoxDecoration(
                           color: const Color(0xFF11823F).withOpacity(0.1),
-                          borderRadius:
-                              BorderRadius.circular(isTablet ? 20 : 16),
+                          borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
                         ),
                         child: Icon(
                           Icons.agriculture,
@@ -118,7 +131,8 @@ class _RoleHomeRouterState extends State<RoleHomeRouter>
                       'Loading your dashboard...',
                       style: TextStyle(
                         fontSize: isTablet ? 20 : 16,
-                        color: Colors.grey,
+                        color: Colors.grey.shade700,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
@@ -128,11 +142,104 @@ class _RoleHomeRouterState extends State<RoleHomeRouter>
                         ? constraints.maxWidth * 0.4
                         : constraints.maxWidth * 0.6,
                     child: LinearProgressIndicator(
-                      value: _loadingController.value,
                       backgroundColor: Colors.grey[200],
-                      valueColor:
-                          const AlwaysStoppedAnimation(Color(0xFF11823F)),
+                      valueColor: const AlwaysStoppedAnimation(Color(0xFF11823F)),
+                      minHeight: 4,
                     ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildErrorScreen(String message) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final screenWidth = MediaQuery.of(context).size.width;
+          final isTablet = screenWidth >= 600;
+
+          return Center(
+            child: Padding(
+              padding: EdgeInsets.all(isTablet ? 48 : 24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline_rounded,
+                    size: isTablet ? 100 : 80,
+                    color: Colors.red.shade400,
+                  ),
+                  SizedBox(height: isTablet ? 32 : 24),
+                  Text(
+                    'Something went wrong',
+                    style: TextStyle(
+                      fontSize: isTablet ? 26 : 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: isTablet ? 16 : 12),
+                  Text(
+                    message,
+                    style: TextStyle(
+                      fontSize: isTablet ? 16 : 14,
+                      color: Colors.grey.shade600,
+                      height: 1.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: isTablet ? 40 : 32),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            Navigator.pushReplacementNamed(context, Routes.routePhone);
+                          },
+                          icon: const Icon(Icons.logout),
+                          label: const Text('Sign Out'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.red,
+                            side: BorderSide(color: Colors.red.shade300),
+                            padding: EdgeInsets.symmetric(
+                              vertical: isTablet ? 16 : 14,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            setState(() {});
+                          },
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Retry'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF11823F),
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(
+                              vertical: isTablet ? 16 : 14,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 2,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -148,8 +255,7 @@ class _RoleHomeRouterState extends State<RoleHomeRouter>
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth >= 600;
 
-    final args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     final passedRole = args?['role'] as String?;
 
     if (passedRole != null) {
@@ -166,9 +272,15 @@ class _RoleHomeRouterState extends State<RoleHomeRouter>
           return _buildLoadingScreen();
         }
 
+        if (snapshot.hasError) {
+          return _buildErrorScreen(
+            'Unable to load your profile. Please check your internet connection and try again.',
+          );
+        }
+
         if (!snapshot.hasData || snapshot.data == null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.pushReplacementNamed(context, '/phone');
+            Navigator.pushReplacementNamed(context, Routes.routePhone);
           });
           return _buildLoadingScreen();
         }
@@ -182,8 +294,10 @@ class _RoleHomeRouterState extends State<RoleHomeRouter>
   }
 
   Widget _buildHomeScreen(String role) {
-    return role.toLowerCase() == 'buyer'
-        ? const BuyerHomeScreen(key: ValueKey('buyer_home'))
-        : const ResponsiveHomeEnhanced(key: ValueKey('farmer_home'));
+    if (role.toLowerCase() == 'buyer') {
+      return BuyerHomeScreen();
+    } else {
+      return ResponsiveHomeEnhanced();
+    }
   }
 }

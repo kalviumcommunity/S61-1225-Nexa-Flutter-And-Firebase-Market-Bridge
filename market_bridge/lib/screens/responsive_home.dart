@@ -1,3 +1,4 @@
+// lib/screens/responsive_home.dart
 import 'package:flutter/material.dart';
 import 'package:market_bridge/screens/farmer_dashboard_screen.dart';
 import '../routes.dart';

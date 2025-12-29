@@ -1,12 +1,13 @@
 // lib/screens/post_produce_screen.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+import '../widgets/loading_widget.dart';
+import '../widgets/error_widget.dart';
+import '../widgets/empty_state_widget.dart';
 class PostProduceScreen extends StatefulWidget {
   final Map<String, dynamic>? editListing;
   final String? listingId;
@@ -35,7 +36,7 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
   bool _isLoading = false;
   bool _isUploading = false;
   double _uploadProgress = 0.0;
-  String? _existingImageUrl; // For editing existing listings
+  String? _existingImageUrl;
 
   final List<String> _crops = [
     'Tomato',
@@ -84,7 +85,7 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
       if (image != null) {
         setState(() {
           _selectedImage = File(image.path);
-          _existingImageUrl = null; // Clear existing URL when new image is picked
+          _existingImageUrl = null;
         });
       }
     } catch (e) {
@@ -93,6 +94,7 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
   }
 
   void _showSnackbar(String message, {bool isError = false}) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -103,7 +105,6 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
     );
   }
 
-  /// Upload image to Firebase Storage
   Future<String?> _uploadImageToStorage(File imageFile) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -118,7 +119,6 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
       });
 
       final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
-
       final storageRef = FirebaseStorage.instance
           .ref()
           .child('users')
@@ -128,32 +128,42 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
 
       final uploadTask = storageRef.putFile(imageFile);
 
-      uploadTask.snapshotEvents.listen((snapshot) {
-        setState(() {
-          _uploadProgress =
-              snapshot.bytesTransferred / snapshot.totalBytes;
-        });
-      });
+      uploadTask.snapshotEvents.listen(
+            (snapshot) {
+          if (mounted) {
+            setState(() {
+              _uploadProgress = snapshot.bytesTransferred / snapshot.totalBytes;
+            });
+          }
+        },
+        onError: (e) {
+          debugPrint('❌ Upload error: $e');
+          if (mounted) {
+            setState(() => _isUploading = false);
+            _showSnackbar('Upload failed: $e', isError: true);
+          }
+        },
+      );
 
       await uploadTask;
-
       final downloadUrl = await storageRef.getDownloadURL();
 
-      setState(() {
-        _isUploading = false;
-      });
-
+      if (mounted) {
+        setState(() => _isUploading = false);
+      }
       debugPrint('✅ Image uploaded: $downloadUrl');
       return downloadUrl;
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('❌ Error uploading image: $e');
-      setState(() => _isUploading = false);
-      _showSnackbar('Image upload failed', isError: true);
+      debugPrint('Stack trace: $stackTrace');
+      if (mounted) {
+        setState(() => _isUploading = false);
+        _showSnackbar('Image upload failed. Please try again.', isError: true);
+      }
       return null;
     }
   }
 
-  /// Delete image from Firebase Storage
   Future<void> _deleteImageFromStorage(String imageUrl) async {
     try {
       final ref = FirebaseStorage.instance.refFromURL(imageUrl);
@@ -161,11 +171,9 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
       debugPrint('✅ Old image deleted successfully');
     } catch (e) {
       debugPrint('⚠️ Error deleting old image: $e');
-      // Don't show error to user as this is a background operation
     }
   }
 
-  // Add new listing to Firestore
   Future<void> _addListing() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedCrop == null) {
@@ -176,7 +184,6 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Validate input
       final quantity = _quantityController.text.trim();
       final price = _priceController.text.trim();
       final location = _locationController.text.trim();
@@ -187,18 +194,21 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
         return;
       }
 
-      // Upload image if selected
       String? imageUrl;
       if (_selectedImage != null) {
         imageUrl = await _uploadImageToStorage(_selectedImage!);
         if (imageUrl == null) {
           setState(() => _isLoading = false);
-          return; // Upload failed, stop here
+          return;
         }
       }
 
-      // Create document data with 'name' field for marketplace
       final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        _showSnackbar('User not logged in', isError: true);
+        setState(() => _isLoading = false);
+        return;
+      }
 
       final data = {
         'name': _selectedCrop,
@@ -212,20 +222,17 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
         'views': 0,
         'inquiries': 0,
         'imageUrl': imageUrl,
-        'ownerId': user?.uid,
-        'createdAt': Timestamp.now(),
-        'updatedAt': Timestamp.now(),
+        'ownerId': user.uid,
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
       };
 
-      // Add to Firestore
       await FirebaseFirestore.instance.collection('products').add(data);
 
       if (!mounted) return;
 
-      // Show success message
       _showSnackbar('Listing published successfully!');
 
-      // Navigate back
       await Future.delayed(const Duration(milliseconds: 500));
       if (!mounted) return;
       Navigator.pop(context);
@@ -237,7 +244,6 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
     }
   }
 
-  // Update existing listing in Firestore
   Future<void> _updateListing() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedCrop == null) {
@@ -252,7 +258,6 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Validate input
       final quantity = _quantityController.text.trim();
       final price = _priceController.text.trim();
       final location = _locationController.text.trim();
@@ -265,15 +270,13 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
 
       String? imageUrl = _existingImageUrl;
 
-      // Upload new image if selected
       if (_selectedImage != null) {
         final newImageUrl = await _uploadImageToStorage(_selectedImage!);
         if (newImageUrl == null) {
           setState(() => _isLoading = false);
-          return; // Upload failed
+          return;
         }
 
-        // Delete old image if exists
         if (_existingImageUrl != null && _existingImageUrl!.isNotEmpty) {
           await _deleteImageFromStorage(_existingImageUrl!);
         }
@@ -281,12 +284,11 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
         imageUrl = newImageUrl;
       }
 
-      // Update document in Firestore with 'name' field
       await FirebaseFirestore.instance
           .collection('products')
           .doc(widget.listingId)
           .update({
-        'name': _selectedCrop, // Added for marketplace compatibility
+        'name': _selectedCrop,
         'crop': _selectedCrop,
         'quantity': double.parse(quantity),
         'unit': _selectedUnit,
@@ -294,15 +296,13 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
         'isNegotiable': _isPriceNegotiable,
         'location': location,
         'imageUrl': imageUrl,
-        'updatedAt': Timestamp.now(),
+        'updatedAt': FieldValue.serverTimestamp(),
       });
 
       if (!mounted) return;
 
-      // Show success message
       _showSnackbar('Listing updated successfully!');
 
-      // Navigate back
       await Future.delayed(const Duration(milliseconds: 500));
       if (!mounted) return;
       Navigator.pop(context);
@@ -352,380 +352,374 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              padding: EdgeInsets.all(isTablet ? 24 : 16),
-              child: Column(
+      body: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(isTablet ? 24 : 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Crop Name
+              _buildSectionLabel('Crop Name'),
+              const SizedBox(height: 8),
+              _buildDropdownField(
+                hint: 'Select Crop',
+                value: _selectedCrop,
+                items: _crops,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedCrop = value;
+                  });
+                },
+              ),
+              const SizedBox(height: 20),
+
+              // Quantity and Unit Row
+              Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Crop Name
-                  _buildSectionLabel('Crop Name'),
-                  const SizedBox(height: 8),
-                  _buildDropdownField(
-                    hint: 'Select Crop',
-                    value: _selectedCrop,
-                    items: _crops,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedCrop = value;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Quantity and Unit Row
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildSectionLabel('Quantity'),
-                            const SizedBox(height: 8),
-                            _buildTextField(
-                              controller: _quantityController,
-                              hint: 'Enter Quantity',
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Required';
-                                }
-                                if (double.tryParse(value) == null) {
-                                  return 'Invalid number';
-                                }
-                                return null;
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 1,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildSectionLabel('Unit'),
-                            const SizedBox(height: 8),
-                            _buildDropdownField(
-                              hint: 'Unit',
-                              value: _selectedUnit,
-                              items: _units,
-                              onChanged: (value) {
-                                setState(() {
-                                  _selectedUnit = value!;
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Price
-                  _buildSectionLabel('Price (per unit)'),
-                  const SizedBox(height: 8),
-                  _buildTextField(
-                    controller: _priceController,
-                    hint: 'Enter amount',
-                    prefix: const Padding(
-                      padding: EdgeInsets.only(left: 16, right: 8),
-                      child: Text(
-                        '₹',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.black87,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter price';
-                      }
-                      if (double.tryParse(value) == null) {
-                        return 'Invalid price';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Price Negotiable Checkbox
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        _isPriceNegotiable = !_isPriceNegotiable;
-                      });
-                    },
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            color: _isPriceNegotiable
-                                ? const Color(0xFF11823F)
-                                : Colors.white,
-                            border: Border.all(
-                              color: _isPriceNegotiable
-                                  ? const Color(0xFF11823F)
-                                  : Colors.grey[400]!,
-                              width: 2,
-                            ),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: _isPriceNegotiable
-                              ? const Icon(Icons.check,
-                              size: 16, color: Colors.white)
-                              : null,
-                        ),
-                        const SizedBox(width: 10),
-                        const Text(
-                          'Price Negotiable',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF333333),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Photo Section with Upload Progress
-                  _buildSectionLabel('Photo (Optional)'),
-                  const SizedBox(height: 12),
-
-                  // Show existing image if editing and no new image selected
-                  if (_existingImageUrl != null && _selectedImage == null)
-                    Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.network(
-                            _existingImageUrl!,
-                            width: double.infinity,
-                            height: 200,
-                            fit: BoxFit.cover,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Container(
-                                width: double.infinity,
-                                height: 200,
-                                color: Colors.grey[200],
-                                child: Center(
-                                  child: CircularProgressIndicator(
-                                    value: loadingProgress.expectedTotalBytes != null
-                                        ? loadingProgress.cumulativeBytesLoaded /
-                                        loadingProgress.expectedTotalBytes!
-                                        : null,
-                                    color: const Color(0xFF11823F),
-                                  ),
-                                ),
-                              );
-                            },
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                width: double.infinity,
-                                height: 200,
-                                color: Colors.grey[200],
-                                child: const Icon(
-                                  Icons.broken_image,
-                                  size: 60,
-                                  color: Colors.grey,
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: InkWell(
-                            onTap: () {
-                              setState(() {
-                                _existingImageUrl = null;
-                              });
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: Colors.black54,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  else if (_selectedImage != null)
-                    Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.file(
-                            _selectedImage!,
-                            width: double.infinity,
-                            height: 200,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: InkWell(
-                            onTap: () {
-                              setState(() {
-                                _selectedImage = null;
-                              });
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: Colors.black54,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  else
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildPhotoButton(
-                            icon: Icons.camera_alt,
-                            label: 'Camera',
-                            onTap: () => _pickImage(ImageSource.camera),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildPhotoButton(
-                            icon: Icons.photo_library,
-                            label: 'Gallery',
-                            onTap: () => _pickImage(ImageSource.gallery),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                  // Upload Progress Indicator
-                  if (_isUploading) ...[
-                    const SizedBox(height: 16),
-                    Column(
+                  Expanded(
+                    flex: 2,
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Uploading image...',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Color(0xFF666666),
-                              ),
-                            ),
-                            Text(
-                              '${(_uploadProgress * 100).toInt()}%',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF11823F),
-                              ),
-                            ),
-                          ],
-                        ),
+                        _buildSectionLabel('Quantity'),
                         const SizedBox(height: 8),
-                        LinearProgressIndicator(
-                          value: _uploadProgress,
-                          backgroundColor: Colors.grey[300],
-                          valueColor: const AlwaysStoppedAnimation<Color>(
-                            Color(0xFF11823F),
+                        _buildTextField(
+                          controller: _quantityController,
+                          hint: 'Enter Quantity',
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Required';
+                            }
+                            if (double.tryParse(value) == null) {
+                              return 'Invalid number';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 1,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionLabel('Unit'),
+                        const SizedBox(height: 8),
+                        _buildDropdownField(
+                          hint: 'Unit',
+                          value: _selectedUnit,
+                          items: _units,
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedUnit = value!;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // Price
+              _buildSectionLabel('Price (per unit)'),
+              const SizedBox(height: 8),
+              _buildTextField(
+                controller: _priceController,
+                hint: 'Enter amount',
+                prefix: const Padding(
+                  padding: EdgeInsets.only(left: 16, right: 8),
+                  child: Text(
+                    '₹',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.black87,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter price';
+                  }
+                  if (double.tryParse(value) == null) {
+                    return 'Invalid price';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+
+              // Price Negotiable Checkbox
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    _isPriceNegotiable = !_isPriceNegotiable;
+                  });
+                },
+                child: Row(
+                  children: [
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: _isPriceNegotiable
+                            ? const Color(0xFF11823F)
+                            : Colors.white,
+                        border: Border.all(
+                          color: _isPriceNegotiable
+                              ? const Color(0xFF11823F)
+                              : Colors.grey[400]!,
+                          width: 2,
+                        ),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: _isPriceNegotiable
+                          ? const Icon(Icons.check, size: 16, color: Colors.white)
+                          : null,
+                    ),
+                    const SizedBox(width: 10),
+                    const Text(
+                      'Price Negotiable',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF333333),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Photo Section
+              _buildSectionLabel('Photo (Optional)'),
+              const SizedBox(height: 12),
+
+              if (_existingImageUrl != null && _selectedImage == null)
+                Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        _existingImageUrl!,
+                        width: double.infinity,
+                        height: 200,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            width: double.infinity,
+                            height: 200,
+                            color: Colors.grey[200],
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                    : null,
+                                color: const Color(0xFF11823F),
+                              ),
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            width: double.infinity,
+                            height: 200,
+                            color: Colors.grey[200],
+                            child: const Icon(
+                              Icons.broken_image,
+                              size: 60,
+                              color: Colors.grey,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: InkWell(
+                        onTap: () {
+                          setState(() {
+                            _existingImageUrl = null;
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.black54,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Icon(
+                            Icons.close,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              else if (_selectedImage != null)
+                Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(
+                        _selectedImage!,
+                        width: double.infinity,
+                        height: 200,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: InkWell(
+                        onTap: () {
+                          setState(() {
+                            _selectedImage = null;
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.black54,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Icon(
+                            Icons.close,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              else
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildPhotoButton(
+                        icon: Icons.camera_alt,
+                        label: 'Camera',
+                        onTap: () => _pickImage(ImageSource.camera),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildPhotoButton(
+                        icon: Icons.photo_library,
+                        label: 'Gallery',
+                        onTap: () => _pickImage(ImageSource.gallery),
+                      ),
+                    ),
+                  ],
+                ),
+
+              // Upload Progress
+              if (_isUploading) ...[
+                const SizedBox(height: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Uploading image...',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF666666),
+                          ),
+                        ),
+                        Text(
+                          '${(_uploadProgress * 100).toInt()}%',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF11823F),
                           ),
                         ),
                       ],
                     ),
-                  ],
-
-                  const SizedBox(height: 24),
-
-                  // Location
-                  _buildSectionLabel('Location'),
-                  const SizedBox(height: 8),
-                  _buildTextField(
-                    controller: _locationController,
-                    hint: 'City/District',
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter location';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 32),
-
-                  // Publish Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 54,
-                    child: ElevatedButton(
-                      onPressed: (_isLoading || _isUploading) ? null : _publishListing,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF11823F),
-                        disabledBackgroundColor: Colors.grey[400],
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 2,
-                      ),
-                      child: (_isLoading || _isUploading)
-                          ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2.5,
-                        ),
-                      )
-                          : Text(
-                        isEditing ? 'Update Listing' : 'Publish Listing',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          letterSpacing: 0.5,
-                        ),
+                    const SizedBox(height: 8),
+                    LinearProgressIndicator(
+                      value: _uploadProgress,
+                      backgroundColor: Colors.grey[300],
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        Color(0xFF11823F),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                ],
+                  ],
+                ),
+              ],
+
+              const SizedBox(height: 24),
+
+              // Location
+              _buildSectionLabel('Location'),
+              const SizedBox(height: 8),
+              _buildTextField(
+                controller: _locationController,
+                hint: 'City/District',
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter location';
+                  }
+                  return null;
+                },
               ),
-            ),
+              const SizedBox(height: 32),
+
+              // Publish Button
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: ElevatedButton(
+                  onPressed: (_isLoading || _isUploading) ? null : _publishListing,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF11823F),
+                    disabledBackgroundColor: Colors.grey[400],
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 2,
+                  ),
+                  child: (_isLoading || _isUploading)
+                      ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2.5,
+                    ),
+                  )
+                      : Text(
+                    isEditing ? 'Update Listing' : 'Publish Listing',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

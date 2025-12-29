@@ -1,3 +1,4 @@
+// lib/screens/auth_screen.dart
 import 'package:flutter/material.dart';
 import 'phone_login_screen.dart';
 
