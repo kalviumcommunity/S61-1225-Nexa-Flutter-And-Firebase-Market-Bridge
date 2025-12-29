@@ -10,23 +10,33 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+
+  # State Management - REQUIRED FOR THEMING
+  provider: ^6.1.1
+
+  # Local Storage - REQUIRED FOR THEME PERSISTENCE
+  shared_preferences: ^2.2.2
+
+  # Image Picker
   image_picker: ^1.0.7
 
+  # Icons
   cupertino_icons: ^1.0.8
-  firebase_analytics: ^11.3.3
-  flutter_local_notifications: ^17.2.2
-  google_maps_flutter: ^2.6.0
 
-
-  # Firebase dependencies (add these)
+  # Firebase Core - Required for all Firebase services
   firebase_core: ^3.15.2
   firebase_auth: ^5.3.3
+  firebase_analytics: ^11.3.3
   cloud_firestore: ^5.5.0
   firebase_storage: ^12.3.4
-
+  firebase_messaging: ^15.2.10
   cloud_functions: ^5.0.0
 
-  firebase_messaging: ^15.2.10
+  # Notifications
+  flutter_local_notifications: ^17.2.2
+
+  # Maps & Location
+  google_maps_flutter: ^2.6.0
   geolocator: ^13.0.2
 
 dev_dependencies:
