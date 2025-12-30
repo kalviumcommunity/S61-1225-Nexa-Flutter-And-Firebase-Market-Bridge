@@ -1,4 +1,4 @@
-// lib/screens/complete_profile_screen.dart (ENHANCED WITH VALIDATIONS)
+// lib/screens/complete_profile_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -20,7 +20,8 @@ class CompleteProfileScreen extends StatefulWidget {
   State<CompleteProfileScreen> createState() => _CompleteProfileScreenState();
 }
 
-class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
+class _CompleteProfileScreenState extends State<CompleteProfileScreen>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
   final emailController = TextEditingController();
@@ -30,8 +31,12 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   String preferredLanguage = 'English';
   String farmSizeUnit = 'Acres';
   bool loading = false;
+  bool _agreedToTerms = false;
 
-  // Cloud Functions Service
+  late AnimationController _animController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
   final _functionsService = CloudFunctionsService();
 
   Color get themeColor => widget.role.toLowerCase() == 'buyer'
@@ -47,19 +52,45 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       : Icons.agriculture_rounded;
 
   @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animController,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
+      ),
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.15),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _animController,
+        curve: const Interval(0.2, 1.0, curve: Curves.easeOutCubic),
+      ),
+    );
+
+    _animController.forward();
+  }
+
+  @override
   void dispose() {
     nameController.dispose();
     emailController.dispose();
     locationController.dispose();
     farmSizeController.dispose();
+    _animController.dispose();
     super.dispose();
   }
 
-  // ============================================
-  // VALIDATION METHODS (Following Documentation)
-  // ============================================
+  // ============= VALIDATION METHODS =============
 
-  /// Validates full name (required, min 2 characters, only letters and spaces)
   String? _validateName(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Name is required';
@@ -67,7 +98,6 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     if (value.trim().length < 2) {
       return 'Name must be at least 2 characters';
     }
-    // Check if name contains only letters and spaces
     final nameRegex = RegExp(r'^[a-zA-Z\s]+$');
     if (!nameRegex.hasMatch(value.trim())) {
       return 'Name can only contain letters';
@@ -75,28 +105,17 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     return null;
   }
 
-  /// Validates email address (optional but must be valid if provided)
   String? _validateEmail(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return null; // Email is optional
+      return null; // Optional field
     }
-
-    // Email regex validation (as per documentation)
-    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(value.trim())) {
       return 'Enter a valid email address';
     }
-
-    // Additional check for common email format
-    final detailedEmailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!detailedEmailRegex.hasMatch(value.trim())) {
-      return 'Enter a valid email format (e.g., user@example.com)';
-    }
-
     return null;
   }
 
-  /// Validates location (required, min 3 characters)
   String? _validateLocation(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Location is required';
@@ -104,50 +123,36 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     if (value.trim().length < 3) {
       return 'Location must be at least 3 characters';
     }
-    // Check for valid location format (letters, spaces, commas)
-    final locationRegex = RegExp(r'^[a-zA-Z\s,]+$');
-    if (!locationRegex.hasMatch(value.trim())) {
-      return 'Location can only contain letters, spaces, and commas';
-    }
     return null;
   }
 
-  /// Validates farm size (optional, must be positive number if provided)
   String? _validateFarmSize(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return null; // Farm size is optional
+      return null; // Optional for farmers
     }
-
     final numValue = double.tryParse(value.trim());
     if (numValue == null) {
       return 'Enter a valid number';
     }
-
     if (numValue <= 0) {
-      return 'Farm size must be greater than 0';
+      return 'Must be greater than 0';
     }
-
     if (numValue > 100000) {
-      return 'Farm size seems too large';
+      return 'Value seems too large';
     }
-
     return null;
   }
 
-  /// Main form validation and submission
+  // ============= SAVE PROFILE =============
+
   Future<void> _saveProfile() async {
-    // Validate all fields
     if (!_formKey.currentState!.validate()) {
-      // Show error message if validation fails
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Please fix all errors before submitting'),
-          backgroundColor: Colors.red.shade600,
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.all(16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-      );
+      _showSnackBar('Please fix all errors', isError: true);
+      return;
+    }
+
+    if (!_agreedToTerms) {
+      _showSnackBar('Please agree to Terms & Conditions', isError: true);
       return;
     }
 
@@ -165,6 +170,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       'preferredLanguage': preferredLanguage,
       'role': widget.role,
       'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+      'isActive': true,
+      'profileCompleted': true,
     };
 
     if (widget.role.toLowerCase() == 'farmer' && farmSizeController.text.isNotEmpty) {
@@ -172,45 +180,42 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     }
 
     try {
-      debugPrint('💾 Saving user profile...');
-
-      // Save to Firestore
       await FirebaseFirestore.instance
           .collection('users')
           .doc(uid)
           .set(data, SetOptions(merge: true));
 
-      debugPrint('✅ Profile saved to Firestore');
-
-      // Call Cloud Function for welcome notification
-      debugPrint('📞 Triggering welcome notification...');
-      final result = await _functionsService.sendWelcomeNotification(
-        userName: nameController.text.trim(),
-        userRole: widget.role,
-      );
-
-      if (result != null) {
-        debugPrint('✅ Welcome notification sent');
-        debugPrint('Message: ${result['message']}');
+      // Send welcome notification
+      try {
+        await _functionsService.sendWelcomeNotification(
+          userName: nameController.text.trim(),
+          userRole: widget.role,
+        );
+      } catch (e) {
+        debugPrint('Welcome notification failed: $e');
       }
 
       if (!mounted) return;
       _showSuccessDialog();
     } catch (e) {
-      debugPrint('❌ Error saving profile: $e');
+      debugPrint('Error saving profile: $e');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to save profile: $e'),
-          backgroundColor: Colors.red.shade600,
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.all(16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-      );
+      _showSnackBar('Failed to save profile. Please try again.', isError: true);
     } finally {
       if (mounted) setState(() => loading = false);
     }
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red.shade600 : themeColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
   }
 
   void _showSuccessDialog() {
@@ -234,14 +239,14 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
               ),
               const SizedBox(height: 20),
               const Text(
-                'Registration Successful!',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                '🎉 Welcome Aboard!',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
               Text(
-                'Your ${widget.role} profile has been created.',
+                'Your ${widget.role.toLowerCase()} profile is ready. Let\'s get started!',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                style: const TextStyle(fontSize: 14, color: Color(0xFF666666)),
               ),
               const SizedBox(height: 24),
               SizedBox(
@@ -266,7 +271,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                     );
                   },
                   child: const Text(
-                    'Continue',
+                    'Continue to App',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -283,151 +288,238 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     return Scaffold(
       backgroundColor: themeColor,
       body: SafeArea(
-        child: Column(
-          children: [
-            // Header Section
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      const Spacer(),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(roleIcon, size: 48, color: Colors.white),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Welcome, ${widget.role}!',
-                    style: const TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Complete your profile to get started',
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.white70,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Form Section
-            Expanded(
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(30),
-                    topRight: Radius.circular(30),
-                  ),
-                ),
-                child: Form(
-                  key: _formKey,
-                  child: ListView(
-                    padding: const EdgeInsets.all(24),
-                    children: [
-                      // Name Field with Validation
-                      _buildTextField(
-                        controller: nameController,
-                        label: 'Full Name',
-                        hint: 'Enter your full name',
-                        icon: Icons.person_outline_rounded,
-                        isRequired: true,
-                        validator: _validateName,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Email Field with Validation
-                      _buildTextField(
-                        controller: emailController,
-                        label: 'Email Address',
-                        hint: 'example@email.com',
-                        icon: Icons.email_outlined,
-                        keyboardType: TextInputType.emailAddress,
-                        validator: _validateEmail,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Location Field with Validation
-                      _buildTextField(
-                        controller: locationController,
-                        label: 'Location',
-                        hint: 'City, District',
-                        icon: Icons.location_on_outlined,
-                        isRequired: true,
-                        validator: _validateLocation,
-                      ),
-                      const SizedBox(height: 16),
-
-                      _buildLanguageDropdown(),
-
-                      // Farm Size Field with Validation (only for farmers)
-                      if (widget.role.toLowerCase() == 'farmer') ...[
-                        const SizedBox(height: 16),
-                        _buildFarmSize(),
-                      ],
-
-                      const SizedBox(height: 32),
-
-                      SizedBox(
-                        width: double.infinity,
-                        height: 54,
-                        child: ElevatedButton(
-                          onPressed: loading ? null : _saveProfile,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: themeColor,
-                            foregroundColor: Colors.white,
-                            disabledBackgroundColor: themeColor.withOpacity(0.6),
-                            elevation: 0,
-                            shadowColor: themeColor.withOpacity(0.3),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: Column(
+            children: [
+              // Header Section
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back, color: Colors.white),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                        const Spacer(),
+                        // Progress indicator
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(20),
                           ),
-                          child: loading
-                              ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2.5,
-                            ),
-                          )
-                              : const Text(
-                            'Complete Registration',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
-                            ),
+                          child: const Text(
+                            'Step 2 of 2',
+                            style: TextStyle(color: Colors.white, fontSize: 12),
                           ),
                         ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        shape: BoxShape.circle,
                       ),
-                      const SizedBox(height: 24),
-                    ],
+                      child: Icon(roleIcon, size: 48, color: Colors.white),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Complete Your Profile',
+                      style: const TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      widget.role.toLowerCase() == 'buyer'
+                          ? 'Help us find the best produce for you'
+                          : 'Let buyers know about your farm',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Form Section
+              Expanded(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
+                  ),
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: Form(
+                      key: _formKey,
+                      child: ListView(
+                        padding: const EdgeInsets.all(24),
+                        children: [
+                          _buildTextField(
+                            controller: nameController,
+                            label: 'Full Name',
+                            hint: 'Enter your full name',
+                            icon: Icons.person_outline_rounded,
+                            isRequired: true,
+                            validator: _validateName,
+                            textCapitalization: TextCapitalization.words,
+                          ),
+                          const SizedBox(height: 16),
+
+                          _buildTextField(
+                            controller: emailController,
+                            label: 'Email Address',
+                            hint: 'example@email.com',
+                            icon: Icons.email_outlined,
+                            keyboardType: TextInputType.emailAddress,
+                            validator: _validateEmail,
+                            helperText: 'Optional - for notifications',
+                          ),
+                          const SizedBox(height: 16),
+
+                          _buildTextField(
+                            controller: locationController,
+                            label: 'Location',
+                            hint: 'City, District',
+                            icon: Icons.location_on_outlined,
+                            isRequired: true,
+                            validator: _validateLocation,
+                            textCapitalization: TextCapitalization.words,
+                          ),
+                          const SizedBox(height: 16),
+
+                          _buildLanguageDropdown(),
+
+                          if (widget.role.toLowerCase() == 'farmer') ...[
+                            const SizedBox(height: 16),
+                            _buildFarmSize(),
+                          ],
+
+                          const SizedBox(height: 24),
+
+                          // Terms & Conditions Checkbox
+                          InkWell(
+                            onTap: () => setState(() => _agreedToTerms = !_agreedToTerms),
+                            borderRadius: BorderRadius.circular(8),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 24,
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      color: _agreedToTerms ? themeColor : Colors.white,
+                                      border: Border.all(
+                                        color: _agreedToTerms ? themeColor : Colors.grey.shade400,
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: _agreedToTerms
+                                        ? const Icon(Icons.check, size: 16, color: Colors.white)
+                                        : null,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: RichText(
+                                      text: TextSpan(
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          color: Color(0xFF666666),
+                                        ),
+                                        children: [
+                                          const TextSpan(text: 'I agree to the '),
+                                          TextSpan(
+                                            text: 'Terms & Conditions',
+                                            style: TextStyle(
+                                              color: themeColor,
+                                              fontWeight: FontWeight.w600,
+                                              decoration: TextDecoration.underline,
+                                            ),
+                                          ),
+                                          const TextSpan(text: ' and '),
+                                          TextSpan(
+                                            text: 'Privacy Policy',
+                                            style: TextStyle(
+                                              color: themeColor,
+                                              fontWeight: FontWeight.w600,
+                                              decoration: TextDecoration.underline,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 32),
+
+                          // Submit Button
+                          SizedBox(
+                            width: double.infinity,
+                            height: 54,
+                            child: ElevatedButton(
+                              onPressed: loading ? null : _saveProfile,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: themeColor,
+                                disabledBackgroundColor: themeColor.withOpacity(0.6),
+                                elevation: 0,
+                                shadowColor: themeColor.withOpacity(0.3),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: loading
+                                  ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                                  : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: const [
+                                  Text(
+                                    'Complete Registration',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -440,7 +532,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     required IconData icon,
     bool isRequired = false,
     TextInputType keyboardType = TextInputType.text,
+    TextCapitalization textCapitalization = TextCapitalization.none,
     String? Function(String?)? validator,
+    String? helperText,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -462,16 +556,20 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
               ),
           ],
         ),
+        if (helperText != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            helperText,
+            style: const TextStyle(fontSize: 12, color: Color(0xFF999999)),
+          ),
+        ],
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
-          textCapitalization: keyboardType == TextInputType.emailAddress
-              ? TextCapitalization.none
-              : TextCapitalization.words,
+          textCapitalization: textCapitalization,
           validator: validator,
           style: const TextStyle(fontSize: 15),
-          // Auto-validate after first submit attempt
           autovalidateMode: AutovalidateMode.onUserInteraction,
           decoration: InputDecoration(
             hintText: hint,
@@ -565,13 +663,22 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Farm Size (Optional)',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF1A1A1A),
-          ),
+        Row(
+          children: const [
+            Text(
+              'Farm Size',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1A1A1A),
+              ),
+            ),
+            SizedBox(width: 4),
+            Text(
+              '(Optional)',
+              style: TextStyle(fontSize: 12, color: Color(0xFF999999)),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
         Row(
