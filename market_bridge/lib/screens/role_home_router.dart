@@ -295,9 +295,9 @@ class _RoleHomeRouterState extends State<RoleHomeRouter>
 
   Widget _buildHomeScreen(String role) {
     if (role.toLowerCase() == 'buyer') {
-      return const BuyerHomeScreen();
+      return BuyerHomeScreen();
     } else {
-      return const ResponsiveHomeEnhanced();
+      return ResponsiveHomeEnhanced();
     }
   }
 }

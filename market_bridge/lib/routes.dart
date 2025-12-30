@@ -1,8 +1,7 @@
-// lib/routes.dart (UPDATED)
+// lib/routes.dart
 import 'package:flutter/material.dart';
 import 'package:market_bridge/screens/buyer_dashboard_screen.dart';
 import 'package:market_bridge/screens/buyer_marketplace_screen.dart';
-import 'package:market_bridge/screens/theme_settings_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/phone_login_screen.dart';
 import 'screens/otp_verify_screen.dart';
@@ -27,7 +26,6 @@ class Routes {
   static const String routeBuyerDashboard = '/buyer-dashboard';
   static const String routeScrollable = '/scrollable';
   static const String routeMap = '/map';
-  static const String routeThemeSettings = '/theme-settings';
 
   /// Animation duration for route transitions
   static const Duration transitionDuration = Duration(milliseconds: 400);
@@ -48,7 +46,6 @@ class Routes {
       case routeListingDetails:
       case routeDashboard:
       case routePostProduce:
-      case routeThemeSettings:
         return Curves.easeInOut;
       default:
         return Curves.easeInOut;
@@ -107,7 +104,7 @@ class Routes {
         );
 
       case routeMarketPlace:
-      // Use BuyerMarketplaceScreen for buyers, MarketplaceScreen for others
+        // Use BuyerMarketplaceScreen for buyers, MarketplaceScreen for others
         final args = settings.arguments as Map<String, dynamic>?;
         if (args != null && args['role'] == 'buyer') {
           return _buildPageRoute(
@@ -129,10 +126,11 @@ class Routes {
           settings,
           curve: curve,
         );
-
       case routeBuyerDashboard:
         return _buildPageRoute(
-          const BuyerDashboardScreen(),
+          // Import is implied
+          // ignore: prefer_const_constructors
+          BuyerDashboardScreen(),
           settings,
           curve: curve,
         );
@@ -155,13 +153,6 @@ class Routes {
           curve: curve,
         );
 
-      case routeThemeSettings:
-        return _buildPageRoute(
-          const ThemeSettingsScreen(),
-          settings,
-          curve: curve,
-        );
-
       default:
         return _errorRoute('Route not found: ${settings.name}');
     }
@@ -169,10 +160,10 @@ class Routes {
 
   /// Build a page route with smooth transitions
   static PageRoute _buildPageRoute(
-      Widget page,
-      RouteSettings settings, {
-        Curve curve = Curves.easeInOut,
-      }) {
+    Widget page,
+    RouteSettings settings, {
+    Curve curve = Curves.easeInOut,
+  }) {
     return PageRouteBuilder(
       settings: settings,
       transitionDuration: transitionDuration,

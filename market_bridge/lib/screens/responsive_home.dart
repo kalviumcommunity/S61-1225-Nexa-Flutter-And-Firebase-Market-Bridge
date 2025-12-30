@@ -3,37 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:market_bridge/screens/farmer_dashboard_screen.dart';
 import '../routes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../widgets/settings_menu.dart';
 
 class ResponsiveHomeEnhanced extends StatelessWidget {
   const ResponsiveHomeEnhanced({Key? key}) : super(key: key);
-  Future<void> _showLogoutDialog(BuildContext context) async {
-    final shouldLogout = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirm Logout'),
-        content: const Text('Are you sure you want to logout?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Logout'),
-          ),
-        ],
-      ),
-    );
-
-    if (shouldLogout == true) {
-      await FirebaseAuth.instance.signOut();
-      Navigator.of(
-        context,
-      ).pushNamedAndRemoveUntil(Routes.routeSplash, (route) => false);
-    }
-  }
 
   List<Map<String, String>> get produce => [
     {
@@ -66,13 +38,6 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF11823F),
-      appBar: AppBar(
-        title: const Text('Farmer Dashboard'),
-        actions: [
-          const ThemeToggleButton(),
-          const SettingsMenu(),
-        ],
-      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -185,7 +150,13 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
                       size: 24,
                     ),
                     tooltip: 'Logout',
-                    onPressed: () => _showLogoutDialog(context),
+                    onPressed: () async {
+                      await FirebaseAuth.instance.signOut();
+                      Navigator.pushReplacementNamed(
+                        context,
+                        Routes.routeSplash,
+                      );
+                    },
                   ),
                 ],
               ),
@@ -440,11 +411,11 @@ class ResponsiveHomeEnhanced extends StatelessWidget {
   }
 
   Widget _buildActionButton(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
+      BuildContext context, {
+        required IconData icon,
+        required String label,
+        required VoidCallback onTap,
+      }) {
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(12),
