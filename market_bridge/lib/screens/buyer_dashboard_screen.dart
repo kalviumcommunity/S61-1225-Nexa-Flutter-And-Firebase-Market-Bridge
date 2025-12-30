@@ -215,63 +215,7 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Quick Actions Card
-                        _buildSectionCard(
-                          title: 'Quick Actions',
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: () {
-                                    Navigator.pushNamed(
-                                      context,
-                                      Routes.routeMarketPlace,
-                                    );
-                                  },
-                                  icon: const Icon(Icons.storefront, size: 20),
-                                  label: const Text('Browse Produce'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF2196F3),
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 12,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: () {},
-                                  icon: const Icon(
-                                    Icons.notifications,
-                                    size: 20,
-                                    color: Color(0xFF2196F3),
-                                  ),
-                                  label: const Text('Set Alerts'),
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: const Color(0xFF2196F3),
-                                    side: const BorderSide(
-                                      color: Color(0xFF2196F3),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 12,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 20),
-
+                        
                         // My Orders Section
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
