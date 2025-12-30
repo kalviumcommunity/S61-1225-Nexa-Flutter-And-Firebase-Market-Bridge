@@ -4,7 +4,6 @@ import 'package:market_bridge/screens/buyer_dashboard_screen.dart';
 import '../routes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'buyer_marketplace_screen.dart';
-import '../widgets/settings_menu.dart';
 
 class BuyerHomeScreen extends StatelessWidget {
   int get orderCount => 3;
@@ -35,10 +34,6 @@ class BuyerHomeScreen extends StatelessWidget {
     );
     if (shouldLogout == true) {
       await FirebaseAuth.instance.signOut();
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        Routes.routeSplash, 
-        (route) => false,
-      );
     }
   }
 
@@ -86,13 +81,6 @@ class BuyerHomeScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF1F1F1),
-      appBar: AppBar(
-        title: const Text('Buyer Dashboard'),
-        actions: [
-          const ThemeToggleButton(),  // Quick theme toggle
-          const SettingsMenu(),        // Full settings menu
-        ],
-      ),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {

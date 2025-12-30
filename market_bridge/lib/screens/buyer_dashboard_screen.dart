@@ -2,11 +2,13 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:market_bridge/screens/buyer_marketplace_screen.dart';
 import '../routes.dart';
 import '../widgets/loading_widget.dart';
 import '../widgets/error_widget.dart';
 import '../widgets/empty_state_widget.dart';
 import '../utils/theme_helper.dart';
+
 class BuyerDashboardScreen extends StatefulWidget {
   const BuyerDashboardScreen({Key? key}) : super(key: key);
 
@@ -63,10 +65,7 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
           children: const [
             Icon(Icons.local_shipping, color: Color(0xFF2196F3)),
             SizedBox(width: 8),
-            Text(
-              'Track Order',
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
+            Text('Track Order', style: TextStyle(fontWeight: FontWeight.w600)),
           ],
         ),
         content: Column(
@@ -75,10 +74,7 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
           children: [
             Text(
               'Order: ${order['crop'] ?? order['productName'] ?? 'Unknown'}',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             Text('Quantity: ${order['quantity'] ?? 'N/A'}'),
@@ -138,234 +134,254 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
       ),
       body: currentUser == null
           ? Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.person_off, size: 64, color: Colors.grey[400]),
-            const SizedBox(height: 16),
-            Text(
-              'Please log in to view your dashboard',
-              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-            ),
-          ],
-        ),
-      )
-          : SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header Section with Stats
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                color: Color(0xFF2196F3),
-                borderRadius: BorderRadius.vertical(
-                  bottom: Radius.circular(24),
-                ),
-              ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    'Track your orders and interests',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
-                  ),
+                  Icon(Icons.person_off, size: 64, color: Colors.grey[400]),
                   const SizedBox(height: 16),
-                  StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection('orders')
-                        .where('buyerId', isEqualTo: currentUser.uid)
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      int totalOrders = 0;
-                      double totalSpent = 0;
-
-                      if (snapshot.hasData) {
-                        totalOrders = snapshot.data!.docs.length;
-                        for (var doc in snapshot.data!.docs) {
-                          final data = doc.data() as Map<String, dynamic>;
-                          final total = (data['totalAmount'] ?? 0).toDouble();
-                          totalSpent += total;
-                        }
-                      }
-
-                      return Row(
-                        children: [
-                          _buildStatCard(
-                            icon: Icons.receipt_long,
-                            label: 'Total Orders',
-                            value: '$totalOrders',
-                            isTablet: isTablet,
-                          ),
-                          const SizedBox(width: 12),
-                          _buildStatCard(
-                            icon: Icons.attach_money,
-                            label: 'Total Spent',
-                            value: '₹${totalSpent.toStringAsFixed(0)}',
-                            isTablet: isTablet,
-                          ),
-                        ],
-                      );
-                    },
+                  Text(
+                    'Please log in to view your dashboard',
+                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                   ),
                 ],
               ),
-            ),
-
-            Padding(
-              padding: EdgeInsets.all(isTablet ? 24 : 16),
+            )
+          : SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Quick Actions Card
-                  _buildSectionCard(
-                    title: 'Quick Actions',
-                    child: Row(
+                  // Header Section with Stats
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF2196F3),
+                      borderRadius: BorderRadius.vertical(
+                        bottom: Radius.circular(24),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.pushNamed(context, Routes.routeMarketPlace);
-                            },
-                            icon: const Icon(Icons.storefront, size: 20),
-                            label: const Text('Browse Produce'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF2196F3),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),
+                        const Text(
+                          'Track your orders and interests',
+                          style: TextStyle(color: Colors.white70, fontSize: 14),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () {},
-                            icon: const Icon(Icons.notifications,
-                                size: 20, color: Color(0xFF2196F3)),
-                            label: const Text('Set Alerts'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: const Color(0xFF2196F3),
-                              side: const BorderSide(color: Color(0xFF2196F3)),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),
+                        const SizedBox(height: 16),
+                        StreamBuilder<QuerySnapshot>(
+                          stream: FirebaseFirestore.instance
+                              .collection('orders')
+                              .where('buyerId', isEqualTo: currentUser.uid)
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            int totalOrders = 0;
+                            double totalSpent = 0;
+
+                            if (snapshot.hasData) {
+                              totalOrders = snapshot.data!.docs.length;
+                              for (var doc in snapshot.data!.docs) {
+                                final data = doc.data() as Map<String, dynamic>;
+                                final total = (data['totalAmount'] ?? 0)
+                                    .toDouble();
+                                totalSpent += total;
+                              }
+                            }
+
+                            return Row(
+                              children: [
+                                _buildStatCard(
+                                  icon: Icons.receipt_long,
+                                  label: 'Total Orders',
+                                  value: '$totalOrders',
+                                  isTablet: isTablet,
+                                ),
+                                const SizedBox(width: 12),
+                                _buildStatCard(
+                                  icon: Icons.attach_money,
+                                  label: 'Total Spent',
+                                  value: '₹${totalSpent.toStringAsFixed(0)}',
+                                  isTablet: isTablet,
+                                ),
+                              ],
+                            );
+                          },
                         ),
                       ],
                     ),
                   ),
 
-                  const SizedBox(height: 20),
-
-                  // My Orders Section
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'My Orders',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF333333),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {},
-                        child: Row(
-                          children: const [
-                            Text(
-                              'View all',
-                              style: TextStyle(
-                                color: Color(0xFF2196F3),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            SizedBox(width: 4),
-                            Icon(
-                              Icons.arrow_forward,
-                              size: 16,
-                              color: Color(0xFF2196F3),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Orders List
-                  StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection('orders')
-                        .where('buyerId', isEqualTo: currentUser.uid)
-                        .orderBy('createdAt', descending: true)
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(40),
-                            child: CircularProgressIndicator(
-                              color: Color(0xFF2196F3),
-                            ),
-                          ),
-                        );
-                      }
-
-                      if (snapshot.hasError) {
-                        return Container(
-                          padding: const EdgeInsets.all(40),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
+                  Padding(
+                    padding: EdgeInsets.all(isTablet ? 24 : 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Quick Actions Card
+                        _buildSectionCard(
+                          title: 'Quick Actions',
+                          child: Row(
                             children: [
-                              Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
-                              const SizedBox(height: 16),
-                              const Text(
-                                'Unable to load orders',
-                                style: TextStyle(fontSize: 16, color: Colors.grey),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () {
+                                    Navigator.pushNamed(
+                                      context,
+                                      Routes.routeMarketPlace,
+                                    );
+                                  },
+                                  icon: const Icon(Icons.storefront, size: 20),
+                                  label: const Text('Browse Produce'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF2196F3),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                ),
                               ),
-                              const SizedBox(height: 8),
-                              TextButton(
-                                onPressed: () => setState(() {}),
-                                child: const Text('Retry'),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () {},
+                                  icon: const Icon(
+                                    Icons.notifications,
+                                    size: 20,
+                                    color: Color(0xFF2196F3),
+                                  ),
+                                  label: const Text('Set Alerts'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: const Color(0xFF2196F3),
+                                    side: const BorderSide(
+                                      color: Color(0xFF2196F3),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ],
                           ),
-                        );
-                      }
+                        ),
 
-                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                        return _buildEmptyState();
-                      }
+                        const SizedBox(height: 20),
 
-                      final orders = snapshot.data!.docs;
-                      return Column(
-                        children: orders.map((doc) {
-                          final order = doc.data() as Map<String, dynamic>;
-                          return _buildOrderCard(order: order);
-                        }).toList(),
-                      );
-                    },
+                        // My Orders Section
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'My Orders',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF333333),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {},
+                              child: Row(
+                                children: const [
+                                  Text(
+                                    'View all',
+                                    style: TextStyle(
+                                      color: Color(0xFF2196F3),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  SizedBox(width: 4),
+                                  Icon(
+                                    Icons.arrow_forward,
+                                    size: 16,
+                                    color: Color(0xFF2196F3),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // Orders List
+                        StreamBuilder<QuerySnapshot>(
+                          stream: FirebaseFirestore.instance
+                              .collection('orders')
+                              .where('buyerId', isEqualTo: currentUser.uid)
+                              .orderBy('createdAt', descending: true)
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(40),
+                                  child: CircularProgressIndicator(
+                                    color: Color(0xFF2196F3),
+                                  ),
+                                ),
+                              );
+                            }
+
+                            if (snapshot.hasError) {
+                              return Container(
+                                padding: const EdgeInsets.all(40),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.error_outline,
+                                      size: 64,
+                                      color: Colors.red[300],
+                                    ),
+                                    const SizedBox(height: 16),
+                                    const Text(
+                                      'Unable to load orders',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    TextButton(
+                                      onPressed: () => setState(() {}),
+                                      child: const Text('Retry'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+
+                            if (!snapshot.hasData ||
+                                snapshot.data!.docs.isEmpty) {
+                              return _buildEmptyState();
+                            }
+
+                            final orders = snapshot.data!.docs;
+                            return Column(
+                              children: orders.map((doc) {
+                                final order =
+                                    doc.data() as Map<String, dynamic>;
+                                return _buildOrderCard(order: order);
+                              }).toList(),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
 
       // Bottom Navigation
       bottomNavigationBar: Container(
@@ -396,7 +412,12 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
                   label: 'Marketplace',
                   isActive: false,
                   onTap: () {
-                    Navigator.pushNamed(context, Routes.routeMarketPlace);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const BuyerMarketplaceScreen(),
+                      ),
+                    );
                   },
                 ),
                 _buildNavItem(
@@ -442,19 +463,12 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
                 color: const Color(0xFF2196F3).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(
-                icon,
-                color: const Color(0xFF2196F3),
-                size: 24,
-              ),
+              child: Icon(icon, color: const Color(0xFF2196F3), size: 24),
             ),
             const SizedBox(height: 12),
             Text(
               label,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Color(0xFF666666),
-              ),
+              style: const TextStyle(fontSize: 12, color: Color(0xFF666666)),
             ),
             const SizedBox(height: 4),
             Text(
@@ -471,10 +485,7 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
     );
   }
 
-  Widget _buildSectionCard({
-    required String title,
-    required Widget child,
-  }) {
+  Widget _buildSectionCard({required String title, required Widget child}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -508,7 +519,8 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
   }
 
   Widget _buildOrderCard({required Map<String, dynamic> order}) {
-    final productName = order['crop'] ?? order['productName'] ?? 'Unknown Product';
+    final productName =
+        order['crop'] ?? order['productName'] ?? 'Unknown Product';
     final quantity = order['quantity'] ?? 'N/A';
     final price = order['price'] ?? order['pricePerUnit'] ?? 0;
     final farmerName = order['farmer'] ?? order['farmerName'] ?? 'Unknown';
@@ -562,10 +574,7 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Center(
-                  child: Text(
-                    icon,
-                    style: const TextStyle(fontSize: 28),
-                  ),
+                  child: Text(icon, style: const TextStyle(fontSize: 28)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -593,7 +602,10 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: _getStatusBgColor(status),
                   borderRadius: BorderRadius.circular(20),
@@ -627,18 +639,12 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
             children: [
               Text(
                 'From: $farmerName',
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: Color(0xFF666666),
-                ),
+                style: const TextStyle(fontSize: 13, color: Color(0xFF666666)),
               ),
               const Spacer(),
               Text(
                 dateDisplay,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: Color(0xFF666666),
-                ),
+                style: const TextStyle(fontSize: 13, color: Color(0xFF666666)),
               ),
             ],
           ),
@@ -683,11 +689,7 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
       ),
       child: Column(
         children: [
-          Icon(
-            Icons.shopping_bag_outlined,
-            size: 64,
-            color: Colors.grey[400],
-          ),
+          Icon(Icons.shopping_bag_outlined, size: 64, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
             'No orders yet',
@@ -700,10 +702,7 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
           const SizedBox(height: 8),
           Text(
             'Start browsing fresh produce from farmers',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
@@ -748,7 +747,9 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
             label,
             style: TextStyle(
               fontSize: 12,
-              color: isActive ? const Color(0xFF2196F3) : const Color(0xFF999999),
+              color: isActive
+                  ? const Color(0xFF2196F3)
+                  : const Color(0xFF999999),
               fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
             ),
           ),
