@@ -130,30 +130,20 @@ class BuyerHomeScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Market Bridge',
+                              'Good ${DateTime.now().hour < 12 ? 'Morning' : DateTime.now().hour < 18 ? 'Afternoon' : 'Evening'}, Buyer!',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: titleSize,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.shopping_cart,
-                                  color: Colors.white70,
-                                  size: 14,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'Buyer Mode',
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: subtitleSize,
-                                  ),
-                                ),
-                              ],
+                            const SizedBox(height: 2),
+                            Text(
+                              'Welcome to Market Bridge',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: subtitleSize,
+                              ),
                             ),
                           ],
                         ),
@@ -187,6 +177,123 @@ class BuyerHomeScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        // Search Bar
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 16, top: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.03),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.search, color: Color(0xFF2196F3)),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: TextField(
+                                  decoration: const InputDecoration(
+                                    hintText: 'Search produce, farmers, or orders...',
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                  ),
+                                  style: TextStyle(fontSize: subtitleSize + 1),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Featured Produce (Horizontal Scroll)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Featured Produce",
+                                style: TextStyle(
+                                  fontSize: cardTitleSize,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              SizedBox(
+                                height: isTablet ? 120 : 100,
+                                child: ListView.separated(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: produce.length,
+                                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                                  itemBuilder: (context, index) {
+                                    final item = produce[index];
+                                    final isAsset = item['isAsset'] ?? false;
+                                    return Container(
+                                      width: isTablet ? 140 : 110,
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.04),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          isAsset
+                                              ? Image.asset(
+                                                  item['icon'],
+                                                  width: 36,
+                                                  height: 36,
+                                                  fit: BoxFit.contain,
+                                                )
+                                              : Text(
+                                                  item['icon'] ?? '🥬',
+                                                  style: TextStyle(fontSize: 32),
+                                                ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            item['name'] ?? '',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: subtitleSize + 1,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          Text(
+                                            item['price'] ?? '',
+                                            style: TextStyle(
+                                              color: Colors.green[700],
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: subtitleSize,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Divider
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Divider(color: Colors.grey[300], thickness: 1),
+                        ),
                         // Location Card
                         Padding(
                           padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),

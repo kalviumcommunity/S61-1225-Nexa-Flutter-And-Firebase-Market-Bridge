@@ -24,6 +24,9 @@ class _BuyerCompleteProfileScreenState
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final locationController = TextEditingController();
+  final dobController = TextEditingController();
+  String gender = 'Male';
+  String? profilePicUrl;
   String preferredLanguage = 'English';
   bool loading = false;
 
@@ -115,17 +118,21 @@ class _BuyerCompleteProfileScreenState
     final name = nameController.text.trim();
     final email = emailController.text.trim();
     final location = locationController.text.trim();
+    final dob = dobController.text.trim();
 
     debugPrint('==========================================');
     debugPrint('💾 SAVING BUYER PROFILE');
     debugPrint('Name: $name');
     debugPrint('Email: $email');
     debugPrint('Location: $location');
+    debugPrint('Gender: $gender');
+    debugPrint('DOB: $dob');
+    debugPrint('ProfilePic: $profilePicUrl');
     debugPrint('Language: $preferredLanguage');
     debugPrint('Role: ${widget.role}');
     debugPrint('==========================================');
 
-    if (name.isEmpty || location.isEmpty) {
+    if (name.isEmpty || location.isEmpty || dob.isEmpty) {
       debugPrint('❌ Validation failed: Missing required fields');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter required fields')),
@@ -146,6 +153,9 @@ class _BuyerCompleteProfileScreenState
       'email': email,
       'phone': widget.phoneNumber,
       'location': location,
+      'gender': gender,
+      'dob': dob,
+      'profilePicUrl': profilePicUrl,
       'preferredLanguage': preferredLanguage,
       'role': widget.role,
       'totalOrders': 0,
@@ -217,53 +227,53 @@ class _BuyerCompleteProfileScreenState
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: cardShadowColor,
-                  blurRadius: 16,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Buyer icon
-                Container(
-                  width: 90,
-                  height: 90,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE3F2FD),
-                    borderRadius: BorderRadius.circular(45),
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.shopping_bag,
-                      size: 48,
-                      color: Color(0xFF2196F3),
-                    ),
+                // Profile picture (placeholder, no upload logic)
+                GestureDetector(
+                  onTap: () {
+                    // TODO: Implement image picker/upload logic
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Profile picture upload coming soon!'),
+                      ),
+                    );
+                  },
+                  child: Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      CircleAvatar(
+                        radius: 45,
+                        backgroundColor: const Color(0xFFE3F2FD),
+                        backgroundImage: profilePicUrl != null
+                            ? NetworkImage(profilePicUrl!)
+                            : null,
+                        child: profilePicUrl == null
+                            ? const Icon(
+                                Icons.person,
+                                size: 60,
+                                color: Color(0xFF2196F3),
+                              )
+                            : null,
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: themeColor,
+                          shape: BoxShape.circle,
+                        ),
+                        padding: const EdgeInsets.all(6),
+                        child: const Icon(
+                          Icons.camera_alt,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 18),
-                const Text(
-                  'Complete Your Profile',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Help us serve you better',
-                  style: TextStyle(fontSize: 15, color: Color(0xFF666666)),
-                ),
-                const SizedBox(height: 32),
-                // Full Name field
+                const SizedBox(height: 24),
+                // Name field
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -288,7 +298,7 @@ class _BuyerCompleteProfileScreenState
                       controller: nameController,
                       style: const TextStyle(fontSize: 15),
                       decoration: InputDecoration(
-                        hintText: 'Enter your full name',
+                        hintText: 'Enter your name',
                         hintStyle: TextStyle(
                           fontSize: 15,
                           color: Color(0xFFB0B0B0),
@@ -316,6 +326,136 @@ class _BuyerCompleteProfileScreenState
                   ],
                 ),
                 const SizedBox(height: 22),
+                // Gender dropdown
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    RichText(
+                      text: const TextSpan(
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF333333),
+                        ),
+                        children: [
+                          TextSpan(text: 'Gender '),
+                          TextSpan(
+                            text: '*',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    DropdownButtonFormField<String>(
+                      value: gender,
+                      items: const [
+                        DropdownMenuItem(value: 'Male', child: Text('Male')),
+                        DropdownMenuItem(
+                          value: 'Female',
+                          child: Text('Female'),
+                        ),
+                        DropdownMenuItem(value: 'Other', child: Text('Other')),
+                      ],
+                      onChanged: (v) => setState(() => gender = v ?? 'Male'),
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: cardBgColor,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide(color: themeColor, width: 2),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 18,
+                          horizontal: 18,
+                        ),
+                      ),
+                      icon: const Icon(
+                        Icons.keyboard_arrow_down,
+                        color: Color(0xFF666666),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 22),
+                // Date of Birth field
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    RichText(
+                      text: const TextSpan(
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF333333),
+                        ),
+                        children: [
+                          TextSpan(text: 'Date of Birth '),
+                          TextSpan(
+                            text: '*',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: dobController,
+                      readOnly: true,
+                      onTap: () async {
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime(2000, 1, 1),
+                          firstDate: DateTime(1900),
+                          lastDate: DateTime(DateTime.now().year - 10),
+                        );
+                        if (picked != null) {
+                          dobController.text =
+                              '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+                        }
+                      },
+                      style: const TextStyle(fontSize: 15),
+                      decoration: InputDecoration(
+                        hintText: 'YYYY-MM-DD',
+                        hintStyle: TextStyle(
+                          fontSize: 15,
+                          color: Color(0xFFB0B0B0),
+                        ),
+                        filled: true,
+                        fillColor: cardBgColor,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide(color: themeColor, width: 2),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 18,
+                          horizontal: 18,
+                        ),
+                        suffixIcon: const Icon(
+                          Icons.calendar_today,
+                          color: Color(0xFF666666),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                // ...existing code...
                 // Email Address field
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -511,7 +651,7 @@ class _BuyerCompleteProfileScreenState
                   ),
                 ),
                 const SizedBox(height: 10),
-              ],
+              ], // <-- This closes the children list for the Column
             ),
           ),
         ),
