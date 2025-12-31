@@ -1,3 +1,8 @@
+import 'package:market_bridge/screens/buyer_profile_screen.dart';
+import 'package:market_bridge/screens/buyer_order_history_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'buyer_marketplace_screen.dart' show BuyerListingDetailsScreen;
 // lib/screens/buyer_dashboard_screen.dart
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -17,6 +22,143 @@ class BuyerDashboardScreen extends StatefulWidget {
 }
 
 class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
+  // For demo: store reviews as a map in shared_preferences
+  Future<void> _showReviewDialog(Map<String, dynamic> order) async {
+    final TextEditingController reviewController = TextEditingController();
+    double rating = 5;
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Leave a Review'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  const Text('Rating:'),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Slider(
+                      value: rating,
+                      min: 1,
+                      max: 5,
+                      divisions: 4,
+                      label: rating.toString(),
+                      onChanged: (v) {
+                        rating = v;
+                        (context as Element).markNeedsBuild();
+                      },
+                    ),
+                  ),
+                  Text(rating.toStringAsFixed(1)),
+                ],
+              ),
+              TextField(
+                controller: reviewController,
+                decoration: const InputDecoration(
+                  hintText: 'Write your review...',
+                ),
+                maxLines: 3,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final prefs = await SharedPreferences.getInstance();
+                final key =
+                    'review_${order['crop'] ?? order['productName'] ?? order['name'] ?? ''}_${order['farmer'] ?? order['farmerName'] ?? ''}';
+                await prefs.setStringList(key, [
+                  rating.toString(),
+                  reviewController.text,
+                ]);
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Review submitted!')),
+                );
+              },
+              child: const Text('Submit'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  List<Map<String, dynamic>> favoriteListings = [];
+  bool _loadingFavorites = true;
+  @override
+  void initState() {
+    super.initState();
+    _loadFavorites();
+  }
+
+  Future<void> _loadFavorites() async {
+    setState(() => _loadingFavorites = true);
+    final prefs = await SharedPreferences.getInstance();
+    final favNames = prefs.getStringList('buyer_favorites') ?? [];
+    // Use the same static listings as in marketplace for demo
+    final allListings = [
+      {
+        'name': 'Tomato',
+        'quantity': '2 quintal',
+        'price': '₹20/kg',
+        'farmer': 'Ramesh',
+        'distance': '3km',
+        'rating': 4.0,
+        'icon': 'assets/icons/tomato.png',
+        'isAsset': true,
+      },
+      {
+        'name': 'Onion',
+        'quantity': '5 quintal',
+        'price': '₹24/kg',
+        'farmer': 'Ramesh',
+        'distance': '3km',
+        'rating': 4.0,
+        'icon': 'assets/icons/onion.png',
+        'isAsset': true,
+      },
+      {
+        'name': 'Potato',
+        'quantity': '1 quintal',
+        'price': '₹12/kg',
+        'farmer': 'Ramesh',
+        'distance': '3km',
+        'rating': 4.0,
+        'icon': 'assets/icons/potato.png',
+        'isAsset': true,
+      },
+      {
+        'name': 'Wheat',
+        'quantity': '10 quintal',
+        'price': '₹2400/quintal',
+        'farmer': 'Ramesh',
+        'distance': '3km',
+        'rating': 4.0,
+        'icon': 'assets/icons/rice.png',
+        'isAsset': true,
+      },
+    ];
+    setState(() {
+      favoriteListings = allListings
+          .where((l) => favNames.contains(l['name']))
+          .toList();
+      _loadingFavorites = false;
+    });
+  }
+
+  // Pull-to-refresh for orders
+  Future<void> _onRefresh() async {
+    setState(() {}); // Triggers StreamBuilder to reload
+    await Future.delayed(const Duration(milliseconds: 500));
+  }
+
   String _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'confirmed':
@@ -127,6 +269,16 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.person_outline, color: Colors.white),
+            tooltip: 'Profile',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const BuyerProfileScreen()),
+              );
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.notifications_outlined, color: Colors.white),
             onPressed: () {},
           ),
@@ -146,184 +298,262 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
                 ],
               ),
             )
-          : SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header Section with Stats
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF2196F3),
-                      borderRadius: BorderRadius.vertical(
-                        bottom: Radius.circular(24),
+          : RefreshIndicator(
+              onRefresh: () async {
+                await _onRefresh();
+                await _loadFavorites();
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header Section with Stats
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF2196F3),
+                        borderRadius: BorderRadius.vertical(
+                          bottom: Radius.circular(24),
+                        ),
                       ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Track your orders and interests',
-                          style: TextStyle(color: Colors.white70, fontSize: 14),
-                        ),
-                        const SizedBox(height: 16),
-                        StreamBuilder<QuerySnapshot>(
-                          stream: FirebaseFirestore.instance
-                              .collection('orders')
-                              .where('buyerId', isEqualTo: currentUser.uid)
-                              .snapshots(),
-                          builder: (context, snapshot) {
-                            int totalOrders = 0;
-                            double totalSpent = 0;
-
-                            if (snapshot.hasData) {
-                              totalOrders = snapshot.data!.docs.length;
-                              for (var doc in snapshot.data!.docs) {
-                                final data = doc.data() as Map<String, dynamic>;
-                                final total = (data['totalAmount'] ?? 0)
-                                    .toDouble();
-                                totalSpent += total;
-                              }
-                            }
-
-                            return Row(
-                              children: [
-                                _buildStatCard(
-                                  icon: Icons.receipt_long,
-                                  label: 'Total Orders',
-                                  value: '$totalOrders',
-                                  isTablet: isTablet,
-                                ),
-                                const SizedBox(width: 12),
-                                _buildStatCard(
-                                  icon: Icons.attach_money,
-                                  label: 'Total Spent',
-                                  value: '₹${totalSpent.toStringAsFixed(0)}',
-                                  isTablet: isTablet,
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  Padding(
-                    padding: EdgeInsets.all(isTablet ? 24 : 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        
-                        // My Orders Section
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'My Orders',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF333333),
-                              ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Track your orders and interests',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
                             ),
-                            TextButton(
-                              onPressed: () {},
-                              child: Row(
-                                children: const [
-                                  Text(
-                                    'View all',
-                                    style: TextStyle(
-                                      color: Color(0xFF2196F3),
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                          ),
+                          const SizedBox(height: 16),
+                          StreamBuilder<QuerySnapshot>(
+                            stream: FirebaseFirestore.instance
+                                .collection('orders')
+                                .where('buyerId', isEqualTo: currentUser.uid)
+                                .snapshots(),
+                            builder: (context, snapshot) {
+                              int totalOrders = 0;
+                              double totalSpent = 0;
+
+                              if (snapshot.hasData) {
+                                totalOrders = snapshot.data!.docs.length;
+                                for (var doc in snapshot.data!.docs) {
+                                  final data =
+                                      doc.data() as Map<String, dynamic>;
+                                  final total = (data['totalAmount'] ?? 0)
+                                      .toDouble();
+                                  totalSpent += total;
+                                }
+                              }
+
+                              return Row(
+                                children: [
+                                  _buildStatCard(
+                                    icon: Icons.receipt_long,
+                                    label: 'Total Orders',
+                                    value: '$totalOrders',
+                                    isTablet: isTablet,
                                   ),
-                                  SizedBox(width: 4),
-                                  Icon(
-                                    Icons.arrow_forward,
-                                    size: 16,
-                                    color: Color(0xFF2196F3),
+                                  const SizedBox(width: 12),
+                                  _buildStatCard(
+                                    icon: Icons.attach_money,
+                                    label: 'Total Spent',
+                                    value: '₹${totalSpent.toStringAsFixed(0)}',
+                                    isTablet: isTablet,
                                   ),
                                 ],
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        // Orders List
-                        StreamBuilder<QuerySnapshot>(
-                          stream: FirebaseFirestore.instance
-                              .collection('orders')
-                              .where('buyerId', isEqualTo: currentUser.uid)
-                              .orderBy('createdAt', descending: true)
-                              .snapshots(),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const Center(
-                                child: Padding(
-                                  padding: EdgeInsets.all(40),
-                                  child: CircularProgressIndicator(
-                                    color: Color(0xFF2196F3),
-                                  ),
-                                ),
                               );
-                            }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
 
-                            if (snapshot.hasError) {
-                              return Container(
-                                padding: const EdgeInsets.all(40),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
+                    // My Favorites Section
+                    Padding(
+                      padding: EdgeInsets.all(isTablet ? 24 : 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'My Favorites',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF333333),
                                 ),
-                                child: Column(
-                                  children: [
-                                    Icon(
-                                      Icons.error_outline,
-                                      size: 64,
-                                      color: Colors.red[300],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          _loadingFavorites
+                              ? const Center(child: CircularProgressIndicator())
+                              : favoriteListings.isEmpty
+                              ? const Text('No favorites yet.')
+                              : Column(
+                                  children: favoriteListings.map((listing) {
+                                    return GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                BuyerListingDetailsScreen(
+                                                  listing: listing,
+                                                ),
+                                          ),
+                                        );
+                                      },
+                                      child: Card(
+                                        child: ListTile(
+                                          leading: listing['isAsset'] == true
+                                              ? Image.asset(
+                                                  listing['icon'],
+                                                  width: 40,
+                                                  height: 40,
+                                                )
+                                              : null,
+                                          title: Text(listing['name']),
+                                          subtitle: Text(listing['price']),
+                                          trailing: const Icon(
+                                            Icons.chevron_right,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                        ],
+                      ),
+                    ),
+
+                    // My Orders Section
+                    Padding(
+                      padding: EdgeInsets.all(isTablet ? 24 : 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'My Orders',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF333333),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const BuyerOrderHistoryScreen(),
                                     ),
-                                    const SizedBox(height: 16),
-                                    const Text(
-                                      'Unable to load orders',
+                                  );
+                                },
+                                child: Row(
+                                  children: const [
+                                    Text(
+                                      'View all',
                                       style: TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.grey,
+                                        color: Color(0xFF2196F3),
+                                        fontWeight: FontWeight.w600,
                                       ),
                                     ),
-                                    const SizedBox(height: 8),
-                                    TextButton(
-                                      onPressed: () => setState(() {}),
-                                      child: const Text('Retry'),
+                                    SizedBox(width: 4),
+                                    Icon(
+                                      Icons.arrow_forward,
+                                      size: 16,
+                                      color: Color(0xFF2196F3),
                                     ),
                                   ],
                                 ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          // Orders List
+                          StreamBuilder<QuerySnapshot>(
+                            stream: FirebaseFirestore.instance
+                                .collection('orders')
+                                .where('buyerId', isEqualTo: currentUser.uid)
+                                .orderBy('createdAt', descending: true)
+                                .snapshots(),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(40),
+                                    child: CircularProgressIndicator(
+                                      color: Color(0xFF2196F3),
+                                    ),
+                                  ),
+                                );
+                              }
+
+                              if (snapshot.hasError) {
+                                return Container(
+                                  padding: const EdgeInsets.all(40),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Icon(
+                                        Icons.error_outline,
+                                        size: 64,
+                                        color: Colors.red[300],
+                                      ),
+                                      const SizedBox(height: 16),
+                                      const Text(
+                                        'Unable to load orders',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      TextButton(
+                                        onPressed: () => setState(() {}),
+                                        child: const Text('Retry'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+
+                              if (!snapshot.hasData ||
+                                  snapshot.data!.docs.isEmpty) {
+                                return _buildEmptyState();
+                              }
+
+                              final orders = snapshot.data!.docs;
+                              return Column(
+                                children: orders.map((doc) {
+                                  final order =
+                                      doc.data() as Map<String, dynamic>;
+                                  return _buildOrderCard(order: order);
+                                }).toList(),
                               );
-                            }
-
-                            if (!snapshot.hasData ||
-                                snapshot.data!.docs.isEmpty) {
-                              return _buildEmptyState();
-                            }
-
-                            final orders = snapshot.data!.docs;
-                            return Column(
-                              children: orders.map((doc) {
-                                final order =
-                                    doc.data() as Map<String, dynamic>;
-                                return _buildOrderCard(order: order);
-                              }).toList(),
-                            );
-                          },
-                        ),
-                      ],
+                            },
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
 
@@ -378,6 +608,7 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
     );
   }
 
+  /// Builds a stat card for dashboard header.
   Widget _buildStatCard({
     required IconData icon,
     required String label,
@@ -429,6 +660,7 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
     );
   }
 
+  /// Builds a section card with title and child widget.
   Widget _buildSectionCard({required String title, required Widget child}) {
     return Container(
       width: double.infinity,
@@ -462,6 +694,7 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
     );
   }
 
+  /// Builds a card for a single order.
   Widget _buildOrderCard({required Map<String, dynamic> order}) {
     final productName =
         order['crop'] ?? order['productName'] ?? 'Unknown Product';
@@ -595,28 +828,47 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
 
           const SizedBox(height: 16),
 
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => _trackOrder(order),
-              icon: const Icon(Icons.local_shipping, size: 18),
-              label: const Text('Track Order'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2196F3),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => _trackOrder(order),
+                  icon: const Icon(Icons.local_shipping, size: 18),
+                  label: const Text('Track Order'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2196F3),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    elevation: 0,
+                  ),
                 ),
-                elevation: 0,
               ),
-            ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _showReviewDialog(order),
+                  icon: const Icon(Icons.rate_review, color: Color(0xFF2196F3)),
+                  label: const Text(
+                    'Leave a Review',
+                    style: TextStyle(color: Color(0xFF2196F3)),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color(0xFF2196F3)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
+  /// Empty state widget for when there are no orders.
   Widget _buildEmptyState() {
     return Container(
       padding: const EdgeInsets.all(40),
@@ -670,6 +922,7 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen> {
     );
   }
 
+  /// Builds a navigation item for the bottom nav bar.
   Widget _buildNavItem({
     required IconData icon,
     required String label,

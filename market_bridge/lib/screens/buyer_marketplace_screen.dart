@@ -1,8 +1,12 @@
+import 'package:shared_preferences/shared_preferences.dart';
+import 'chat_screen.dart';
 // lib/screens/buyer_marketplace_screen.dart
 import 'package:flutter/material.dart';
+
 import 'buyer_home_screen.dart';
 import 'buyer_dashboard_screen.dart';
 import '../routes.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class BuyerMarketplaceScreen extends StatefulWidget {
   const BuyerMarketplaceScreen({Key? key}) : super(key: key);
@@ -12,10 +16,43 @@ class BuyerMarketplaceScreen extends StatefulWidget {
 }
 
 class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
+  // Filter/sort state
+  String? _selectedCropType;
+  double _minRating = 0;
+  String _sortBy = 'None';
+  Set<String> favoriteIds = {};
+  @override
+  void initState() {
+    super.initState();
+    filteredListings = List.from(farmerListings);
+    searchController.addListener(_onSearchChanged);
+    _simulateLoading();
+    _loadFavorites();
+  }
+
+  Future<void> _loadFavorites() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      favoriteIds = prefs.getStringList('buyer_favorites')?.toSet() ?? {};
+    });
+  }
+
+  Future<void> _toggleFavorite(String name) async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      if (favoriteIds.contains(name)) {
+        favoriteIds.remove(name);
+      } else {
+        favoriteIds.add(name);
+      }
+      prefs.setStringList('buyer_favorites', favoriteIds.toList());
+    });
+  }
+
   final searchController = TextEditingController();
   int _selectedIndex = 1; // Marketplace is default
-
-  final List<Map<String, dynamic>> farmerListings = [
+  bool _isLoading = false;
+  List<Map<String, dynamic>> farmerListings = [
     {
       'name': 'Tomato',
       'quantity': '2 quintal',
@@ -57,9 +94,95 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
       'isAsset': true,
     },
   ];
+  List<Map<String, dynamic>> filteredListings = [];
+
+  // Pull-to-refresh handler (move above build for reference)
+
+  // Empty state widget for no results (move above build for reference)
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 60),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.store_mall_directory, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              searchController.text.isEmpty
+                  ? 'No listings available'
+                  : 'No results found',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[700],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              searchController.text.isEmpty
+                  ? 'Check back later for new produce.'
+                  : 'Try a different search.',
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Simulate loading for demonstration
+  Future<void> _simulateLoading() async {
+    setState(() => _isLoading = true);
+    await Future.delayed(const Duration(milliseconds: 800));
+    setState(() => _isLoading = false);
+  }
+
+  // Filter and sort listings based on search, filters, and sort
+  void _onSearchChanged() {
+    final query = searchController.text.toLowerCase();
+    List<Map<String, dynamic>> results = farmerListings.where((listing) {
+      final matchesQuery = listing['name'].toString().toLowerCase().contains(
+        query,
+      );
+      final matchesCrop =
+          _selectedCropType == null || listing['name'] == _selectedCropType;
+      final matchesRating = (listing['rating'] ?? 0) >= _minRating;
+      return matchesQuery && matchesCrop && matchesRating;
+    }).toList();
+    // Sort
+    if (_sortBy == 'Price: Low to High') {
+      results.sort(
+        (a, b) => _parsePrice(a['price']).compareTo(_parsePrice(b['price'])),
+      );
+    } else if (_sortBy == 'Price: High to Low') {
+      results.sort(
+        (a, b) => _parsePrice(b['price']).compareTo(_parsePrice(a['price'])),
+      );
+    } else if (_sortBy == 'Rating') {
+      results.sort((a, b) => (b['rating'] ?? 0).compareTo(a['rating'] ?? 0));
+    }
+    setState(() {
+      filteredListings = results;
+    });
+  }
+
+  // Helper to parse price string (e.g., '₹20/kg' or '₹2400/quintal')
+  int _parsePrice(dynamic price) {
+    if (price is int) return price;
+    if (price is String) {
+      final digits = RegExp(
+        r'\d+',
+      ).allMatches(price).map((m) => m.group(0)).toList();
+      if (digits.isNotEmpty) return int.tryParse(digits.first ?? '0') ?? 0;
+    }
+    return 0;
+  }
 
   @override
   void dispose() {
+    searchController.removeListener(_onSearchChanged);
     searchController.dispose();
     super.dispose();
   }
@@ -96,14 +219,41 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
       body: Column(
         children: [
           _buildHeader(screenWidth),
-          Expanded(child: _buildListingsSection(screenWidth, isTablet)),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: _onRefresh,
+              child: _isLoading
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 60),
+                        child: CircularProgressIndicator(
+                          color: Color(0xFF2196F3),
+                        ),
+                      ),
+                    )
+                  : filteredListings.isEmpty
+                  ? _buildEmptyState()
+                  : _buildListingsSection(screenWidth, isTablet),
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: _buildBottomNav(),
     );
   }
 
+  // Pull-to-refresh handler (moved outside build)
+  Future<void> _onRefresh() async {
+    await _simulateLoading();
+    // In real app, fetch new data here
+    setState(() {
+      filteredListings = List.from(farmerListings);
+      searchController.clear();
+    });
+  }
+
   // ============== AppBar ==============
+  /// Builds the top app bar for the marketplace screen.
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: const Color(0xFF2196F3),
@@ -120,10 +270,134 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
           fontWeight: FontWeight.w600,
         ),
       ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.filter_list, color: Colors.white),
+          tooltip: 'Filter & Sort',
+          onPressed: _showFilterSortModal,
+        ),
+      ],
+    );
+  }
+
+  // Show filter/sort modal
+  void _showFilterSortModal() {
+    final cropTypes = farmerListings
+        .map((l) => l['name'] as String)
+        .toSet()
+        .toList();
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        String? tempCrop = _selectedCropType;
+        double tempRating = _minRating;
+        String tempSort = _sortBy;
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Filter & Sort',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  // Crop type filter
+                  DropdownButtonFormField<String>(
+                    value: tempCrop,
+                    hint: const Text('Crop Type'),
+                    items: [
+                      const DropdownMenuItem(
+                        value: null,
+                        child: Text('All Crops'),
+                      ),
+                      ...cropTypes
+                          .map(
+                            (c) => DropdownMenuItem(value: c, child: Text(c)),
+                          )
+                          .toList(),
+                    ],
+                    onChanged: (val) => setModalState(() => tempCrop = val),
+                  ),
+                  const SizedBox(height: 16),
+                  // Rating filter
+                  Row(
+                    children: [
+                      const Text('Min Rating:'),
+                      Expanded(
+                        child: Slider(
+                          value: tempRating,
+                          min: 0,
+                          max: 5,
+                          divisions: 5,
+                          label: tempRating == 0
+                              ? 'Any'
+                              : tempRating.toString(),
+                          onChanged: (v) => setModalState(() => tempRating = v),
+                        ),
+                      ),
+                      Text(tempRating == 0 ? 'Any' : tempRating.toString()),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Sort by
+                  DropdownButtonFormField<String>(
+                    value: tempSort,
+                    items:
+                        [
+                              'None',
+                              'Price: Low to High',
+                              'Price: High to Low',
+                              'Rating',
+                            ]
+                            .map(
+                              (s) => DropdownMenuItem(value: s, child: Text(s)),
+                            )
+                            .toList(),
+                    onChanged: (val) =>
+                        setModalState(() => tempSort = val ?? 'None'),
+                    decoration: const InputDecoration(labelText: 'Sort By'),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Cancel'),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            _selectedCropType = tempCrop;
+                            _minRating = tempRating;
+                            _sortBy = tempSort;
+                          });
+                          _onSearchChanged();
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Apply'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
   // ============== Header with Search ==============
+  /// Builds the header section with a search bar.
   Widget _buildHeader(double screenWidth) {
     return Container(
       color: Colors.white,
@@ -158,6 +432,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
   }
 
   // ============== Listings Section ==============
+  /// Builds the main listings section, responsive to device size.
   Widget _buildListingsSection(double screenWidth, bool isTablet) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -165,16 +440,16 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
           // Mobile → List View
           return ListView.builder(
             padding: EdgeInsets.all(screenWidth * 0.04),
-            itemCount: farmerListings.length,
+            itemCount: filteredListings.length,
             itemBuilder: (context, index) {
-              return _buildListingCard(farmerListings[index], isTablet);
+              return _buildListingCard(filteredListings[index], isTablet);
             },
           );
         } else {
           // Tablet → Grid View
           return GridView.builder(
             padding: EdgeInsets.all(screenWidth * 0.04),
-            itemCount: farmerListings.length,
+            itemCount: filteredListings.length,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               mainAxisSpacing: 20,
@@ -182,15 +457,53 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
               childAspectRatio: 1.25,
             ),
             itemBuilder: (context, index) {
-              return _buildListingCard(farmerListings[index], isTablet);
+              return _buildListingCard(filteredListings[index], isTablet);
             },
           );
         }
       },
     );
+    // Empty state widget for no results
+    Widget _buildEmptyState() {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 60),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.store_mall_directory,
+                size: 64,
+                color: Colors.grey[400],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                searchController.text.isEmpty
+                    ? 'No listings available'
+                    : 'No results found',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[700],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                searchController.text.isEmpty
+                    ? 'Check back later for new produce.'
+                    : 'Try a different search.',
+                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
   }
 
   // ============== Listing Card ==============
+  /// Builds a card for each produce listing.
   Widget _buildListingCard(Map<String, dynamic> listing, bool isTablet) {
     final isAsset = listing['isAsset'] ?? false;
 
@@ -211,7 +524,26 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildListingHeader(listing, isAsset, isTablet),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: _buildListingHeader(listing, isAsset, isTablet)),
+              IconButton(
+                icon: Icon(
+                  favoriteIds.contains(listing['name'])
+                      ? Icons.favorite
+                      : Icons.favorite_border,
+                  color: favoriteIds.contains(listing['name'])
+                      ? Colors.red
+                      : Colors.grey,
+                ),
+                tooltip: favoriteIds.contains(listing['name'])
+                    ? 'Remove from favorites'
+                    : 'Add to favorites',
+                onPressed: () => _toggleFavorite(listing['name']),
+              ),
+            ],
+          ),
           const SizedBox(height: 12),
           _buildListingPrice(listing, isTablet),
           const SizedBox(height: 12),
@@ -223,6 +555,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
     );
   }
 
+  /// Builds the header row for a listing card, including icon and name.
   Widget _buildListingHeader(
     Map<String, dynamic> listing,
     bool isAsset,
@@ -278,6 +611,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
     );
   }
 
+  /// Displays the price for a listing.
   Widget _buildListingPrice(Map<String, dynamic> listing, bool isTablet) {
     return Text(
       listing['price'],
@@ -289,6 +623,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
     );
   }
 
+  /// Displays farmer, rating, and other info for a listing.
   Widget _buildListingInfo(Map<String, dynamic> listing) {
     return Row(
       children: [
@@ -304,25 +639,33 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
     );
   }
 
+  /// Button to view details for a listing, with accessibility label.
   Widget _buildViewDetailsButton(Map<String, dynamic> listing) {
     return SizedBox(
       width: double.infinity,
       height: 44,
-      child: ElevatedButton(
-        onPressed: () => _showListingDetails(listing),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF2196F3),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-        child: const Text(
-          'View Details',
-          style: TextStyle(color: Colors.white),
+      child: Semantics(
+        button: true,
+        label: 'View details for ${listing['name']}',
+        child: ElevatedButton(
+          onPressed: () => _showListingDetails(listing),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF2196F3),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          child: const Text(
+            'View Details',
+            style: TextStyle(color: Colors.white),
+          ),
         ),
       ),
     );
   }
 
   // ============== Bottom Navigation ==============
+  /// Builds the bottom navigation bar for the buyer screens.
   Widget _buildBottomNav() {
     return SafeArea(
       child: Container(
@@ -370,6 +713,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
     );
   }
 
+  /// Builds a navigation item for the bottom nav bar.
   Widget _buildNavItem(IconData icon, String label, bool active) {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -390,6 +734,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
     );
   }
 
+  /// Navigates to the details screen for a listing.
   void _showListingDetails(Map<String, dynamic> listing) {
     Navigator.push(
       context,
@@ -404,7 +749,21 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
 // ============== LISTING DETAILS SCREEN ==============
 // =====================================================
 
+/// Details screen for a single produce listing.
 class BuyerListingDetailsScreen extends StatelessWidget {
+  Future<List<Map<String, String>>> _getReviews() async {
+    final prefs = await SharedPreferences.getInstance();
+    final keyPrefix = 'review_${listing['name']}_${listing['farmer']}';
+    // For demo, only one review per user/order, so just check this key
+    final review = prefs.getStringList(keyPrefix);
+    if (review != null && review.length == 2) {
+      return [
+        {'rating': review[0], 'review': review[1]},
+      ];
+    }
+    return [];
+  }
+
   final Map<String, dynamic> listing;
 
   const BuyerListingDetailsScreen({Key? key, required this.listing})
@@ -424,6 +783,70 @@ class BuyerListingDetailsScreen extends StatelessWidget {
           children: [
             _buildImageSection(isAsset, isTablet),
             _buildDetailsSection(context, isTablet),
+            const SizedBox(height: 24),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: isTablet ? 32 : 20),
+              child: FutureBuilder<List<Map<String, String>>>(
+                future: _getReviews(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  final reviews = snapshot.data ?? [];
+                  if (reviews.isEmpty) {
+                    return const Text(
+                      'No reviews yet.',
+                      style: TextStyle(color: Colors.grey),
+                    );
+                  }
+                  final avgRating =
+                      reviews
+                          .map((r) => double.tryParse(r['rating'] ?? '0') ?? 0)
+                          .fold<double>(0, (a, b) => a + b) /
+                      reviews.length;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.star, color: Color(0xFFFFB800)),
+                          const SizedBox(width: 4),
+                          Text(
+                            avgRating.toStringAsFixed(1),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '(${reviews.length} review${reviews.length > 1 ? 's' : ''})',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      ...reviews.map(
+                        (r) => Card(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: ListTile(
+                            leading: const Icon(Icons.person),
+                            title: Row(
+                              children: [
+                                const Icon(
+                                  Icons.star,
+                                  color: Color(0xFFFFB800),
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 2),
+                                Text(r['rating'] ?? ''),
+                              ],
+                            ),
+                            subtitle: Text(r['review'] ?? ''),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),
@@ -431,6 +854,7 @@ class BuyerListingDetailsScreen extends StatelessWidget {
   }
 
   // ============== AppBar ==============
+  /// Builds the app bar for the details screen.
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: const Color(0xFF2196F3),
@@ -444,6 +868,7 @@ class BuyerListingDetailsScreen extends StatelessWidget {
   }
 
   // ============== Image Section ==============
+  /// Displays the main image or icon for the listing.
   Widget _buildImageSection(bool isAsset, bool isTablet) {
     return Container(
       height: isTablet ? 380 : 280,
@@ -471,6 +896,7 @@ class BuyerListingDetailsScreen extends StatelessWidget {
   }
 
   // ============== Details Section ==============
+  /// Builds the details section with all listing info and actions.
   Widget _buildDetailsSection(BuildContext context, bool isTablet) {
     return Padding(
       padding: EdgeInsets.all(isTablet ? 32 : 20),
@@ -511,9 +937,12 @@ class BuyerListingDetailsScreen extends StatelessWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Contact Farmer feature coming soon!'),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ChatScreen(
+                          farmerName: listing['farmer'] ?? 'Farmer',
+                        ),
                       ),
                     );
                   },
@@ -554,6 +983,7 @@ class BuyerListingDetailsScreen extends StatelessWidget {
     );
   }
 
+  /// Helper for info rows in the details section.
   Widget _buildInfoRow(
     IconData icon,
     String text, {
