@@ -297,7 +297,7 @@ class _RoleHomeRouterState extends State<RoleHomeRouter>
     if (role.toLowerCase() == 'buyer') {
       return BuyerHomeScreen();
     } else {
-      return ResponsiveHomeEnhanced();
+      return FarmerHomeScreenEnhanced();
     }
   }
 }

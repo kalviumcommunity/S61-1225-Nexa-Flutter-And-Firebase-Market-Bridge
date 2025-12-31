@@ -1,13 +1,11 @@
-// lib/screens/post_produce_screen.dart
+// lib/screens/post_produce_screen.dart - ENHANCED VERSION
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../widgets/loading_widget.dart';
-import '../widgets/error_widget.dart';
-import '../widgets/empty_state_widget.dart';
+
 class PostProduceScreen extends StatefulWidget {
   final Map<String, dynamic>? editListing;
   final String? listingId;
@@ -27,16 +25,25 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
   final _quantityController = TextEditingController();
   final _priceController = TextEditingController();
   final _locationController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _harvestDateController = TextEditingController();
+  final _minOrderController = TextEditingController();
 
   String? _selectedCrop;
   String _selectedUnit = 'Kg';
+  String _selectedQuality = 'Grade A';
   bool _isPriceNegotiable = false;
+  bool _isOrganicCertified = false;
+  bool _allowHomeDelivery = false;
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
   bool _isLoading = false;
   bool _isUploading = false;
   double _uploadProgress = 0.0;
   String? _existingImageUrl;
+  DateTime? _harvestDate;
+  TimeOfDay? _availableFromTime;
+  TimeOfDay? _availableToTime;
 
   final List<String> _crops = [
     'Tomato',
@@ -47,13 +54,24 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
     'Carrot',
     'Cabbage',
     'Spinach',
+    'Cucumber',
+    'Cauliflower',
+    'Brinjal',
+    'Ladyfinger',
+    'Green Chilli',
+    'Coriander',
+    'Mint',
   ];
 
-  final List<String> _units = ['Kg', 'Quintal', 'Ton'];
+  final List<String> _units = ['Kg', 'Quintal', 'Ton', 'Piece', 'Dozen', 'Bundle'];
+  final List<String> _qualities = ['Grade A', 'Grade B', 'Grade C', 'Organic', 'Mixed'];
 
   @override
   void initState() {
     super.initState();
+    // Pre-fill location from user profile
+    _loadUserLocation();
+
     // If editing, populate fields
     if (widget.editListing != null) {
       _selectedCrop = widget.editListing!['crop'];
@@ -63,6 +81,100 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
       _isPriceNegotiable = widget.editListing!['isNegotiable'] ?? false;
       _locationController.text = widget.editListing!['location'] ?? '';
       _existingImageUrl = widget.editListing!['imageUrl'];
+      _descriptionController.text = widget.editListing!['description'] ?? '';
+      _selectedQuality = widget.editListing!['quality'] ?? 'Grade A';
+      _isOrganicCertified = widget.editListing!['isOrganic'] ?? false;
+      _allowHomeDelivery = widget.editListing!['homeDelivery'] ?? false;
+      _minOrderController.text = widget.editListing!['minOrder']?.toString() ?? '';
+
+      // Load harvest date if exists
+      if (widget.editListing!['harvestDate'] != null) {
+        final timestamp = widget.editListing!['harvestDate'] as Timestamp;
+        _harvestDate = timestamp.toDate();
+        _harvestDateController.text = _formatDate(_harvestDate!);
+      }
+    }
+  }
+
+  Future<void> _loadUserLocation() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+        if (doc.exists && mounted) {
+          final location = doc.data()?['location'] as String?;
+          if (location != null && _locationController.text.isEmpty) {
+            setState(() {
+              _locationController.text = location;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading user location: $e');
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
+  }
+
+  Future<void> _selectHarvestDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _harvestDate ?? DateTime.now(),
+      firstDate: DateTime.now().subtract(const Duration(days: 30)),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF11823F),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null && picked != _harvestDate) {
+      setState(() {
+        _harvestDate = picked;
+        _harvestDateController.text = _formatDate(picked);
+      });
+    }
+  }
+
+  Future<void> _selectTime(bool isFromTime) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: isFromTime
+          ? (_availableFromTime ?? TimeOfDay.now())
+          : (_availableToTime ?? TimeOfDay.now()),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF11823F),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        if (isFromTime) {
+          _availableFromTime = picked;
+        } else {
+          _availableToTime = picked;
+        }
+      });
     }
   }
 
@@ -71,6 +183,9 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
     _quantityController.dispose();
     _priceController.dispose();
     _locationController.dispose();
+    _descriptionController.dispose();
+    _harvestDateController.dispose();
+    _minOrderController.dispose();
     super.dispose();
   }
 
@@ -93,11 +208,39 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
     }
   }
 
+  Future<void> _pickFile() async {
+    try {
+      // Use gallery which allows selecting any file type on most Android devices
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+      );
+      
+      if (image != null) {
+        setState(() {
+          _selectedImage = File(image.path);
+          _existingImageUrl = null;
+        });
+        _showSnackbar('File selected: ${image.name}');
+      }
+    } catch (e) {
+      _showSnackbar('Error picking file: $e', isError: true);
+    }
+  }
+
   void _showSnackbar(String message, {bool isError = false}) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Row(
+          children: [
+            Icon(
+              isError ? Icons.error_outline : Icons.check_circle,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
         backgroundColor: isError ? Colors.red : const Color(0xFF11823F),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -118,7 +261,11 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
         _uploadProgress = 0.0;
       });
 
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+      // Generate unique filename with timestamp and random suffix
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final fileExtension = imageFile.path.split('.').last;
+      final fileName = 'product_${timestamp}.$fileExtension';
+      
       final storageRef = FirebaseStorage.instance
           .ref()
           .child('users')
@@ -151,14 +298,14 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
       if (mounted) {
         setState(() => _isUploading = false);
       }
-      debugPrint('✅ Image uploaded: $downloadUrl');
+      debugPrint('✅ File uploaded: $downloadUrl');
       return downloadUrl;
     } catch (e, stackTrace) {
-      debugPrint('❌ Error uploading image: $e');
+      debugPrint('❌ Error uploading file: $e');
       debugPrint('Stack trace: $stackTrace');
       if (mounted) {
         setState(() => _isUploading = false);
-        _showSnackbar('Image upload failed. Please try again.', isError: true);
+        _showSnackbar('File upload failed. Please try again.', isError: true);
       }
       return null;
     }
@@ -171,6 +318,28 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
       debugPrint('✅ Old image deleted successfully');
     } catch (e) {
       debugPrint('⚠️ Error deleting old image: $e');
+    }
+  }
+
+  String _getAssetIconForCrop(String crop) {
+    switch (crop.toLowerCase()) {
+      case 'tomato':
+        return 'assets/icons/tomato.png';
+      case 'onion':
+        return 'assets/icons/onion.png';
+      case 'potato':
+        return 'assets/icons/potato.png';
+      case 'carrot':
+        return 'assets/icons/carrots.png';
+      case 'cabbage':
+        return 'assets/icons/cabbage.png';
+      case 'spinach':
+        return 'assets/icons/spinach.png';
+      case 'wheat':
+      case 'rice':
+        return 'assets/icons/rice.png';
+      default:
+        return 'assets/icons/default.png';
     }
   }
 
@@ -187,9 +356,10 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
       final quantity = _quantityController.text.trim();
       final price = _priceController.text.trim();
       final location = _locationController.text.trim();
+      final description = _descriptionController.text.trim();
 
       if (quantity.isEmpty || price.isEmpty || location.isEmpty) {
-        _showSnackbar('Please fill all fields', isError: true);
+        _showSnackbar('Please fill all required fields', isError: true);
         setState(() => _isLoading = false);
         return;
       }
@@ -210,6 +380,9 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
         return;
       }
 
+      // Get asset icon path
+      final assetIcon = _getAssetIconForCrop(_selectedCrop!);
+
       final data = {
         'name': _selectedCrop,
         'crop': _selectedCrop,
@@ -218,14 +391,34 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
         'price': double.parse(price),
         'isNegotiable': _isPriceNegotiable,
         'location': location,
+        'description': description,
+        'quality': _selectedQuality,
+        'isOrganic': _isOrganicCertified,
+        'homeDelivery': _allowHomeDelivery,
         'status': 'active',
+        'inStock': true,
         'views': 0,
         'inquiries': 0,
         'imageUrl': imageUrl,
+        'assetIcon': assetIcon, // Store asset icon path
         'ownerId': user.uid,
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       };
+
+      // Add optional fields
+      if (_harvestDate != null) {
+        data['harvestDate'] = Timestamp.fromDate(_harvestDate!);
+      }
+
+      if (_minOrderController.text.isNotEmpty) {
+        data['minOrder'] = double.parse(_minOrderController.text);
+      }
+
+      if (_availableFromTime != null && _availableToTime != null) {
+        data['availableFrom'] = '${_availableFromTime!.hour}:${_availableFromTime!.minute}';
+        data['availableTo'] = '${_availableToTime!.hour}:${_availableToTime!.minute}';
+      }
 
       await FirebaseFirestore.instance.collection('products').add(data);
 
@@ -261,9 +454,10 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
       final quantity = _quantityController.text.trim();
       final price = _priceController.text.trim();
       final location = _locationController.text.trim();
+      final description = _descriptionController.text.trim();
 
       if (quantity.isEmpty || price.isEmpty || location.isEmpty) {
-        _showSnackbar('Please fill all fields', isError: true);
+        _showSnackbar('Please fill all required fields', isError: true);
         setState(() => _isLoading = false);
         return;
       }
@@ -284,10 +478,10 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
         imageUrl = newImageUrl;
       }
 
-      await FirebaseFirestore.instance
-          .collection('products')
-          .doc(widget.listingId)
-          .update({
+      // Get asset icon path
+      final assetIcon = _getAssetIconForCrop(_selectedCrop!);
+
+      final updateData = {
         'name': _selectedCrop,
         'crop': _selectedCrop,
         'quantity': double.parse(quantity),
@@ -295,9 +489,33 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
         'price': double.parse(price),
         'isNegotiable': _isPriceNegotiable,
         'location': location,
+        'description': description,
+        'quality': _selectedQuality,
+        'isOrganic': _isOrganicCertified,
+        'homeDelivery': _allowHomeDelivery,
         'imageUrl': imageUrl,
+        'assetIcon': assetIcon,
         'updatedAt': FieldValue.serverTimestamp(),
-      });
+      };
+
+      // Add optional fields
+      if (_harvestDate != null) {
+        updateData['harvestDate'] = Timestamp.fromDate(_harvestDate!);
+      }
+
+      if (_minOrderController.text.isNotEmpty) {
+        updateData['minOrder'] = double.parse(_minOrderController.text);
+      }
+
+      if (_availableFromTime != null && _availableToTime != null) {
+        updateData['availableFrom'] = '${_availableFromTime!.hour}:${_availableFromTime!.minute}';
+        updateData['availableTo'] = '${_availableToTime!.hour}:${_availableToTime!.minute}';
+      }
+
+      await FirebaseFirestore.instance
+          .collection('products')
+          .doc(widget.listingId)
+          .update(updateData);
 
       if (!mounted) return;
 
@@ -346,10 +564,46 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
           ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none, color: Colors.white),
-            onPressed: () {},
-          ),
+          if (!isEditing)
+            IconButton(
+              icon: const Icon(Icons.info_outline, color: Colors.white),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    title: const Text('Tips for Better Listings'),
+                    content: const SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('• Add a clear photo of your produce'),
+                          SizedBox(height: 8),
+                          Text('• Specify harvest date for freshness'),
+                          SizedBox(height: 8),
+                          Text('• Mention quality grade accurately'),
+                          SizedBox(height: 8),
+                          Text('• Set competitive prices'),
+                          SizedBox(height: 8),
+                          Text('• Include detailed description'),
+                          SizedBox(height: 8),
+                          Text('• Respond to inquiries quickly'),
+                        ],
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Got it'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
         ],
       ),
       body: Form(
@@ -359,8 +613,8 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Crop Name
-              _buildSectionLabel('Crop Name'),
+              // Crop Selection
+              _buildSectionLabel('Crop Name', required: true),
               const SizedBox(height: 8),
               _buildDropdownField(
                 hint: 'Select Crop',
@@ -374,7 +628,7 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Quantity and Unit Row
+              // Quantity and Unit
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -383,7 +637,7 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildSectionLabel('Quantity'),
+                        _buildSectionLabel('Quantity', required: true),
                         const SizedBox(height: 8),
                         _buildTextField(
                           controller: _quantityController,
@@ -394,7 +648,7 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
                               return 'Required';
                             }
                             if (double.tryParse(value) == null) {
-                              return 'Invalid number';
+                              return 'Invalid';
                             }
                             return null;
                           },
@@ -408,7 +662,7 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildSectionLabel('Unit'),
+                        _buildSectionLabel('Unit', required: true),
                         const SizedBox(height: 8),
                         _buildDropdownField(
                           hint: 'Unit',
@@ -427,252 +681,149 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Price
-              _buildSectionLabel('Price (per unit)'),
+              // Quality Grade
+              _buildSectionLabel('Quality Grade', required: true),
               const SizedBox(height: 8),
-              _buildTextField(
-                controller: _priceController,
-                hint: 'Enter amount',
-                prefix: const Padding(
-                  padding: EdgeInsets.only(left: 16, right: 8),
-                  child: Text(
-                    '₹',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black87,
-                      fontWeight: FontWeight.w500,
+              _buildDropdownField(
+                hint: 'Select Quality',
+                value: _selectedQuality,
+                items: _qualities,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedQuality = value!;
+                  });
+                },
+              ),
+              const SizedBox(height: 20),
+
+              // Price and Minimum Order
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionLabel('Price (per unit)', required: true),
+                        const SizedBox(height: 8),
+                        _buildTextField(
+                          controller: _priceController,
+                          hint: 'Enter amount',
+                          prefix: const Padding(
+                            padding: EdgeInsets.only(left: 16, right: 8),
+                            child: Text(
+                              '₹',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.black87,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Required';
+                            }
+                            if (double.tryParse(value) == null) {
+                              return 'Invalid';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
                     ),
                   ),
-                ),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter price';
-                  }
-                  if (double.tryParse(value) == null) {
-                    return 'Invalid price';
-                  }
-                  return null;
-                },
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionLabel('Min Order'),
+                        const SizedBox(height: 8),
+                        _buildTextField(
+                          controller: _minOrderController,
+                          hint: 'Min',
+                          keyboardType: TextInputType.number,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
 
               // Price Negotiable Checkbox
-              InkWell(
-                onTap: () {
+              _buildCheckbox(
+                value: _isPriceNegotiable,
+                label: 'Price Negotiable',
+                onChanged: (value) {
                   setState(() {
-                    _isPriceNegotiable = !_isPriceNegotiable;
+                    _isPriceNegotiable = value!;
                   });
                 },
-                child: Row(
-                  children: [
-                    Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: _isPriceNegotiable
-                            ? const Color(0xFF11823F)
-                            : Colors.white,
-                        border: Border.all(
-                          color: _isPriceNegotiable
-                              ? const Color(0xFF11823F)
-                              : Colors.grey[400]!,
-                          width: 2,
-                        ),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: _isPriceNegotiable
-                          ? const Icon(Icons.check, size: 16, color: Colors.white)
-                          : null,
-                    ),
-                    const SizedBox(width: 10),
-                    const Text(
-                      'Price Negotiable',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF333333),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
+              ),
+              const SizedBox(height: 8),
+
+              // Organic Certified Checkbox
+              _buildCheckbox(
+                value: _isOrganicCertified,
+                label: 'Organic Certified',
+                icon: Icons.eco,
+                onChanged: (value) {
+                  setState(() {
+                    _isOrganicCertified = value!;
+                  });
+                },
+              ),
+              const SizedBox(height: 8),
+
+              // Home Delivery Checkbox
+              _buildCheckbox(
+                value: _allowHomeDelivery,
+                label: 'Home Delivery Available',
+                icon: Icons.local_shipping_outlined,
+                onChanged: (value) {
+                  setState(() {
+                    _allowHomeDelivery = value!;
+                  });
+                },
               ),
               const SizedBox(height: 24),
 
-              // Photo Section
-              _buildSectionLabel('Photo (Optional)'),
-              const SizedBox(height: 12),
-
-              if (_existingImageUrl != null && _selectedImage == null)
-                Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        _existingImageUrl!,
-                        width: double.infinity,
-                        height: 200,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Container(
-                            width: double.infinity,
-                            height: 200,
-                            color: Colors.grey[200],
-                            child: Center(
-                              child: CircularProgressIndicator(
-                                value: loadingProgress.expectedTotalBytes != null
-                                    ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                                    : null,
-                                color: const Color(0xFF11823F),
-                              ),
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            width: double.infinity,
-                            height: 200,
-                            color: Colors.grey[200],
-                            child: const Icon(
-                              Icons.broken_image,
-                              size: 60,
-                              color: Colors.grey,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: InkWell(
-                        onTap: () {
-                          setState(() {
-                            _existingImageUrl = null;
-                          });
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Colors.black54,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Icon(
-                            Icons.close,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-              else if (_selectedImage != null)
-                Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.file(
-                        _selectedImage!,
-                        width: double.infinity,
-                        height: 200,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: InkWell(
-                        onTap: () {
-                          setState(() {
-                            _selectedImage = null;
-                          });
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Colors.black54,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Icon(
-                            Icons.close,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-              else
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildPhotoButton(
-                        icon: Icons.camera_alt,
-                        label: 'Camera',
-                        onTap: () => _pickImage(ImageSource.camera),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildPhotoButton(
-                        icon: Icons.photo_library,
-                        label: 'Gallery',
-                        onTap: () => _pickImage(ImageSource.gallery),
-                      ),
-                    ),
-                  ],
+              // Harvest Date
+              _buildSectionLabel('Harvest Date'),
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: _selectHarvestDate,
+                child: AbsorbPointer(
+                  child: _buildTextField(
+                    controller: _harvestDateController,
+                    hint: 'Select harvest date',
+                    suffix: const Icon(Icons.calendar_today, size: 20),
+                  ),
                 ),
+              ),
+              const SizedBox(height: 20),
 
-              // Upload Progress
-              if (_isUploading) ...[
-                const SizedBox(height: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Uploading image...',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF666666),
-                          ),
-                        ),
-                        Text(
-                          '${(_uploadProgress * 100).toInt()}%',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF11823F),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    LinearProgressIndicator(
-                      value: _uploadProgress,
-                      backgroundColor: Colors.grey[300],
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        Color(0xFF11823F),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-
+              // Description
+              _buildSectionLabel('Description'),
+              const SizedBox(height: 8),
+              _buildTextField(
+                controller: _descriptionController,
+                hint: 'Add details about your produce...',
+                maxLines: 4,
+              ),
               const SizedBox(height: 24),
 
               // Location
-              _buildSectionLabel('Location'),
+              _buildSectionLabel('Location', required: true),
               const SizedBox(height: 8),
               _buildTextField(
                 controller: _locationController,
                 hint: 'City/District',
+                suffix: const Icon(Icons.location_on, size: 20),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter location';
@@ -687,7 +838,8 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
                 width: double.infinity,
                 height: 54,
                 child: ElevatedButton(
-                  onPressed: (_isLoading || _isUploading) ? null : _publishListing,
+                  onPressed:
+                  (_isLoading || _isUploading) ? null : _publishListing,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF11823F),
                     disabledBackgroundColor: Colors.grey[400],
@@ -705,14 +857,24 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
                       strokeWidth: 2.5,
                     ),
                   )
-                      : Text(
-                    isEditing ? 'Update Listing' : 'Publish Listing',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                      letterSpacing: 0.5,
-                    ),
+                      : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        isEditing ? Icons.update : Icons.publish,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        isEditing ? 'Update Listing' : 'Publish Listing',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -724,14 +886,23 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
     );
   }
 
-  Widget _buildSectionLabel(String label) {
-    return Text(
-      label,
-      style: const TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        color: Color(0xFF333333),
-      ),
+  Widget _buildSectionLabel(String label, {bool required = false}) {
+    return Row(
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF333333),
+          ),
+        ),
+        if (required)
+          const Text(
+            ' *',
+            style: TextStyle(color: Colors.red, fontSize: 14),
+          ),
+      ],
     );
   }
 
@@ -739,13 +910,16 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
     required TextEditingController controller,
     required String hint,
     Widget? prefix,
+    Widget? suffix,
     TextInputType? keyboardType,
     String? Function(String?)? validator,
+    int maxLines = 1,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       validator: validator,
+      maxLines: maxLines,
       style: const TextStyle(fontSize: 15),
       decoration: InputDecoration(
         hintText: hint,
@@ -754,6 +928,7 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
           fontSize: 14,
         ),
         prefix: prefix,
+        suffixIcon: suffix,
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(
@@ -834,13 +1009,187 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
     );
   }
 
-  Widget _buildPhotoButton({
-    required IconData icon,
+  Widget _buildCheckbox({
+    required bool value,
     required String label,
-    required VoidCallback onTap,
+    IconData? icon,
+    required void Function(bool?) onChanged,
   }) {
     return InkWell(
-      onTap: onTap,
+      onTap: () => onChanged(!value),
+      child: Row(
+        children: [
+          Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: value ? const Color(0xFF11823F) : Colors.white,
+              border: Border.all(
+                color: value
+                    ? const Color(0xFF11823F)
+                    : Colors.grey[400]!,
+                width: 2,
+              ),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: value
+                ? const Icon(Icons.check, size: 16, color: Colors.white)
+                : null,
+          ),
+          const SizedBox(width: 10),
+          if (icon != null) ...[
+            Icon(icon, size: 18, color: const Color(0xFF11823F)),
+            const SizedBox(width: 6),
+          ],
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Color(0xFF333333),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImagePreview(String path, {required bool isExisting}) {
+    return Stack(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: isExisting
+              ? Image.network(
+            path,
+            width: double.infinity,
+            height: 200,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Container(
+                width: double.infinity,
+                height: 200,
+                color: Colors.grey[200],
+                child: Center(
+                  child: CircularProgressIndicator(
+                    value: loadingProgress.expectedTotalBytes != null
+                        ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
+                        : null,
+                    color: const Color(0xFF11823F),
+                  ),
+                ),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                width: double.infinity,
+                height: 200,
+                color: Colors.grey[200],
+                child: const Icon(
+                  Icons.broken_image,
+                  size: 60,
+                  color: Colors.grey,
+                ),
+              );
+            },
+          )
+              : Image.file(
+            File(path),
+            width: double.infinity,
+            height: 200,
+            fit: BoxFit.cover,
+          ),
+        ),
+        Positioned(
+          top: 8,
+          right: 8,
+          child: Row(
+            children: [
+              InkWell(
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(20)),
+                    ),
+                    builder: (context) => Container(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ListTile(
+                            leading: const Icon(Icons.camera_alt,
+                                color: Color(0xFF11823F)),
+                            title: const Text('Take Photo'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _pickImage(ImageSource.camera);
+                            },
+                          ),
+                          ListTile(
+                            leading: const Icon(Icons.photo_library,
+                                color: Color(0xFF11823F)),
+                            title: const Text('Choose from Gallery'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _pickImage(ImageSource.gallery);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Icon(
+                    Icons.edit,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    if (isExisting) {
+                      _existingImageUrl = null;
+                    } else {
+                      _selectedImage = null;
+                    }
+                  });
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Icon(
+                    Icons.close,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildImagePicker() {
+    return InkWell(
+      onTap: () => _pickImage(ImageSource.gallery),
       borderRadius: BorderRadius.circular(10),
       child: Container(
         height: 100,
@@ -852,11 +1201,11 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 36, color: const Color(0xFF11823F)),
+            Icon(Icons.cloud_upload_outlined, size: 36, color: const Color(0xFF11823F)),
             const SizedBox(height: 8),
-            Text(
-              label,
-              style: const TextStyle(
+            const Text(
+              'Upload Image',
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
                 color: Color(0xFF666666),
@@ -865,6 +1214,46 @@ class _PostProduceScreenState extends State<PostProduceScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildUploadProgress() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Uploading image...',
+              style: TextStyle(
+                fontSize: 14,
+                color: Color(0xFF666666),
+              ),
+            ),
+            Text(
+              '${(_uploadProgress * 100).toInt()}%',
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF11823F),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: _uploadProgress,
+            backgroundColor: Colors.grey[300],
+            valueColor: const AlwaysStoppedAnimation<Color>(
+              Color(0xFF11823F),
+            ),
+            minHeight: 8,
+          ),
+        ),
+      ],
     );
   }
 }
