@@ -5806,3 +5806,142 @@ Enhanced the **Complete Profile Screen** with professional-grade validation and 
 ### Files Modified:
 - `lib/screens/complete_profile_screen.dart`
 
+# MarketBridge Agricultural Marketplace - Complete Enhancement
+
+## Overview
+A comprehensive agricultural marketplace application built with Flutter and Firebase, enabling farmers to list products and buyers to discover fresh produce with advanced filtering and direct communication features.
+
+## 🎯 Core Features
+
+### 1. Farmer Dashboard (farmer_dashboard_screen.dart)
+Complete inventory management system with multiple views:
+
+**Dashboard Tabs:**
+- **Active Listings** - Products in stock (inStock: true)
+- **Sold Products** - Completed sales (sold: true)
+- **Expired Listings** - Out of stock items (inStock: false, sold: false)
+- **All Listings** - Complete inventory view
+
+**Dashboard Analytics:**
+- Total active products count
+- Total sold products count
+- Total views received
+- Total revenue generated (₹)
+- Real-time updates from Firestore
+
+**Features:**
+- Pull-to-refresh to reload listings
+- Search by crop name (case-insensitive)
+- Sort by: Recent, Price (Low/High), Views
+- Share listings via social media/messaging
+- Delete listings (moves to deleted status)
+- Select mode for batch operations
+- Stat cards display key metrics (reduced size for compact UI)
+
+**Technical Details:**
+- Single Firestore query: `where('ownerId', isEqualTo: user.uid)`
+- Client-side tab filtering by inStock/sold fields
+- Client-side sorting (avoids composite index requirements)
+- StreamBuilder for real-time updates
+- Error handling with retry mechanism
+
+### 2. Marketplace Screen (marketplace_screen.dart)
+Buyer-facing product discovery and purchase initiation:
+
+**Features:**
+- Browse all products (inStock: true)
+- Filter by category (case-insensitive matching)
+- Filter by organic status
+- Sort by: Latest, Price (Low/High), Views, Popular
+- Search products
+- Crop emoji icons (🥦🧅🥕🌾🍅 etc.)
+- View farmer details
+- Contact buttons:
+    - **Inquiry Button** - Creates Firestore record, sends message
+    - **Call Button** - Initiates phone call to farmer
+
+**Product Display:**
+- Crop name with emoji icon
+- Price per unit (₹)
+- Unit type (kg, piece, bundle)
+- Organic badge indicator
+- Views count
+- Farmer information
+- Description
+
+**Technical Details:**
+- Single Firestore query: `where('inStock', isEqualTo: true)`
+- All filtering/sorting on client-side
+- Crop-to-emoji mapping system
+- Phone number lookup from users collection
+- Inquiry creates records in inquiries collection
+
+### 3. Post Produce Screen (post_produce_screen.dart)
+Simplified product listing creation for farmers:
+
+**Features:**
+- Crop type selection with emoji display
+- Quantity input with dynamic unit selection
+- Price per unit input
+- Organic checkbox
+- Product description textarea
+- Single "Upload Image" button (simplified UI)
+- Auto-suggestions for crop types
+- Submit to create Firestore document
+- Success/error notifications
+
+**Image Upload:**
+- Firebase Storage integration
+- Automatic URL retrieval
+- Support for jpg, png, webp formats
+- Progress indication during upload
+- Fallback to placeholder if upload fails
+
+**Technical Details:**
+- Validates all required fields
+- Creates products collection document
+- Sets ownerId, createdAt, timestamps
+- Default inStock: true, sold: false
+- Views counter initialized to 0
+
+### 4. Authentication Features
+User account management with role-based access:
+
+**Farmer Role:**
+- Full dashboard access
+- Product management (create, edit, delete)
+- Analytics view
+- Inquiry notifications
+
+**Buyer Role:**
+- Marketplace access
+- Search and filter products
+- Send inquiries
+- Contact farmers directly
+
+**Guest Mode:**
+- Browse public marketplace
+- Limited features
+- Redirect to login for interactions
+
+## 📊 Database Schema
+
+### Products Collection
+```
+javascript
+{
+  ownerId: string,          // Farmer's user ID
+  crop: string,             // Crop name
+  quantity: number,
+  unit: string,             // kg, piece, bundle, etc.
+  price: number,            // Per unit
+  isOrganic: boolean,
+  category: string,         // Auto-derived from crop
+  inStock: boolean,
+  sold: boolean,
+  views: number,
+  imageUrl: string,
+  description: string,
+  createdAt: Timestamp,
+  deletedAt: Timestamp      // Only if deleted
+}

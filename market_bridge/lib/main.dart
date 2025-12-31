@@ -41,8 +41,13 @@ void main() async {
 
   await LocalNotificationService.initialize();
 
-  String? token = await FirebaseMessaging.instance.getToken();
-  print("FCM Token: $token");
+  // Get FCM token with error handling for emulator
+  try {
+    String? token = await FirebaseMessaging.instance.getToken();
+    print("FCM Token: $token");
+  } catch (e) {
+    print("Error getting FCM token: $e (This is normal on emulators without Google Play services)");
+  }
 
   // Background handler (NO UI work here)
   FirebaseMessaging.onBackgroundMessage(firebaseBackgroundHandler);
@@ -119,7 +124,7 @@ class MyApp extends StatelessWidget {
             );
           case Routes.routeMarketPlace:
             return _buildSlideRoute(
-              const MarketplaceScreen(),
+              const MarketplaceScreenEnhanced(),
               settings,
               curve: curve,
             );
@@ -138,7 +143,11 @@ class MyApp extends StatelessWidget {
           case Routes.routeListingDetails:
             final args = settings.arguments as Map<String, dynamic>?;
             return _buildScaleFadeRoute(
-              ListingDetailsScreen(crop: args?['crop'] ?? {}),
+              ProductDetailScreen(
+                productId: args?['productId'] ?? '',
+                product: args?['product'] ?? {},
+                onInquiry: () {},
+              ),
               settings,
               curve: curve,
             );

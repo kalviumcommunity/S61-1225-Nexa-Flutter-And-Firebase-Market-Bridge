@@ -114,7 +114,7 @@ class Routes {
           );
         } else {
           return _buildPageRoute(
-            const MarketplaceScreen(),
+            const MarketplaceScreenEnhanced(),
             settings,
             curve: curve,
           );
