@@ -863,35 +863,41 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen>
       child: StreamBuilder<QuerySnapshot>(
         stream: query.snapshots(),
         builder: (context, snap) {
-          if (snap.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: Color(0xFF2196F3)));
-          }
           if (snap.hasError) {
             return Center(child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+                Icon(Icons.error_outline, color: Colors.red, size: 48),
                 const SizedBox(height: 16),
-                const Text('Unable to load orders'),
-                ElevatedButton.icon(
-                  onPressed: () => setState(() {}),
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Retry'),
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2196F3)),
+                Text('Unable to load orders', style: TextStyle(fontSize: 18)),
+                const SizedBox(height: 8),
+                ElevatedButton(
+                  onPressed: _refreshOrders,
+                  child: const Text('Retry'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2196F3),
+                  ),
                 ),
               ],
             ));
           }
+          if (snap.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(color: Color(0xFF2196F3)));
+          }
           if (!snap.hasData || snap.data!.docs.isEmpty) {
             return _buildEmptyOrdersState(filter);
           }
-
-          final filtered = _filterAndSortOrders(snap.data!.docs);
+          // Data available
+          final docs = snap.data!.docs;
+          final orders = _filterAndSortOrders(docs);
+          if (orders.isEmpty) {
+            return _buildEmptyOrdersState(filter);
+          }
           return ListView.builder(
             padding: const EdgeInsets.all(16),
-            itemCount: filtered.length,
+            itemCount: orders.length,
             itemBuilder: (context, index) {
-              final order = filtered[index];
+              final order = orders[index];
               return _isSelectMode
                   ? _buildSelectableOrderCard(order)
                   : _buildOrderCard(order: order);
