@@ -976,46 +976,41 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
       child: StreamBuilder<QuerySnapshot>(
         stream: query.snapshots(),
         builder: (context, snap) {
-          if (snap.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: Color(0xFF11823F)));
-          }
           if (snap.hasError) {
             return Center(child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+                Icon(Icons.error_outline, color: Colors.red, size: 48),
                 const SizedBox(height: 16),
-                const Text('Unable to load'),
-                ElevatedButton.icon(
-                  onPressed: () => setState(() {}),
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Retry'),
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF11823F)),
+                Text('Unable to load', style: TextStyle(fontSize: 18)),
+                const SizedBox(height: 8),
+                ElevatedButton(
+                  onPressed: _refreshListings,
+                  child: const Text('Retry'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF11823F),
+                  ),
                 ),
               ],
             ));
           }
+          if (snap.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(color: Color(0xFF11823F)));
+          }
           if (!snap.hasData || snap.data!.docs.isEmpty) {
             return _buildEmptyState(filter);
           }
-
-          final filtered = _filterAndSortListings(snap.data!.docs);
-          if (filtered.isEmpty) {
-            return Center(child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.search_off, size: 64, color: Colors.grey[400]),
-                const SizedBox(height: 16),
-                const Text('No results found'),
-              ],
-            ));
+          // Data available
+          final docs = snap.data!.docs;
+          final listings = _filterAndSortListings(docs);
+          if (listings.isEmpty) {
+            return _buildEmptyState(filter);
           }
-
           return ListView.builder(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
-            itemCount: filtered.length,
-            itemBuilder: (context, i) {
-              final item = filtered[i];
+            itemCount: listings.length,
+            itemBuilder: (context, idx) {
+              final item = listings[idx];
               final docId = item['id'] as String;
               final isSelected = _selectedListings.contains(docId);
 
