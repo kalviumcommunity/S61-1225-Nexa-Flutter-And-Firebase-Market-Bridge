@@ -33,6 +33,51 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen>
   Set<String> _selectedOrders = {};
   bool _isSelectMode = false;
 
+    // Map product names to asset icon filenames
+    String? _getProductIconAsset(String productName) {
+      final name = productName.toLowerCase();
+      if (name.contains('apple')) return 'assets/icons/apple.png';
+      if (name.contains('banana')) return 'assets/icons/bananas.png';
+      if (name.contains('bean')) return 'assets/icons/bean.png';
+      if (name.contains('bell pepper')) return 'assets/icons/bell-pepper.png';
+      if (name.contains('brinjal') || name.contains('eggplant')) return 'assets/icons/brinjal.png';
+      if (name.contains('brown rice')) return 'assets/icons/brown-rice.png';
+      if (name.contains('butter')) return 'assets/icons/butter.png';
+      if (name.contains('cabbage')) return 'assets/icons/cabbage.png';
+      if (name.contains('carrot')) return 'assets/icons/carrots.png';
+      if (name.contains('chili') || name.contains('chili pepper')) return 'assets/icons/chili-pepper.png';
+      if (name.contains('coriander')) return 'assets/icons/coriander.png';
+      if (name.contains('corn')) return 'assets/icons/corn.png';
+      if (name.contains('cucumber')) return 'assets/icons/cucumber.png';
+      if (name.contains('curd')) return 'assets/icons/curd.png';
+      if (name.contains('dragonfruit')) return 'assets/icons/dragonfruit.png';
+      if (name.contains('ghee')) return 'assets/icons/ghee.png';
+      if (name.contains('grape')) return 'assets/icons/grapes.png';
+      if (name.contains('green chili')) return 'assets/icons/green-chili-pepper.png';
+      if (name.contains('ladyfinger') || name.contains('okra')) return 'assets/icons/ladyfinger.png';
+      if (name.contains('mango')) return 'assets/icons/mango.png';
+      if (name.contains('milk')) return 'assets/icons/milk.png';
+      if (name.contains('mint')) return 'assets/icons/mint.png';
+      if (name.contains('mushroom')) return 'assets/icons/mushroom.png';
+      if (name.contains('oat')) return 'assets/icons/oat.png';
+      if (name.contains('onion')) return 'assets/icons/onion.png';
+      if (name.contains('orange')) return 'assets/icons/orange.png';
+      if (name.contains('papaya')) return 'assets/icons/papaya.png';
+      if (name.contains('pea')) return 'assets/icons/peas.png';
+      if (name.contains('pineapple')) return 'assets/icons/pineapple.png';
+      if (name.contains('pomegranate')) return 'assets/icons/pomegranate.png';
+      if (name.contains('potato')) return 'assets/icons/potato.png';
+      if (name.contains('pumpkin')) return 'assets/icons/pumpkin.png';
+      if (name.contains('quinoa')) return 'assets/icons/quinoa.png';
+      if (name.contains('raddish') || name.contains('radish')) return 'assets/icons/raddish.png';
+      if (name.contains('rice')) return 'assets/icons/rice.png';
+      if (name.contains('spinach')) return 'assets/icons/spinach.png';
+      if (name.contains('strawberry')) return 'assets/icons/strawberry.png';
+      if (name.contains('tomato')) return 'assets/icons/tomato.png';
+      if (name.contains('watermelon')) return 'assets/icons/watermelon.png';
+      if (name.contains('yogurt')) return 'assets/icons/yogurt.png';
+      return null;
+    }
   final GlobalKey<RefreshIndicatorState> _refreshKey = GlobalKey<RefreshIndicatorState>();
 
   // For demo: store reviews as a map in shared_preferences
@@ -296,98 +341,98 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen>
 
     if (!mounted) return;
 
-    showDialog(
-      context: context,
-      builder: (ctx) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          constraints: const BoxConstraints(maxWidth: 400, maxHeight: 600),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Your Analytics', 
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(ctx),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              
-              // Stats Grid
-              Row(
-                children: [
-                  Expanded(child: _buildAnalyticCard('Total Orders', '$totalOrders', Icons.shopping_bag, Colors.blue)),
-                  const SizedBox(width: 12),
-                  Expanded(child: _buildAnalyticCard('Delivered', '$deliveredOrders', Icons.check_circle, Colors.green)),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(child: _buildAnalyticCard('Pending', '$pendingOrders', Icons.pending_actions, Colors.orange)),
-                  const SizedBox(width: 12),
-                  Expanded(child: _buildAnalyticCard('Favorites', '$favoriteCount', Icons.favorite, Colors.red)),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2196F3).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
+      showDialog(
+        context: context,
+        builder: (ctx) => Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            constraints: const BoxConstraints(maxWidth: 400, maxHeight: 600),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Icon(Icons.attach_money, color: Color(0xFF2196F3), size: 32),
-                    const SizedBox(height: 8),
-                    Text('₹${totalSpent.toStringAsFixed(0)}', 
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF2196F3))),
-                    const Text('Total Spent', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    const Text('Your Analytics', 
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: 24),
               
-              // Top Farmers
-              if (top3.isNotEmpty) ...[
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text('Top Farmers', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                // Stats Grid
+                Row(
+                  children: [
+                    Expanded(child: _buildAnalyticCard('Total Orders', '$totalOrders', Icons.shopping_bag, Colors.blue)),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildAnalyticCard('Delivered', '$deliveredOrders', Icons.check_circle, Colors.green)),
+                  ],
                 ),
                 const SizedBox(height: 12),
-                ...top3.map((entry) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
+                Row(
+                  children: [
+                    Expanded(child: _buildAnalyticCard('Pending', '$pendingOrders', Icons.pending_actions, Colors.orange)),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildAnalyticCard('Favorites', '$favoriteCount', Icons.favorite, Colors.red)),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2196F3).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
                     children: [
-                      Text(_getCropIcon(entry.key), style: const TextStyle(fontSize: 24)),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(entry.key, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF2196F3),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text('${entry.value}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                      ),
+                      const Icon(Icons.attach_money, color: Color(0xFF2196F3), size: 32),
+                      const SizedBox(height: 8),
+                      Text('₹${totalSpent.toStringAsFixed(0)}', 
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF2196F3))),
+                      const Text('Total Spent', style: TextStyle(fontSize: 12, color: Colors.grey)),
                     ],
                   ),
-                )),
+                ),
+                const SizedBox(height: 24),
+              
+                // Top Farmers
+                if (top3.isNotEmpty) ...[
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('Top Farmers', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
+                  const SizedBox(height: 12),
+                  ...top3.map((entry) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      children: [
+                        Text(_getCropIcon(entry.key), style: const TextStyle(fontSize: 24)),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(entry.key, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF2196F3),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text('${entry.value}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                  )),
+                ],
               ],
-            ],
+            ),
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildAnalyticCard(String label, String value, IconData icon, Color color) {
@@ -1049,13 +1094,14 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen>
   }
 
   Widget _buildOrderCard({required Map<String, dynamic> order}) {
-    final productName =
-        order['crop'] ?? order['productName'] ?? 'Unknown Product';
-    final quantity = order['quantity'] ?? 'N/A';
-    final price = order['price'] ?? order['pricePerUnit'] ?? 0;
+    final items = order['items'] as List<dynamic>? ?? [];
+    final firstItem = items.isNotEmpty ? items[0] as Map<String, dynamic> : {};
+    final productName = firstItem['productName'] ?? 'Unknown Product';
+    final quantity = firstItem['quantity'] ?? 'N/A';
+    final price = firstItem['price'] ?? 0;
     final farmerName = order['farmer'] ?? order['farmerName'] ?? 'Unknown';
     final status = order['status'] ?? 'pending';
-    final icon = order['icon'] ?? '🌱';
+    final assetIcon = _getProductIconAsset(productName);
 
     String dateDisplay = 'N/A';
     if (order['date'] != null) {
@@ -1104,7 +1150,9 @@ class _BuyerDashboardScreenState extends State<BuyerDashboardScreen>
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Center(
-                  child: Text(icon, style: const TextStyle(fontSize: 28)),
+                  child: assetIcon != null
+                    ? Image.asset(assetIcon, width: 36, height: 36)
+                    : Text('🌱', style: const TextStyle(fontSize: 28)),
                 ),
               ),
               const SizedBox(width: 12),

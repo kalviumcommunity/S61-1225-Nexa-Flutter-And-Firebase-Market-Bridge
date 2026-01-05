@@ -53,6 +53,7 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen> {
         .where('status', isEqualTo: 'pending')
         .get();
     
+    if (!mounted) return;
     setState(() {
       _notificationCount = snapshot.docs.length;
     });
@@ -91,6 +92,7 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen> {
       
       final avgPrice = priceCount > 0 ? totalPrice / priceCount : 0.0;
       
+      if (!mounted) return;
       setState(() {
         _orderCount = ordersSnapshot.docs.length;
         _wishlistCount = wishlistItems.length;
@@ -117,15 +119,14 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen> {
 
   void _startBannerAutoScroll() {
     Future.delayed(const Duration(seconds: 3), () {
-      if (mounted && _pageController.hasClients) {
-        final nextPage = (_currentBannerIndex + 1) % 3;
-        _pageController.animateToPage(
-          nextPage,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-        );
-        _startBannerAutoScroll();
-      }
+      if (!mounted || !_pageController.hasClients) return;
+      final nextPage = (_currentBannerIndex + 1) % 3;
+      _pageController.animateToPage(
+        nextPage,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+      _startBannerAutoScroll();
     });
   }
 
@@ -156,6 +157,7 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen> {
             controller: _pageController,
             itemCount: banners.length,
             onPageChanged: (index) {
+              if (!mounted) return;
               setState(() {
                 _currentBannerIndex = index;
               });
