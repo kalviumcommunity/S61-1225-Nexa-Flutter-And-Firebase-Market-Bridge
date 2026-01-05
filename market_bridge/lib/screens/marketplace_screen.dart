@@ -37,14 +37,48 @@ class _MarketplaceScreenEnhancedState extends State<MarketplaceScreenEnhanced> {
   }
 
   String _getCropIcon(String crop) {
-    final c = crop.toLowerCase();
-    final icons = {
-      'tomato': '🍅', 'onion': '🧅', 'potato': '🥔', 'carrot': '🥕',
-      'cabbage': '🥬', 'spinach': '🥬', 'wheat': '🌾', 'rice': '🌾',
-      'corn': '🌽', 'cucumber': '🥒', 'eggplant': '🍆', 'pepper': '🌶️',
-      'cauliflower': '🥦', 'broccoli': '🥦', 'lettuce': '🥬',
-    };
-    return icons[c] ?? '🌱';
+    final name = crop.toLowerCase();
+    if (name.contains('apple')) return 'assets/icons/apple.png';
+    if (name.contains('banana')) return 'assets/icons/bananas.png';
+    if (name.contains('bean')) return 'assets/icons/bean.png';
+    if (name.contains('bell pepper')) return 'assets/icons/bell-pepper.png';
+    if (name.contains('brinjal') || name.contains('eggplant')) return 'assets/icons/brinjal.png';
+    if (name.contains('brown rice')) return 'assets/icons/brown-rice.png';
+    if (name.contains('butter')) return 'assets/icons/butter.png';
+    if (name.contains('cabbage')) return 'assets/icons/cabbage.png';
+    if (name.contains('carrot')) return 'assets/icons/carrots.png';
+    if (name.contains('chili') || name.contains('chili pepper')) return 'assets/icons/chili-pepper.png';
+    if (name.contains('coriander')) return 'assets/icons/coriander.png';
+    if (name.contains('corn')) return 'assets/icons/corn.png';
+    if (name.contains('cucumber')) return 'assets/icons/cucumber.png';
+    if (name.contains('curd')) return 'assets/icons/curd.png';
+    if (name.contains('dragonfruit')) return 'assets/icons/dragonfruit.png';
+    if (name.contains('ghee')) return 'assets/icons/ghee.png';
+    if (name.contains('grape')) return 'assets/icons/grapes.png';
+    if (name.contains('green chili')) return 'assets/icons/green-chili-pepper.png';
+    if (name.contains('ladyfinger') || name.contains('okra')) return 'assets/icons/ladyfinger.png';
+    if (name.contains('mango')) return 'assets/icons/mango.png';
+    if (name.contains('milk')) return 'assets/icons/milk.png';
+    if (name.contains('mint')) return 'assets/icons/mint.png';
+    if (name.contains('mushroom')) return 'assets/icons/mushroom.png';
+    if (name.contains('oat')) return 'assets/icons/oat.png';
+    if (name.contains('onion')) return 'assets/icons/onion.png';
+    if (name.contains('orange')) return 'assets/icons/orange.png';
+    if (name.contains('papaya')) return 'assets/icons/papaya.png';
+    if (name.contains('pea')) return 'assets/icons/peas.png';
+    if (name.contains('pineapple')) return 'assets/icons/pineapple.png';
+    if (name.contains('pomegranate')) return 'assets/icons/pomegranate.png';
+    if (name.contains('potato')) return 'assets/icons/potato.png';
+    if (name.contains('pumpkin')) return 'assets/icons/pumpkin.png';
+    if (name.contains('quinoa')) return 'assets/icons/quinoa.png';
+    if (name.contains('raddish') || name.contains('radish')) return 'assets/icons/raddish.png';
+    if (name.contains('rice')) return 'assets/icons/rice.png';
+    if (name.contains('spinach')) return 'assets/icons/spinach.png';
+    if (name.contains('strawberry')) return 'assets/icons/strawberry.png';
+    if (name.contains('tomato')) return 'assets/icons/tomato.png';
+    if (name.contains('watermelon')) return 'assets/icons/watermelon.png';
+    if (name.contains('yogurt')) return 'assets/icons/yogurt.png';
+    return 'assets/icons/default.png';
   }
 
   void _onNavTap(int index) {
@@ -652,9 +686,14 @@ class _MarketplaceScreenEnhancedState extends State<MarketplaceScreenEnhanced> {
                       ),
                     ),
                     child: Center(
-                      child: Text(
+                      child: Image.asset(
                         _getCropIcon(product['crop'] ?? ''),
-                        style: const TextStyle(fontSize: 64),
+                        width: 64,
+                        height: 64,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Icon(Icons.image_not_supported, size: 64, color: Colors.grey);
+                        },
                       ),
                     ),
                   ),
@@ -691,9 +730,14 @@ class _MarketplaceScreenEnhancedState extends State<MarketplaceScreenEnhanced> {
                   children: [
                     Row(
                       children: [
-                        Text(
+                        Image.asset(
                           _getCropIcon(product['crop'] ?? ''),
-                          style: const TextStyle(fontSize: 20),
+                          width: 20,
+                          height: 20,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(Icons.image_not_supported, size: 20, color: Colors.grey);
+                          },
                         ),
                         const SizedBox(width: 6),
                         Expanded(
