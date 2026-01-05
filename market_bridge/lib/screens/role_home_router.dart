@@ -33,17 +33,11 @@ class _RoleHomeRouterState extends State<RoleHomeRouter>
     )..repeat(reverse: true);
 
     _rotationAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(
-        parent: _loadingController,
-        curve: Curves.linear,
-      ),
+      CurvedAnimation(parent: _loadingController, curve: Curves.linear),
     );
 
     _scaleAnimation = Tween<double>(begin: 0.9, end: 1.1).animate(
-      CurvedAnimation(
-        parent: _loadingController,
-        curve: Curves.easeInOut,
-      ),
+      CurvedAnimation(parent: _loadingController, curve: Curves.easeInOut),
     );
   }
 
@@ -82,7 +76,7 @@ class _RoleHomeRouterState extends State<RoleHomeRouter>
     }
   }
 
-  Widget _buildLoadingScreen() {
+  Widget _buildLoadingScreen({String? role}) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: LayoutBuilder(
@@ -95,6 +89,15 @@ class _RoleHomeRouterState extends State<RoleHomeRouter>
               ? constraints.maxWidth * 0.12
               : constraints.maxWidth * 0.2;
           final iconInnerSize = iconSize * 0.5;
+
+          // Determine icon and color based on role
+          final isBuyer = (role?.toLowerCase() == 'buyer');
+          final iconData = isBuyer ? Icons.shopping_cart : Icons.agriculture;
+          final iconColor = isBuyer ? Color(0xFF1976D2) : Color(0xFF11823F);
+          final bgColor = iconColor.withOpacity(0.1);
+          final loadingText = isBuyer
+              ? 'Loading your buyer dashboard...'
+              : 'Loading your dashboard...';
 
           return Center(
             child: Padding(
@@ -113,13 +116,15 @@ class _RoleHomeRouterState extends State<RoleHomeRouter>
                         width: iconSize,
                         height: iconSize,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF11823F).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
+                          color: bgColor,
+                          borderRadius: BorderRadius.circular(
+                            isTablet ? 20 : 16,
+                          ),
                         ),
                         child: Icon(
-                          Icons.agriculture,
+                          iconData,
                           size: iconInnerSize,
-                          color: const Color(0xFF11823F),
+                          color: iconColor,
                         ),
                       ),
                     ),
@@ -128,7 +133,7 @@ class _RoleHomeRouterState extends State<RoleHomeRouter>
                   FadeTransition(
                     opacity: _loadingController,
                     child: Text(
-                      'Loading your dashboard...',
+                      loadingText,
                       style: TextStyle(
                         fontSize: isTablet ? 20 : 16,
                         color: Colors.grey.shade700,
@@ -143,7 +148,7 @@ class _RoleHomeRouterState extends State<RoleHomeRouter>
                         : constraints.maxWidth * 0.6,
                     child: LinearProgressIndicator(
                       backgroundColor: Colors.grey[200],
-                      valueColor: const AlwaysStoppedAnimation(Color(0xFF11823F)),
+                      valueColor: AlwaysStoppedAnimation(iconColor),
                       minHeight: 4,
                     ),
                   ),
@@ -202,7 +207,10 @@ class _RoleHomeRouterState extends State<RoleHomeRouter>
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () {
-                            Navigator.pushReplacementNamed(context, Routes.routePhone);
+                            Navigator.pushReplacementNamed(
+                              context,
+                              Routes.routePhone,
+                            );
                           },
                           icon: const Icon(Icons.logout),
                           label: const Text('Sign Out'),
@@ -255,7 +263,8 @@ class _RoleHomeRouterState extends State<RoleHomeRouter>
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth >= 600;
 
-    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final args =
+    ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     final passedRole = args?['role'] as String?;
 
     if (passedRole != null) {
@@ -269,7 +278,8 @@ class _RoleHomeRouterState extends State<RoleHomeRouter>
       future: _getUserRole(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return _buildLoadingScreen();
+          // If we have a role from arguments, use it, else null
+          return _buildLoadingScreen(role: passedRole);
         }
 
         if (snapshot.hasError) {
@@ -282,7 +292,7 @@ class _RoleHomeRouterState extends State<RoleHomeRouter>
           WidgetsBinding.instance.addPostFrameCallback((_) {
             Navigator.pushReplacementNamed(context, Routes.routePhone);
           });
-          return _buildLoadingScreen();
+          return _buildLoadingScreen(role: passedRole);
         }
 
         return AnimatedSwitcher(
