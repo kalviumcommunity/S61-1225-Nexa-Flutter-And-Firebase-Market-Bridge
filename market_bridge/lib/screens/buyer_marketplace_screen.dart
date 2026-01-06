@@ -28,9 +28,10 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
   final searchController = TextEditingController();
   int _selectedIndex = 1; // Marketplace is default
   bool _isLoading = false;
-  
+
   // Cart state
-  Map<String, Map<String, dynamic>> cartItems = {}; // productId -> {product data, quantity}
+  Map<String, Map<String, dynamic>> cartItems =
+      {}; // productId -> {product data, quantity}
   int cartCount = 0;
   @override
   void initState() {
@@ -39,7 +40,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
     _loadFavorites();
     _loadCart();
   }
-  
+
   Future<void> _loadCart() async {
     final prefs = await SharedPreferences.getInstance();
     final cartJson = prefs.getString('buyer_cart');
@@ -47,9 +48,8 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
       try {
         final decoded = jsonDecode(cartJson) as Map<String, dynamic>;
         setState(() {
-          cartItems = decoded.map((key, value) => MapEntry(
-            key,
-            {
+          cartItems = decoded.map(
+            (key, value) => MapEntry(key, {
               'productId': value['productId'],
               'name': value['name'],
               'price': value['price'],
@@ -57,28 +57,38 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
               'farmerName': value['farmerName'],
               'farmerPhone': value['farmerPhone'],
               'quantity': value['quantity'],
-            },
-          ));
-          cartCount = cartItems.values.fold(0, (sum, item) => sum + (item['quantity'] as int));
+            }),
+          );
+          cartCount = cartItems.values.fold(
+            0,
+            (sum, item) => sum + (item['quantity'] as int),
+          );
         });
       } catch (e) {
         debugPrint('Error loading cart: $e');
       }
     }
   }
-  
+
   Future<void> _saveCart() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('buyer_cart', jsonEncode(cartItems));
   }
-  
+
   Future<Map<String, dynamic>> _getFarmerDetails(String ownerId) async {
     try {
-      final doc = await FirebaseFirestore.instance.collection('users').doc(ownerId).get();
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(ownerId)
+          .get();
       if (doc.exists) {
         return {
-          'farmerName': doc.data()?['fullName'] ?? doc.data()?['name'] ?? 'Unknown Farmer',
-          'farmerPhone': doc.data()?['phone'] ?? doc.data()?['phoneNumber'] ?? '+91-XXXXXXXXXX',
+          'farmerName':
+              doc.data()?['name'] ??
+              'Unknown Farmer',
+          'farmerPhone':
+              doc.data()?['phone'] ??
+              '+91-XXXXXXXXXX',
           'farmerRating': (doc.data()?['rating'] ?? 4.5).toDouble(),
         };
       }
@@ -174,7 +184,8 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
       // Add more mappings as needed
     };
     // Try direct match, then fallback to a generic image
-    return assetMap[cropLower] ?? 'assets/icons/fruit.png'; // fallback to a generic icon
+    return assetMap[cropLower] ??
+        'assets/icons/fruit.png'; // fallback to a generic icon
   }
 
   // Build Firestore query
@@ -246,40 +257,43 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
   };
 
   String _getCropCategory(String crop) {
-    return cropCategoryMap[crop] ?? 'Vegetables'; 
+    return cropCategoryMap[crop] ?? 'Vegetables';
   }
 
   // Filter products client-side
   List<QueryDocumentSnapshot<Map<String, dynamic>>> _filterProducts(
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> products) {
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> products,
+  ) {
     final query = searchController.text.toLowerCase();
-    
+
     var result = products.where((doc) {
       final data = doc.data();
-      
+
       // Category filter - map crop to category
       if (_selectedCategory != null) {
         final cropName = (data['name'] ?? data['crop'] ?? '').toString();
         final docCategory = _getCropCategory(cropName);
         if (docCategory != _selectedCategory!) return false;
       }
-      
+
       // Organic filter
       if (_organicOnly && (data['isOrganic'] != true)) return false;
-      
+
       // Negotiable filter
       if (_negotiableOnly && (data['isNegotiable'] != true)) return false;
-      
+
       // Search filter
       if (query.isNotEmpty) {
-        final name = (data['name'] ?? data['crop'] ?? '').toString().toLowerCase();
+        final name = (data['name'] ?? data['crop'] ?? '')
+            .toString()
+            .toLowerCase();
         if (!name.contains(query)) return false;
       }
-      
+
       // Price range filter
       final price = (data['price'] ?? 0).toDouble();
       if (price < _priceRange.start || price > _priceRange.end) return false;
-      
+
       return true;
     }).toList();
 
@@ -315,7 +329,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
         });
         break;
     }
-    
+
     return result;
   }
 
@@ -339,13 +353,15 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
     dynamic price,
     String unit,
     String quality,
-    String farmerName,
-    double farmerRating,
-    String farmerPhone,
+    String ownerId,
     bool isOrganic,
     bool isNegotiable,
-  ) {
+  ) async {
     int quantity = 1;
+    final farmerDetails = await _getFarmerDetails(ownerId);
+    final farmerName = farmerDetails['farmerName'] ?? 'Unknown Farmer';
+    final farmerRating = farmerDetails['farmerRating'] ?? 4.5;
+    final farmerPhone = farmerDetails['farmerPhone'] ?? '+91-XXXXXXXXXX';
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -392,7 +408,12 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                           width: 80,
                           height: 80,
                           fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.image_not_supported, size: 80, color: Colors.grey),
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(
+                                Icons.image_not_supported,
+                                size: 80,
+                                color: Colors.grey,
+                              ),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -429,7 +450,10 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                       // Badges
                       if (isOrganic)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.green.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(8),
@@ -463,7 +487,9 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: const Color(0xFF2196F3).withOpacity(0.05),
-                          border: Border.all(color: const Color(0xFF2196F3).withOpacity(0.3)),
+                          border: Border.all(
+                            color: const Color(0xFF2196F3).withOpacity(0.3),
+                          ),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
@@ -487,13 +513,17 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                                     borderRadius: BorderRadius.circular(25),
                                   ),
                                   child: const Center(
-                                    child: Text('👨‍🌾', style: TextStyle(fontSize: 28)),
+                                    child: Text(
+                                      '👨‍🌾',
+                                      style: TextStyle(fontSize: 28),
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         farmerName,
@@ -504,11 +534,17 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                                       ),
                                       Row(
                                         children: [
-                                          const Icon(Icons.star, size: 16, color: Colors.orange),
+                                          const Icon(
+                                            Icons.star,
+                                            size: 16,
+                                            color: Colors.orange,
+                                          ),
                                           const SizedBox(width: 4),
                                           Text(
                                             '$farmerRating / 5.0',
-                                            style: const TextStyle(fontSize: 14),
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -520,7 +556,11 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                             const SizedBox(height: 12),
                             Row(
                               children: [
-                                const Icon(Icons.phone, size: 18, color: Color(0xFF2196F3)),
+                                const Icon(
+                                  Icons.phone,
+                                  size: 18,
+                                  color: Color(0xFF2196F3),
+                                ),
                                 const SizedBox(width: 8),
                                 Text(
                                   farmerPhone,
@@ -628,7 +668,9 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.amber,
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
                               ),
                               icon: const Icon(Icons.add_shopping_cart),
                               label: const Text(
@@ -660,7 +702,9 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF2196F3),
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
                               ),
                               icon: const Icon(Icons.check_circle),
                               label: const Text(
@@ -694,8 +738,10 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
     required String farmerPhone,
     required int quantity,
   }) async {
-    final priceInt = (price is String) ? int.parse(price) : (price as num).toInt();
-    
+    final priceInt = (price is String)
+        ? int.parse(price)
+        : (price as num).toInt();
+
     setState(() {
       if (cartItems.containsKey(productId)) {
         cartItems[productId]!['quantity'] += quantity;
@@ -710,11 +756,14 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
           'quantity': quantity,
         };
       }
-      cartCount = cartItems.values.fold(0, (sum, item) => sum + (item['quantity'] as int));
+      cartCount = cartItems.values.fold(
+        0,
+        (sum, item) => sum + (item['quantity'] as int),
+      );
     });
-    
+
     await _saveCart();
-    
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -726,7 +775,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
       Navigator.pop(context);
     }
   }
-  
+
   void _showCart() {
     if (cartItems.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -737,7 +786,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
       );
       return;
     }
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -769,7 +818,10 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
@@ -794,8 +846,9 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                   itemBuilder: (context, index) {
                     final item = cartItems.values.elementAt(index);
                     final productId = cartItems.keys.elementAt(index);
-                    final total = (item['price'] as int) * (item['quantity'] as int);
-                    
+                    final total =
+                        (item['price'] as int) * (item['quantity'] as int);
+
                     return Container(
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(12),
@@ -840,7 +893,9 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                           // Quantity controls
                           Container(
                             decoration: BoxDecoration(
-                              border: Border.all(color: const Color(0xFF2196F3)),
+                              border: Border.all(
+                                color: const Color(0xFF2196F3),
+                              ),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Row(
@@ -857,7 +912,10 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                                     width: 28,
                                     height: 28,
                                     child: Center(
-                                      child: Text('-', style: TextStyle(fontSize: 16)),
+                                      child: Text(
+                                        '-',
+                                        style: TextStyle(fontSize: 16),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -892,7 +950,10 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                                     width: 28,
                                     height: 28,
                                     child: Center(
-                                      child: Text('+', style: TextStyle(fontSize: 16)),
+                                      child: Text(
+                                        '+',
+                                        style: TextStyle(fontSize: 16),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -937,9 +998,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  border: Border(
-                    top: BorderSide(color: Colors.grey[300]!),
-                  ),
+                  border: Border(top: BorderSide(color: Colors.grey[300]!)),
                 ),
                 child: Column(
                   children: [
@@ -994,10 +1053,10 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
       ),
     );
   }
-  
+
   Future<void> _checkoutCart() async {
     if (cartItems.isEmpty) return;
-    
+
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1008,7 +1067,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
       );
       return;
     }
-    
+
     try {
       // Create separate orders for each product from different farmers
       final groupedByFarmer = <String, List<Map<String, dynamic>>>{};
@@ -1019,22 +1078,31 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
         }
         groupedByFarmer[farmerName]!.add(item);
       }
-      
+
       // Save orders to Firebase
       for (var farmerName in groupedByFarmer.keys) {
         final farmerItems = groupedByFarmer[farmerName]!;
-        final totalAmount = farmerItems.fold(0, (sum, item) => sum + ((item['price'] as int) * (item['quantity'] as int)));
-        
+        final totalAmount = farmerItems.fold(
+          0,
+          (sum, item) =>
+              sum + ((item['price'] as int) * (item['quantity'] as int)),
+        );
+
         await FirebaseFirestore.instance.collection('orders').add({
           'buyerId': user.uid,
-          'items': farmerItems.map((item) => {
-            'productId': item['productId'],
-            'productName': item['name'],
-            'quantity': item['quantity'],
-            'unit': item['unit'],
-            'price': item['price'],
-            'totalItemAmount': (item['price'] as int) * (item['quantity'] as int),
-          }).toList(),
+          'items': farmerItems
+              .map(
+                (item) => {
+                  'productId': item['productId'],
+                  'productName': item['name'],
+                  'quantity': item['quantity'],
+                  'unit': item['unit'],
+                  'price': item['price'],
+                  'totalItemAmount':
+                      (item['price'] as int) * (item['quantity'] as int),
+                },
+              )
+              .toList(),
           'totalAmount': totalAmount,
           'farmer': farmerName,
           'farmerName': farmerName,
@@ -1045,19 +1113,21 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
           'buyerPhone': user.phoneNumber ?? 'N/A',
         });
       }
-      
+
       // Clear cart
       setState(() {
         cartItems.clear();
         cartCount = 0;
       });
       await _saveCart();
-      
+
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✅ ${groupedByFarmer.length} order(s) placed successfully!'),
+            content: Text(
+              '✅ ${groupedByFarmer.length} order(s) placed successfully!',
+            ),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 3),
           ),
@@ -1116,7 +1186,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
       });
 
       if (!mounted) return;
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('✅ Order placed successfully!'),
@@ -1124,9 +1194,9 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
         ),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error placing order: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error placing order: $e')));
     }
   }
 
@@ -1231,14 +1301,20 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                         controller: searchController,
                         decoration: InputDecoration(
                           hintText: 'Search products...',
-                          prefixIcon: const Icon(Icons.search, color: Color(0xFF2196F3)),
+                          prefixIcon: const Icon(
+                            Icons.search,
+                            color: Color(0xFF2196F3),
+                          ),
                           filled: true,
                           fillColor: Colors.white,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
                           ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
                         ),
                       ),
                     ),
@@ -1274,7 +1350,9 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                 ),
 
                 // Active Filters Display
-                if (_selectedCategory != null || _organicOnly || _negotiableOnly)
+                if (_selectedCategory != null ||
+                    _organicOnly ||
+                    _negotiableOnly)
                   Padding(
                     padding: const EdgeInsets.only(top: 12),
                     child: Wrap(
@@ -1369,8 +1447,8 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
   }
 
   Widget _buildProductGrid(
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> products,
-      bool isTablet,
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> products,
+    bool isTablet,
   ) {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
@@ -1398,11 +1476,8 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
     final ownerId = product['ownerId'] ?? '';
 
     return GestureDetector(
-      onTap: () async {
+      onTap: () {
         _recordView(productId);
-        // Fetch real farmer details
-        final farmerDetails = await _getFarmerDetails(ownerId);
-        // Show product details with farmer info and order placement
         if (mounted) {
           _showProductDetails(
             context,
@@ -1411,9 +1486,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
             price,
             unit,
             quality,
-            farmerDetails['farmerName'],
-            farmerDetails['farmerRating'],
-            farmerDetails['farmerPhone'],
+            ownerId,
             isOrganic,
             isNegotiable,
           );
@@ -1461,7 +1534,12 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                         width: 64,
                         height: 64,
                         fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.image_not_supported, size: 64, color: Colors.grey),
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(
+                              Icons.image_not_supported,
+                              size: 64,
+                              color: Colors.grey,
+                            ),
                       ),
                     ),
                   ),
@@ -1471,7 +1549,10 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                     top: 8,
                     left: 8,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.green,
                         borderRadius: BorderRadius.circular(12),
@@ -1503,7 +1584,12 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                           width: 20,
                           height: 20,
                           fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.image_not_supported, size: 20, color: Colors.grey),
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(
+                                Icons.image_not_supported,
+                                size: 20,
+                                color: Colors.grey,
+                              ),
                         ),
                         const SizedBox(width: 6),
                         Expanded(
@@ -1523,10 +1609,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                       const SizedBox(height: 4),
                       Text(
                         quality,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                       ),
                     ],
                     const Spacer(),
@@ -1598,7 +1681,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
         RangeValues tempPriceRange = _priceRange;
         bool tempOrganic = _organicOnly;
         bool tempNegotiable = _negotiableOnly;
-        
+
         return StatefulBuilder(
           builder: (context, setModalState) {
             return DraggableScrollableSheet(
@@ -1620,7 +1703,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      
+
                       // Category Filter
                       const Text(
                         'Category',
@@ -1649,7 +1732,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                         ],
                       ),
                       const SizedBox(height: 24),
-                      
+
                       // Price Range
                       const Text(
                         'Price Range (₹)',
@@ -1677,7 +1760,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                         style: TextStyle(color: Colors.grey[600]),
                       ),
                       const SizedBox(height: 24),
-                      
+
                       // Organic Only
                       CheckboxListTile(
                         title: const Text('Organic Products Only'),
@@ -1687,7 +1770,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                           setModalState(() => tempOrganic = val ?? false);
                         },
                       ),
-                      
+
                       // Negotiable Only
                       CheckboxListTile(
                         title: const Text('Negotiable Prices Only'),
@@ -1698,7 +1781,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                         },
                       ),
                       const SizedBox(height: 24),
-                      
+
                       // Buttons
                       Row(
                         children: [
@@ -1714,8 +1797,12 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                                 Navigator.pop(context);
                               },
                               style: OutlinedButton.styleFrom(
-                                side: const BorderSide(color: Color(0xFF2196F3)),
-                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                side: const BorderSide(
+                                  color: Color(0xFF2196F3),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
                               ),
                               child: const Text(
                                 'Clear All',
@@ -1737,7 +1824,9 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF2196F3),
-                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
                               ),
                               child: const Text(
                                 'Apply Filters',
@@ -1758,7 +1847,11 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
     );
   }
 
-  Widget _buildCategoryChip(String category, String? selected, Function(String?) onSelect) {
+  Widget _buildCategoryChip(
+    String category,
+    String? selected,
+    Function(String?) onSelect,
+  ) {
     final isSelected = selected == category;
     return ChoiceChip(
       label: Text(category),
@@ -1878,4 +1971,3 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
     );
   }
 }
-
