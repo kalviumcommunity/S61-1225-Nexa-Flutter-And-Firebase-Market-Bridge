@@ -238,9 +238,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen>
                 child: Icon(Icons.check_circle_rounded, size: 48, color: themeColor),
               ),
               const SizedBox(height: 20),
-              const Text(
-                '🎉 Welcome Aboard!',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              Text(
+                '🎉 Welcome ${nameController.text.trim()}',
+                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
               Text(
