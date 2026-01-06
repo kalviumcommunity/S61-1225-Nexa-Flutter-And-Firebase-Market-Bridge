@@ -31,7 +31,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
 
   // Cart state
   Map<String, Map<String, dynamic>> cartItems =
-      {}; // productId -> {product data, quantity}
+  {}; // productId -> {product data, quantity}
   int cartCount = 0;
   @override
   void initState() {
@@ -49,7 +49,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
         final decoded = jsonDecode(cartJson) as Map<String, dynamic>;
         setState(() {
           cartItems = decoded.map(
-            (key, value) => MapEntry(key, {
+                (key, value) => MapEntry(key, {
               'productId': value['productId'],
               'name': value['name'],
               'price': value['price'],
@@ -61,7 +61,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
           );
           cartCount = cartItems.values.fold(
             0,
-            (sum, item) => sum + (item['quantity'] as int),
+                (sum, item) => sum + (item['quantity'] as int),
           );
         });
       } catch (e) {
@@ -83,12 +83,8 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
           .get();
       if (doc.exists) {
         return {
-          'farmerName':
-              doc.data()?['name'] ??
-              'Unknown Farmer',
-          'farmerPhone':
-              doc.data()?['phone'] ??
-              '+91-XXXXXXXXXX',
+          'farmerName': doc.data()?['name'] ?? 'Unknown Farmer',
+          'farmerPhone': doc.data()?['phone'] ?? '+91-XXXXXXXXXX',
           'farmerRating': (doc.data()?['rating'] ?? 4.5).toDouble(),
         };
       }
@@ -262,8 +258,8 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
 
   // Filter products client-side
   List<QueryDocumentSnapshot<Map<String, dynamic>>> _filterProducts(
-    List<QueryDocumentSnapshot<Map<String, dynamic>>> products,
-  ) {
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> products,
+      ) {
     final query = searchController.text.toLowerCase();
 
     var result = products.where((doc) {
@@ -347,16 +343,16 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
 
   // Show product details with farmer info and order placement
   void _showProductDetails(
-    BuildContext context,
-    String productId,
-    String name,
-    dynamic price,
-    String unit,
-    String quality,
-    String ownerId,
-    bool isOrganic,
-    bool isNegotiable,
-  ) async {
+      BuildContext context,
+      String productId,
+      String name,
+      dynamic price,
+      String unit,
+      String quality,
+      String ownerId,
+      bool isOrganic,
+      bool isNegotiable,
+      ) async {
     int quantity = 1;
     final farmerDetails = await _getFarmerDetails(ownerId);
     final farmerName = farmerDetails['farmerName'] ?? 'Unknown Farmer';
@@ -409,11 +405,11 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                           height: 80,
                           fit: BoxFit.contain,
                           errorBuilder: (context, error, stackTrace) =>
-                              const Icon(
-                                Icons.image_not_supported,
-                                size: 80,
-                                color: Colors.grey,
-                              ),
+                          const Icon(
+                            Icons.image_not_supported,
+                            size: 80,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -523,7 +519,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         farmerName,
@@ -687,15 +683,21 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                           Expanded(
                             child: ElevatedButton.icon(
                               onPressed: () {
+                                final int priceInt = (price is int)
+                                    ? price
+                                    : (price is double)
+                                    ? price.toInt()
+                                    : int.tryParse(price.toString()) ?? 0;
+                                final int totalAmount = priceInt * quantity;
                                 _placeOrder(
                                   productId: productId,
                                   productName: name,
                                   quantity: quantity,
-                                  price: price as int,
+                                  price: priceInt,
                                   unit: unit,
                                   farmerName: farmerName,
                                   farmerPhone: farmerPhone,
-                                  totalAmount: price * quantity,
+                                  totalAmount: totalAmount,
                                 );
                                 Navigator.pop(context);
                               },
@@ -758,7 +760,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
       }
       cartCount = cartItems.values.fold(
         0,
-        (sum, item) => sum + (item['quantity'] as int),
+            (sum, item) => sum + (item['quantity'] as int),
       );
     });
 
@@ -1084,8 +1086,8 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
         final farmerItems = groupedByFarmer[farmerName]!;
         final totalAmount = farmerItems.fold(
           0,
-          (sum, item) =>
-              sum + ((item['price'] as int) * (item['quantity'] as int)),
+              (sum, item) =>
+          sum + ((item['price'] as int) * (item['quantity'] as int)),
         );
 
         await FirebaseFirestore.instance.collection('orders').add({
@@ -1093,15 +1095,15 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
           'items': farmerItems
               .map(
                 (item) => {
-                  'productId': item['productId'],
-                  'productName': item['name'],
-                  'quantity': item['quantity'],
-                  'unit': item['unit'],
-                  'price': item['price'],
-                  'totalItemAmount':
-                      (item['price'] as int) * (item['quantity'] as int),
-                },
-              )
+              'productId': item['productId'],
+              'productName': item['name'],
+              'quantity': item['quantity'],
+              'unit': item['unit'],
+              'price': item['price'],
+              'totalItemAmount':
+              (item['price'] as int) * (item['quantity'] as int),
+            },
+          )
               .toList(),
           'totalAmount': totalAmount,
           'farmer': farmerName,
@@ -1265,7 +1267,7 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const BuyerHomeScreen()),
-        (route) => false,
+            (route) => false,
       );
     } else if (index == 2) {
       // Navigate to buyer dashboard
@@ -1447,9 +1449,9 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
   }
 
   Widget _buildProductGrid(
-    List<QueryDocumentSnapshot<Map<String, dynamic>>> products,
-    bool isTablet,
-  ) {
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> products,
+      bool isTablet,
+      ) {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: products.length,
@@ -1535,11 +1537,11 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                         height: 64,
                         fit: BoxFit.contain,
                         errorBuilder: (context, error, stackTrace) =>
-                            const Icon(
-                              Icons.image_not_supported,
-                              size: 64,
-                              color: Colors.grey,
-                            ),
+                        const Icon(
+                          Icons.image_not_supported,
+                          size: 64,
+                          color: Colors.grey,
+                        ),
                       ),
                     ),
                   ),
@@ -1585,11 +1587,11 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                           height: 20,
                           fit: BoxFit.contain,
                           errorBuilder: (context, error, stackTrace) =>
-                              const Icon(
-                                Icons.image_not_supported,
-                                size: 20,
-                                color: Colors.grey,
-                              ),
+                          const Icon(
+                            Icons.image_not_supported,
+                            size: 20,
+                            color: Colors.grey,
+                          ),
                         ),
                         const SizedBox(width: 6),
                         Expanded(
@@ -1848,10 +1850,10 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
   }
 
   Widget _buildCategoryChip(
-    String category,
-    String? selected,
-    Function(String?) onSelect,
-  ) {
+      String category,
+      String? selected,
+      Function(String?) onSelect,
+      ) {
     final isSelected = selected == category;
     return ChoiceChip(
       label: Text(category),
