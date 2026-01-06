@@ -111,22 +111,70 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
     });
   }
 
-  // Crop icon helper
-  String _getCropIcon(String crop) {
+  // Crop image asset helper
+  String _getCropAsset(String crop) {
     final cropLower = crop.toLowerCase();
-    const icons = {
-      'tomato': '🍅',
-      'onion': '🧅',
-      'potato': '🥔',
-      'rice': '🌾',
-      'wheat': '🌾',
-      'carrot': '🥕',
-      'brinjal': '🍆',
-      'cabbage': '🥬',
-      'corn': '🌽',
-      'pumpkin': '🎃',
+    // Map crop names to asset filenames (add more as needed)
+    const assetMap = {
+      'tomato': 'assets/icons/tomato.png',
+      'onion': 'assets/icons/onion.png',
+      'potato': 'assets/icons/potato.png',
+      'rice': 'assets/icons/rice.png',
+      'wheat': 'assets/icons/wheat.png',
+      'carrot': 'assets/icons/carrot.png',
+      'brinjal': 'assets/icons/brinjal.png',
+      'cabbage': 'assets/icons/cabbage.png',
+      'corn': 'assets/icons/corn.png',
+      'pumpkin': 'assets/icons/pumpkin.png',
+      'pomegranate': 'assets/icons/pomegranate.png',
+      'grapes': 'assets/icons/grapes.png',
+      'mango': 'assets/icons/mango.png',
+      'pineapple': 'assets/icons/pineapple.png',
+      'orange': 'assets/icons/orange.png',
+      'papaya': 'assets/icons/papaya.png',
+      'peas': 'assets/icons/peas.png',
+      'mint': 'assets/icons/mint.png',
+      'mushroom': 'assets/icons/mushroom.png',
+      'milk': 'assets/icons/milk.png',
+      'ladyfinger': 'assets/icons/ladyfinger.png',
+      'green chilli': 'assets/icons/green-chili-pepper.png',
+      'oat': 'assets/icons/oat.png',
+      'quinoa': 'assets/icons/quinoa.png',
+      'raddish': 'assets/icons/raddish.png',
+      'spinach': 'assets/icons/spinach.png',
+      'cucumber': 'assets/icons/cucumber.png',
+      'cauliflower': 'assets/icons/cauliflower.png',
+      'coriander': 'assets/icons/coriander.png',
+      'apple': 'assets/icons/apple.png',
+      'banana': 'assets/icons/banana.png',
+      'chilli': 'assets/icons/green-chili-pepper.png',
+      'green-chili-pepper': 'assets/icons/green-chili-pepper.png',
+      'lady finger': 'assets/icons/ladyfinger.png',
+      'sweet potato': 'assets/icons/potato.png',
+      'beetroot': 'assets/icons/beetroot.png',
+      'turnip': 'assets/icons/turnip.png',
+      'lettuce': 'assets/icons/lettuce.png',
+      'broccoli': 'assets/icons/broccoli.png',
+      'garlic': 'assets/icons/garlic.png',
+      'ginger': 'assets/icons/ginger.png',
+      'lemon': 'assets/icons/lemon.png',
+      'watermelon': 'assets/icons/watermelon.png',
+      'strawberry': 'assets/icons/strawberry.png',
+      'coconut': 'assets/icons/coconut.png',
+      'jackfruit': 'assets/icons/jackfruit.png',
+      'sapota': 'assets/icons/sapota.png',
+      'guava': 'assets/icons/guava.png',
+      'pear': 'assets/icons/pear.png',
+      'plum': 'assets/icons/plum.png',
+      'fig': 'assets/icons/fig.png',
+      'apricot': 'assets/icons/apricot.png',
+      'peach': 'assets/icons/peach.png',
+      'lychee': 'assets/icons/lychee.png',
+      'custard apple': 'assets/icons/custard_apple.png',
+      // Add more mappings as needed
     };
-    return icons[cropLower] ?? '🌱';
+    // Try direct match, then fallback to a generic image
+    return assetMap[cropLower] ?? 'assets/icons/fruit.png'; // fallback to a generic icon
   }
 
   // Build Firestore query
@@ -149,15 +197,56 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
     'Cauliflower': 'Vegetables',
     'Brinjal': 'Vegetables',
     'Ladyfinger': 'Vegetables',
+    'Lady Finger': 'Vegetables',
     'Green Chilli': 'Vegetables',
+    'Green Chilli Pepper': 'Vegetables',
+    'Chilli': 'Vegetables',
     'Coriander': 'Vegetables',
     'Mint': 'Vegetables',
+    'Oat': 'Grains',
+    'Quinoa': 'Grains',
+    'Raddish': 'Vegetables',
+    'Radish': 'Vegetables',
+    'Peas': 'Vegetables',
+    'Pumpkin': 'Vegetables',
+    'Beetroot': 'Vegetables',
+    'Turnip': 'Vegetables',
+    'Lettuce': 'Vegetables',
+    'Broccoli': 'Vegetables',
+    'Garlic': 'Vegetables',
+    'Ginger': 'Vegetables',
+    'Lemon': 'Fruits',
+    'Apple': 'Fruits',
+    'Banana': 'Fruits',
+    'Grapes': 'Fruits',
+    'Mango': 'Fruits',
+    'Pineapple': 'Fruits',
+    'Orange': 'Fruits',
+    'Papaya': 'Fruits',
+    'Pomegranate': 'Fruits',
+    'Milk': 'Dairy',
+    'Mushroom': 'Vegetables',
+    'Corn': 'Vegetables',
+    'Pear': 'Fruits',
+    'Plum': 'Fruits',
+    'Fig': 'Fruits',
+    'Apricot': 'Fruits',
+    'Peach': 'Fruits',
+    'Lychee': 'Fruits',
+    'Custard Apple': 'Fruits',
+    'Coconut': 'Fruits',
+    'Jackfruit': 'Fruits',
+    'Sapota': 'Fruits',
+    'Guava': 'Fruits',
+    'Strawberry': 'Fruits',
+    'Watermelon': 'Fruits',
     'Wheat': 'Grains',
     'Rice': 'Grains',
+    // Add more as needed
   };
 
   String _getCropCategory(String crop) {
-    return cropCategoryMap[crop] ?? 'Vegetables'; // Default to Vegetables
+    return cropCategoryMap[crop] ?? 'Vegetables'; 
   }
 
   // Filter products client-side
@@ -298,9 +387,12 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
 
                       // Product icon
                       Center(
-                        child: Text(
-                          _getCropIcon(name),
-                          style: const TextStyle(fontSize: 80),
+                        child: Image.asset(
+                          _getCropAsset(name),
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.image_not_supported, size: 80, color: Colors.grey),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -1364,9 +1456,12 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                       ),
                     ),
                     child: Center(
-                      child: Text(
-                        _getCropIcon(product['crop'] ?? ''),
-                        style: const TextStyle(fontSize: 64),
+                      child: Image.asset(
+                        _getCropAsset(product['crop'] ?? ''),
+                        width: 64,
+                        height: 64,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.image_not_supported, size: 64, color: Colors.grey),
                       ),
                     ),
                   ),
@@ -1403,9 +1498,12 @@ class _BuyerMarketplaceScreenState extends State<BuyerMarketplaceScreen> {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          _getCropIcon(product['crop'] ?? ''),
-                          style: const TextStyle(fontSize: 20),
+                        Image.asset(
+                          _getCropAsset(product['crop'] ?? ''),
+                          width: 20,
+                          height: 20,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.image_not_supported, size: 20, color: Colors.grey),
                         ),
                         const SizedBox(width: 6),
                         Expanded(
