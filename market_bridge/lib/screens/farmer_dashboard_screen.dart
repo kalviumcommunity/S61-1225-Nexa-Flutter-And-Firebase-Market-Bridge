@@ -17,15 +17,16 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
     with SingleTickerProviderStateMixin {
   int _selectedIndex = 2;
   late TabController _tabController;
-  
+
   // Filters and search
   String _searchQuery = '';
   String _sortBy = 'recent';
   String _filterStatus = 'all';
   Set<String> _selectedListings = {};
   bool _isSelectMode = false;
-  
-  final GlobalKey<RefreshIndicatorState> _refreshKey = GlobalKey<RefreshIndicatorState>();
+
+  final GlobalKey<RefreshIndicatorState> _refreshKey =
+  GlobalKey<RefreshIndicatorState>();
 
   @override
   void initState() {
@@ -42,25 +43,44 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
   String _getCropIcon(String crop) {
     final c = crop.toLowerCase();
     final icons = {
-      'tomato': '🍅', 'onion': '🧅', 'potato': '🥔', 'carrot': '🥕',
-      'cabbage': '🥬', 'spinach': '🥬', 'wheat': '🌾', 'rice': '🌾',
-      'corn': '🌽', 'cucumber': '🥒', 'eggplant': '🍆', 'pepper': '🌶️',
-      'broccoli': '🥦', 'lettuce': '🥬', 'pumpkin': '🎃', 'apple': '🍎',
+      'tomato': '🍅',
+      'onion': '🧅',
+      'potato': '🥔',
+      'carrot': '🥕',
+      'cabbage': '🥬',
+      'spinach': '🥬',
+      'wheat': '🌾',
+      'rice': '🌾',
+      'corn': '🌽',
+      'cucumber': '🥒',
+      'eggplant': '🍆',
+      'pepper': '🌶️',
+      'broccoli': '🥦',
+      'lettuce': '🥬',
+      'pumpkin': '🎃',
+      'apple': '🍎',
     };
     return icons[c] ?? '🌱';
   }
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
-      case 'active': return const Color(0xFF11823F);
-      case 'sold': return Colors.blue;
-      case 'expired': return Colors.orange;
-      case 'deleted': return Colors.red;
-      default: return Colors.grey;
+      case 'active':
+        return const Color(0xFF11823F);
+      case 'sold':
+        return Colors.blue;
+      case 'expired':
+        return Colors.orange;
+      case 'deleted':
+        return Colors.red;
+      default:
+        return Colors.grey;
     }
   }
 
-  List<Map<String, dynamic>> _filterAndSortListings(List<QueryDocumentSnapshot> docs) {
+  List<Map<String, dynamic>> _filterAndSortListings(
+      List<QueryDocumentSnapshot> docs,
+      ) {
     List<Map<String, dynamic>> listings = docs.map((doc) {
       return {'id': doc.id, ...doc.data() as Map<String, dynamic>};
     }).toList();
@@ -73,9 +93,13 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
     }
 
     if (_filterStatus != 'all') {
-      listings = listings.where((item) => 
-        (item['status'] ?? 'active').toString().toLowerCase() == _filterStatus
-      ).toList();
+      listings = listings
+          .where(
+            (item) =>
+        (item['status'] ?? 'active').toString().toLowerCase() ==
+            _filterStatus,
+      )
+          .toList();
     }
 
     switch (_sortBy) {
@@ -91,8 +115,10 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
       case 'recent':
       default:
         listings.sort((a, b) {
-          final aDate = (a['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now();
-          final bDate = (b['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now();
+          final aDate =
+              (a['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now();
+          final bDate =
+              (b['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now();
           return bDate.compareTo(aDate);
         });
     }
@@ -134,22 +160,26 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
           .collection('products')
           .doc(docId)
           .update({
-            'status': 'deleted',
-            'deletedAt': FieldValue.serverTimestamp(),
-            'inStock': false,
-          });
+        'status': 'deleted',
+        'deletedAt': FieldValue.serverTimestamp(),
+        'inStock': false,
+      });
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Row(children: const [
-            Icon(Icons.check_circle, color: Colors.white, size: 20),
-            SizedBox(width: 12),
-            Expanded(child: Text('Listing moved to deleted')),
-          ]),
+          content: Row(
+            children: const [
+              Icon(Icons.check_circle, color: Colors.white, size: 20),
+              SizedBox(width: 12),
+              Expanded(child: Text('Listing moved to deleted')),
+            ],
+          ),
           backgroundColor: const Color(0xFF11823F),
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           duration: const Duration(seconds: 4),
           action: SnackBarAction(
             label: 'UNDO',
@@ -161,27 +191,29 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
     } catch (e) {
       debugPrint('Error: $e');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Failed: $e'),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed: $e'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
   Future<void> _undoDelete(String docId) async {
     try {
-      await FirebaseFirestore.instance.collection('products').doc(docId).update({
-        'status': 'active',
-        'deletedAt': FieldValue.delete(),
-        'inStock': true,
-      });
+      await FirebaseFirestore.instance.collection('products').doc(docId).update(
+        {'status': 'active', 'deletedAt': FieldValue.delete(), 'inStock': true},
+      );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Listing restored'),
-        backgroundColor: Color(0xFF11823F),
-        behavior: SnackBarBehavior.floating,
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Listing restored'),
+          backgroundColor: Color(0xFF11823F),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } catch (e) {
       debugPrint('Error: $e');
     }
@@ -189,17 +221,21 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
 
   Future<void> _markAsSold(String docId) async {
     try {
-      await FirebaseFirestore.instance.collection('products').doc(docId).update({
-        'status': 'sold',
-        'soldAt': FieldValue.serverTimestamp(),
-        'inStock': false,
-      });
+      await FirebaseFirestore.instance.collection('products').doc(docId).update(
+        {
+          'status': 'sold',
+          'soldAt': FieldValue.serverTimestamp(),
+          'inStock': false,
+        },
+      );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Listing marked as sold'),
-        backgroundColor: Color(0xFF11823F),
-        behavior: SnackBarBehavior.floating,
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Listing marked as sold'),
+          backgroundColor: Color(0xFF11823F),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } catch (e) {
       debugPrint('Error: $e');
     }
@@ -207,16 +243,19 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
 
   Future<void> _toggleInStock(String docId, bool current) async {
     try {
-      await FirebaseFirestore.instance.collection('products').doc(docId).update({
-        'inStock': !current,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
+      await FirebaseFirestore.instance.collection('products').doc(docId).update(
+        {'inStock': !current, 'updatedAt': FieldValue.serverTimestamp()},
+      );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(!current ? 'Marked as in stock' : 'Marked as out of stock'),
-        backgroundColor: const Color(0xFF11823F),
-        behavior: SnackBarBehavior.floating,
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            !current ? 'Marked as in stock' : 'Marked as out of stock',
+          ),
+          backgroundColor: const Color(0xFF11823F),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } catch (e) {
       debugPrint('Error: $e');
     }
@@ -235,21 +274,24 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
       await batch.commit();
       setState(() => _selectedListings.clear());
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('${_selectedListings.length} listings updated'),
-        backgroundColor: const Color(0xFF11823F),
-        behavior: SnackBarBehavior.floating,
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${_selectedListings.length} listings updated'),
+          backgroundColor: const Color(0xFF11823F),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } catch (e) {
       debugPrint('Error: $e');
     }
   }
 
   void _editListing(String docId, Map<String, dynamic> data) {
-    Navigator.pushNamed(context, Routes.routePostProduce, arguments: {
-      'editListing': data,
-      'listingId': docId,
-    });
+    Navigator.pushNamed(
+      context,
+      Routes.routePostProduce,
+      arguments: {'editListing': data, 'listingId': docId},
+    );
   }
 
   void _showListingOptions(String docId, Map<String, dynamic> data) {
@@ -271,37 +313,51 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 40, height: 4,
+                width: 40,
+                height: 4,
                 decoration: BoxDecoration(
                   color: Colors.grey[300],
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
               const SizedBox(height: 20),
-              Row(children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF11823F).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF11823F).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      _getCropIcon(data['crop'] ?? ''),
+                      style: const TextStyle(fontSize: 24),
+                    ),
                   ),
-                  child: Text(_getCropIcon(data['crop'] ?? ''), style: const TextStyle(fontSize: 24)),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(data['crop'] ?? 'Listing', style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold,
-                      )),
-                      Text('${data['quantity']} ${data['unit'] ?? 'Kg'}',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                      ),
-                    ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          data['crop'] ?? 'Listing',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          '${data['quantity']} ${data['unit'] ?? 'Kg'}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ]),
+                ],
+              ),
               const SizedBox(height: 24),
               _buildOptionTile(
                 icon: Icons.edit_outlined,
@@ -314,9 +370,13 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
               ),
               if (status == 'active')
                 _buildOptionTile(
-                  icon: inStock ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                  icon: inStock
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
                   title: inStock ? 'Mark Out of Stock' : 'Mark In Stock',
-                  subtitle: inStock ? 'Hide from marketplace' : 'Show in marketplace',
+                  subtitle: inStock
+                      ? 'Hide from marketplace'
+                      : 'Show in marketplace',
                   onTap: () {
                     Navigator.pop(ctx);
                     _toggleInStock(docId, inStock);
@@ -338,7 +398,11 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
                 subtitle: 'Share with buyers',
                 onTap: () {
                   Navigator.pop(ctx);
-                  _shareListing(data['crop'] ?? '', data['price'] ?? 0.0, data['unit'] ?? 'Kg');
+                  _shareListing(
+                    data['crop'] ?? '',
+                    data['price'] ?? 0.0,
+                    data['unit'] ?? 'Kg',
+                  );
                 },
               ),
               const Divider(height: 32),
@@ -376,14 +440,20 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
         ),
         child: Icon(icon, color: color ?? const Color(0xFF11823F), size: 24),
       ),
-      title: Text(title, style: TextStyle(
-        color: color ?? Colors.black87,
-        fontWeight: FontWeight.w600,
-        fontSize: 15,
-      )),
-      subtitle: subtitle != null ? Text(subtitle, style: TextStyle(
-        fontSize: 12, color: Colors.grey[600],
-      )) : null,
+      title: Text(
+        title,
+        style: TextStyle(
+          color: color ?? Colors.black87,
+          fontWeight: FontWeight.w600,
+          fontSize: 15,
+        ),
+      ),
+      subtitle: subtitle != null
+          ? Text(
+        subtitle,
+        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+      )
+          : null,
       onTap: onTap,
     );
   }
@@ -393,11 +463,16 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(children: const [
-          Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
-          SizedBox(width: 12),
-          Text('Delete Listing?', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
-        ]),
+        title: Row(
+          children: const [
+            Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+            SizedBox(width: 12),
+            Text(
+              'Delete Listing?',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
         content: const Text(
           'This will be moved to deleted items. You can restore it later.',
           style: TextStyle(fontSize: 15, color: Color(0xFF666666)),
@@ -405,7 +480,10 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: Color(0xFF666666))),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Color(0xFF666666)),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
@@ -414,7 +492,9 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             child: const Text('Delete'),
           ),
@@ -426,8 +506,10 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
   void _onNavTap(int index) {
     if (_selectedIndex == index) return;
     setState(() => _selectedIndex = index);
-    if (index == 0) Navigator.pushReplacementNamed(context, Routes.routeHome);
-    else if (index == 1) Navigator.pushReplacementNamed(context, Routes.routeMarketPlace);
+    if (index == 0)
+      Navigator.pushReplacementNamed(context, Routes.routeHome);
+    else if (index == 1)
+      Navigator.pushReplacementNamed(context, Routes.routeMarketPlace);
   }
 
   Future<void> _refreshListings() async {
@@ -474,20 +556,21 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
       ),
       floatingActionButton: _isSelectMode
           ? FloatingActionButton.extended(
-              onPressed: () {
-                if (_selectedListings.isEmpty) return;
-                _showBulkActionMenu();
-              },
-              backgroundColor: Colors.orange,
-              icon: const Icon(Icons.done),
-              label: Text('${_selectedListings.length} selected'),
-            )
+        onPressed: () {
+          if (_selectedListings.isEmpty) return;
+          _showBulkActionMenu();
+        },
+        backgroundColor: Colors.orange,
+        icon: const Icon(Icons.done),
+        label: Text('${_selectedListings.length} selected'),
+      )
           : FloatingActionButton.extended(
-              onPressed: () => Navigator.pushNamed(context, Routes.routePostProduce),
-              backgroundColor: const Color(0xFF11823F),
-              icon: const Icon(Icons.add),
-              label: const Text('New Listing'),
-            ),
+        onPressed: () =>
+            Navigator.pushNamed(context, Routes.routePostProduce),
+        backgroundColor: const Color(0xFF11823F),
+        icon: const Icon(Icons.add),
+        label: const Text('New Listing'),
+      ),
     );
   }
 
@@ -499,34 +582,58 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
-                  onPressed: () => Navigator.pushReplacementNamed(context, Routes.routeHome),
-                ),
-                const Text('Dashboard', style: TextStyle(
-                  color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold,
-                )),
-              ]),
-              Row(children: [
-                IconButton(
-                  icon: const Icon(Icons.analytics_outlined, color: Colors.white, size: 26),
-                  onPressed: () => _showAnalytics(),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 28),
-                  onPressed: () {},
-                ),
-              ]),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.arrow_back,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                    onPressed: () => Navigator.pushReplacementNamed(
+                      context,
+                      Routes.routeHome,
+                    ),
+                  ),
+                  const Text(
+                    'Dashboard',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.analytics_outlined,
+                      color: Colors.white,
+                      size: 26,
+                    ),
+                    onPressed: () => _showAnalytics(),
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.notifications_outlined,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                    onPressed: () {},
+                  ),
+                ],
+              ),
             ],
           ),
           const SizedBox(height: 20),
           StreamBuilder<QuerySnapshot>(
             stream: user != null
                 ? FirebaseFirestore.instance
-                    .collection('products')
-                    .where('ownerId', isEqualTo: user.uid)
-                    .snapshots()
+                .collection('products')
+                .where('ownerId', isEqualTo: user.uid)
+                .snapshots()
                 : const Stream.empty(),
             builder: (context, snap) {
               int active = 0, sold = 0, views = 0;
@@ -545,19 +652,49 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
                   views += (d['views'] ?? 0) as int;
                 }
               }
-              return Column(children: [
-                Row(children: [
-                  Expanded(child: _buildStatCard(Icons.inventory_2_outlined, 'Active', '$active')),
-                  const SizedBox(width: 12),
-                  Expanded(child: _buildStatCard(Icons.shopping_bag_outlined, 'Sold', '$sold')),
-                ]),
-                const SizedBox(height: 12),
-                Row(children: [
-                  Expanded(child: _buildStatCard(Icons.trending_up_rounded, 'Total Value', '₹${value.toInt()}')),
-                  const SizedBox(width: 12),
-                  Expanded(child: _buildStatCard(Icons.visibility_outlined, 'Views', '$views')),
-                ]),
-              ]);
+              return Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          Icons.inventory_2_outlined,
+                          'Active',
+                          '$active',
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatCard(
+                          Icons.shopping_bag_outlined,
+                          'Sold',
+                          '$sold',
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          Icons.trending_up_rounded,
+                          'Total Value',
+                          '₹${value.toInt()}',
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatCard(
+                          Icons.visibility_outlined,
+                          'Views',
+                          '$views',
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              );
             },
           ),
         ],
@@ -578,11 +715,19 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
         children: [
           Icon(icon, color: Colors.white, size: 24),
           const SizedBox(height: 12),
-          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white70, fontSize: 12),
+          ),
           const SizedBox(height: 4),
-          Text(value, style: const TextStyle(
-            color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold,
-          )),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );
@@ -601,11 +746,13 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
               prefixIcon: const Icon(Icons.search),
               suffixIcon: _searchQuery.isNotEmpty
                   ? IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () => setState(() => _searchQuery = ''),
-                    )
+                icon: const Icon(Icons.clear),
+                onPressed: () => setState(() => _searchQuery = ''),
+              )
                   : null,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               filled: true,
               fillColor: Colors.white,
             ),
@@ -625,7 +772,11 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
                 const SizedBox(width: 8),
                 // Status filter
                 FilterChip(
-                  label: Text(_filterStatus == 'all' ? 'All Status' : _filterStatus.capitalize()),
+                  label: Text(
+                    _filterStatus == 'all'
+                        ? 'All Status'
+                        : _filterStatus.capitalize(),
+                  ),
                   onSelected: (_) => _showStatusFilterMenu(),
                   selected: _filterStatus != 'all',
                 ),
@@ -646,10 +797,12 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(14),
-              boxShadow: [BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 10,
-              )],
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 10,
+                ),
+              ],
             ),
             child: TabBar(
               controller: _tabController,
@@ -659,7 +812,10 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
               ),
               labelColor: Colors.white,
               unselectedLabelColor: Colors.grey[600],
-              labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+              labelStyle: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
               dividerColor: Colors.transparent,
               tabs: const [
                 Tab(text: 'Active'),
@@ -682,7 +838,10 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Sort By', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              'Sort By',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
             _buildSortOption('Recent', 'recent'),
             _buildSortOption('Price: Low to High', 'price_low'),
@@ -697,7 +856,9 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
   Widget _buildSortOption(String label, String value) {
     return ListTile(
       title: Text(label),
-      trailing: _sortBy == value ? const Icon(Icons.check, color: Color(0xFF11823F)) : null,
+      trailing: _sortBy == value
+          ? const Icon(Icons.check, color: Color(0xFF11823F))
+          : null,
       onTap: () {
         setState(() => _sortBy = value);
         Navigator.pop(context);
@@ -713,7 +874,10 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Filter by Status', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              'Filter by Status',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
             _buildFilterOption('All', 'all'),
             _buildFilterOption('Active', 'active'),
@@ -728,7 +892,9 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
   Widget _buildFilterOption(String label, String value) {
     return ListTile(
       title: Text(label),
-      trailing: _filterStatus == value ? const Icon(Icons.check, color: Color(0xFF11823F)) : null,
+      trailing: _filterStatus == value
+          ? const Icon(Icons.check, color: Color(0xFF11823F))
+          : null,
       onTap: () {
         setState(() => _filterStatus = value);
         Navigator.pop(context);
@@ -744,7 +910,10 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Bulk Actions', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              'Bulk Actions',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
             ListTile(
               leading: const Icon(Icons.shopping_bag_outlined),
@@ -817,7 +986,7 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
       if (data['sold'] == true) {
         totalRevenue += (data['price'] ?? 0) * (data['quantity'] ?? 0);
       }
-      
+
       String crop = data['crop'] ?? 'Unknown';
       topCrops[crop] = (topCrops[crop] ?? 0) + 1;
     }
@@ -842,8 +1011,10 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Analytics Dashboard', 
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Analytics Dashboard',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
                   IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () => Navigator.pop(ctx),
@@ -851,21 +1022,49 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
                 ],
               ),
               const SizedBox(height: 24),
-              
+
               // Stats Grid
               Row(
                 children: [
-                  Expanded(child: _buildAnalyticCard('Total Listings', '$totalListings', Icons.inventory, Colors.blue)),
+                  Expanded(
+                    child: _buildAnalyticCard(
+                      'Total Listings',
+                      '$totalListings',
+                      Icons.inventory,
+                      Colors.blue,
+                    ),
+                  ),
                   const SizedBox(width: 12),
-                  Expanded(child: _buildAnalyticCard('Active', '$activeListings', Icons.check_circle, Colors.green)),
+                  Expanded(
+                    child: _buildAnalyticCard(
+                      'Active',
+                      '$activeListings',
+                      Icons.check_circle,
+                      Colors.green,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Expanded(child: _buildAnalyticCard('Total Views', '$totalViews', Icons.visibility, Colors.orange)),
+                  Expanded(
+                    child: _buildAnalyticCard(
+                      'Total Views',
+                      '$totalViews',
+                      Icons.visibility,
+                      Colors.orange,
+                    ),
+                  ),
                   const SizedBox(width: 12),
-                  Expanded(child: _buildAnalyticCard('Inquiries', '$totalInquiries', Icons.question_answer, Colors.purple)),
+                  Expanded(
+                    child: _buildAnalyticCard(
+                      'Inquiries',
+                      '$totalInquiries',
+                      Icons.question_answer,
+                      Colors.purple,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -878,43 +1077,79 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
                 ),
                 child: Column(
                   children: [
-                    const Icon(Icons.currency_rupee, color: Color(0xFF11823F), size: 32),
+                    const Icon(
+                      Icons.currency_rupee,
+                      color: Color(0xFF11823F),
+                      size: 32,
+                    ),
                     const SizedBox(height: 8),
-                    Text('₹${totalRevenue.toStringAsFixed(0)}', 
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF11823F))),
-                    const Text('Total Revenue', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    Text(
+                      '₹${totalRevenue.toStringAsFixed(0)}',
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF11823F),
+                      ),
+                    ),
+                    const Text(
+                      'Total Revenue',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 24),
-              
+
               // Top Crops
               if (top3.isNotEmpty) ...[
                 const Align(
                   alignment: Alignment.centerLeft,
-                  child: Text('Top Crops', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: Text(
+                    'Top Crops',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ),
                 const SizedBox(height: 12),
-                ...top3.map((entry) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
-                    children: [
-                      Text(_getCropIcon(entry.key), style: const TextStyle(fontSize: 24)),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(entry.key, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF11823F),
-                          borderRadius: BorderRadius.circular(12),
+                ...top3.map(
+                      (entry) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      children: [
+                        Text(
+                          _getCropIcon(entry.key),
+                          style: const TextStyle(fontSize: 24),
                         ),
-                        child: Text('${entry.value}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                      ),
-                    ],
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            entry.key,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF11823F),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '${entry.value}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                )),
+                ),
               ],
             ],
           ),
@@ -923,7 +1158,12 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
     );
   }
 
-  Widget _buildAnalyticCard(String label, String value, IconData icon, Color color) {
+  Widget _buildAnalyticCard(
+      String label,
+      String value,
+      IconData icon,
+      Color color,
+      ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -934,8 +1174,19 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
         children: [
           Icon(icon, color: color, size: 28),
           const SizedBox(height: 8),
-          Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color)),
-          Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey), textAlign: TextAlign.center),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 11, color: Colors.grey),
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );
@@ -943,16 +1194,23 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
 
   Widget _buildListingsTab(String filter, User? user) {
     if (user == null) {
-      return Center(child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.person_off_outlined, size: 80, color: Colors.grey[400]),
-          const SizedBox(height: 20),
-          Text('Please log in', style: TextStyle(
-            fontSize: 20, fontWeight: FontWeight.w600, color: Colors.grey[700],
-          )),
-        ],
-      ));
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.person_off_outlined, size: 80, color: Colors.grey[400]),
+            const SizedBox(height: 20),
+            Text(
+              'Please log in',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[700],
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
     Query query = FirebaseFirestore.instance
@@ -977,25 +1235,29 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
         stream: query.snapshots(),
         builder: (context, snap) {
           if (snap.hasError) {
-            return Center(child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error_outline, color: Colors.red, size: 48),
-                const SizedBox(height: 16),
-                Text('Unable to load', style: TextStyle(fontSize: 18)),
-                const SizedBox(height: 8),
-                ElevatedButton(
-                  onPressed: _refreshListings,
-                  child: const Text('Retry'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF11823F),
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, color: Colors.red, size: 48),
+                  const SizedBox(height: 16),
+                  Text('Unable to load', style: TextStyle(fontSize: 18)),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: _refreshListings,
+                    child: const Text('Retry'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF11823F),
+                    ),
                   ),
-                ),
-              ],
-            ));
+                ],
+              ),
+            );
           }
           if (snap.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: Color(0xFF11823F)));
+            return const Center(
+              child: CircularProgressIndicator(color: Color(0xFF11823F)),
+            );
           }
           if (!snap.hasData || snap.data!.docs.isEmpty) {
             return _buildEmptyState(filter);
@@ -1018,20 +1280,20 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
                 padding: const EdgeInsets.only(bottom: 16),
                 child: _isSelectMode
                     ? Stack(
-                        children: [
-                          _buildListingCard(docId, item),
-                          Positioned(
-                            top: 8,
-                            right: 8,
-                            child: Checkbox(
-                              value: isSelected,
-                              onChanged: (_) => _toggleListingSelection(docId),
-                              checkColor: Colors.white,
-                              activeColor: const Color(0xFF11823F),
-                            ),
-                          ),
-                        ],
-                      )
+                  children: [
+                    _buildListingCard(docId, item),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Checkbox(
+                        value: isSelected,
+                        onChanged: (_) => _toggleListingSelection(docId),
+                        checkColor: Colors.white,
+                        activeColor: const Color(0xFF11823F),
+                      ),
+                    ),
+                  ],
+                )
                     : _buildListingCard(docId, item),
               );
             },
@@ -1043,46 +1305,65 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
 
   Widget _buildEmptyState(String filter) {
     final config = {
-      'active': [Icons.inventory_2_outlined, 'No active listings', 'Add Listing'],
+      'active': [
+        Icons.inventory_2_outlined,
+        'No active listings',
+        'Add Listing',
+      ],
       'sold': [Icons.shopping_bag_outlined, 'No sold items yet', 'View Active'],
       'expired': [Icons.schedule, 'No expired items', 'View Active'],
       'all': [Icons.inventory_outlined, 'No listings yet', 'Create Listing'],
     };
     final c = config[filter]!;
-    return Center(child: Padding(
-      padding: const EdgeInsets.all(32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(color: Colors.grey[100], shape: BoxShape.circle),
-            child: Icon(c[0] as IconData, size: 64, color: Colors.grey[400]),
-          ),
-          const SizedBox(height: 24),
-          Text(c[1] as String, style: TextStyle(
-            fontSize: 20, fontWeight: FontWeight.bold, color: Colors.grey[700],
-          )),
-          const SizedBox(height: 32),
-          ElevatedButton.icon(
-            onPressed: () {
-              if (filter == 'sold' || filter == 'expired') {
-                _tabController.animateTo(0);
-              } else {
-                Navigator.pushNamed(context, Routes.routePostProduce);
-              }
-            },
-            icon: Icon(filter == 'active' ? Icons.add : Icons.list),
-            label: Text(c[2] as String),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF11823F),
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                shape: BoxShape.circle,
+              ),
+              child: Icon(c[0] as IconData, size: 64, color: Colors.grey[400]),
             ),
-          ),
-        ],
+            const SizedBox(height: 24),
+            Text(
+              c[1] as String,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[700],
+              ),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: () {
+                if (filter == 'sold' || filter == 'expired') {
+                  _tabController.animateTo(0);
+                } else {
+                  Navigator.pushNamed(context, Routes.routePostProduce);
+                }
+              },
+              icon: Icon(filter == 'active' ? Icons.add : Icons.list),
+              label: Text(c[2] as String),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF11823F),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
-    ));
+    );
   }
 
   Widget _buildListingCard(String docId, Map<String, dynamic> data) {
@@ -1097,7 +1378,8 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
     final imgUrl = data['imageUrl'] as String?;
     final createdAt = data['createdAt'] as Timestamp?;
     String date = '';
-    if (createdAt != null) date = DateFormat('MMM dd, yyyy').format(createdAt.toDate());
+    if (createdAt != null)
+      date = DateFormat('MMM dd, yyyy').format(createdAt.toDate());
 
     return GestureDetector(
       onLongPress: () => _showListingOptions(docId, data),
@@ -1105,11 +1387,13 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          )],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           children: [
@@ -1117,103 +1401,179 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: const Color(0xFF11823F).withOpacity(0.05),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              ),
-              child: Row(children: [
-                Container(
-                  width: 60, height: 60,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: imgUrl != null && imgUrl.isNotEmpty
-                        ? Image.network(imgUrl, fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Center(
-                              child: Text(_getCropIcon(crop), style: const TextStyle(fontSize: 32)),
-                            ))
-                        : Center(child: Text(_getCropIcon(crop), style: const TextStyle(fontSize: 32))),
-                  ),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(16),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: imgUrl != null && imgUrl.isNotEmpty
+                          ? Image.network(
+                        imgUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Center(
+                          child: Text(
+                            _getCropIcon(crop),
+                            style: const TextStyle(fontSize: 32),
+                          ),
+                        ),
+                      )
+                          : Center(
+                        child: Text(
+                          _getCropIcon(crop),
+                          style: const TextStyle(fontSize: 32),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          crop,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          '$qty $unit',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        if (date.isNotEmpty)
+                          Text(
+                            date,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text(crop, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      Text('$qty $unit', style: TextStyle(fontSize: 13, color: Colors.grey[600])),
-                      if (date.isNotEmpty) Text(date, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _getStatusColor(status),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          status.toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      if (!inStock && status == 'active')
+                        Container(
+                          margin: const EdgeInsets.only(top: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            'Out of Stock',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.orange,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: _getStatusColor(status),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(status.toUpperCase(), style: const TextStyle(
-                        color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold,
-                      )),
-                    ),
-                    if (!inStock && status == 'active')
-                      Container(
-                        margin: const EdgeInsets.only(top: 4),
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Text('Out of Stock', style: TextStyle(
-                          fontSize: 10, color: Colors.orange, fontWeight: FontWeight.w600,
-                        )),
-                      ),
-                  ],
-                ),
-              ]),
+                ],
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('₹$price/$unit', style: const TextStyle(
-                    fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF11823F),
-                  )),
+                  Text(
+                    '₹$price/$unit',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF11823F),
+                    ),
+                  ),
                   const SizedBox(height: 16),
-                  Row(children: [
-                    Expanded(child: _buildStatBadge(Icons.visibility_outlined, '$views', 'views')),
-                    const SizedBox(width: 12),
-                    Expanded(child: _buildStatBadge(Icons.chat_bubble_outline, '$inquiries', 'inquiries')),
-                  ]),
-                  const SizedBox(height: 16),
-                  Row(children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _editListing(docId, data),
-                        icon: const Icon(Icons.edit_outlined, size: 18),
-                        label: const Text('Edit'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF11823F),
-                          side: const BorderSide(color: Color(0xFF11823F)),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatBadge(
+                          Icons.visibility_outlined,
+                          '$views',
+                          'views',
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      onPressed: () => _showListingOptions(docId, data),
-                      icon: const Icon(Icons.more_vert),
-                      style: IconButton.styleFrom(
-                        side: BorderSide(color: Colors.grey[300]!),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatBadge(
+                          Icons.chat_bubble_outline,
+                          '$inquiries',
+                          'inquiries',
+                        ),
                       ),
-                    ),
-                  ]),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => _editListing(docId, data),
+                          icon: const Icon(Icons.edit_outlined, size: 18),
+                          label: const Text('Edit'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF11823F),
+                            side: const BorderSide(color: Color(0xFF11823F)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        onPressed: () => _showListingOptions(docId, data),
+                        icon: const Icon(Icons.more_vert),
+                        style: IconButton.styleFrom(
+                          side: BorderSide(color: Colors.grey[300]!),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -1236,9 +1596,17 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
         children: [
           Icon(icon, size: 16, color: Colors.grey[600]),
           const SizedBox(width: 6),
-          Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(width: 4),
-          Flexible(child: Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600]))),
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            ),
+          ),
         ],
       ),
     );
@@ -1248,11 +1616,13 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [BoxShadow(
-          color: Colors.black.withOpacity(0.05),
-          blurRadius: 10,
-          offset: const Offset(0, -2),
-        )],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: SafeArea(
         child: Padding(
@@ -1277,13 +1647,20 @@ class _FarmerDashboardScreenState extends State<FarmerDashboardScreen>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: active ? const Color(0xFF11823F) : Colors.grey[400], size: 26),
-          const SizedBox(height: 4),
-          Text(label, style: TextStyle(
+          Icon(
+            icon,
             color: active ? const Color(0xFF11823F) : Colors.grey[400],
-            fontSize: 12,
-            fontWeight: active ? FontWeight.w600 : FontWeight.normal,
-          )),
+            size: 26,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: active ? const Color(0xFF11823F) : Colors.grey[400],
+              fontSize: 12,
+              fontWeight: active ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
         ],
       ),
     );
