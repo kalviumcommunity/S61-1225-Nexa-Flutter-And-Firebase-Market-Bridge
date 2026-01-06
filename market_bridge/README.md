@@ -5775,15 +5775,6 @@ Created a utility class to manage role-based theming throughout the app:
 
 # MarketBridge - Profile Enhancement Update
 
-## 📋 Branch Name
-```
-bash
-feature/enhanced-profile
-```
-
-
-## 📝 Short README Update
-
 ### What Changed?
 Enhanced the **Complete Profile Screen** with professional-grade validation and UX improvements.
 
@@ -5802,9 +5793,6 @@ Enhanced the **Complete Profile Screen** with professional-grade validation and 
 - Farm size validation: Positive numbers only
 - Auto-validate on user interaction
 - Proper error handling and user feedback
-
-### Files Modified:
-- `lib/screens/complete_profile_screen.dart`
 
 # MarketBridge Agricultural Marketplace - Complete Enhancement
 
@@ -5945,3 +5933,41 @@ javascript
   createdAt: Timestamp,
   deletedAt: Timestamp      // Only if deleted
 }
+
+
+```
+
+---
+
+# Testing Flutter App on Emulator and Physical Devices
+
+## Overview
+Before deploying or presenting a Flutter application, it is essential to test the app on both emulators and physical devices. While emulators allow fast testing across different screen sizes and OS versions, physical devices help validate real-world behavior such as hardware access, permissions, performance, and network conditions.
+
+This task focuses on configuring emulators, connecting physical devices, running the Flutter app on multiple environments, and validating consistent app behavior.
+
+---
+
+## Why Testing on Multiple Devices Matters
+Testing on multiple devices ensures:
+
+- Responsive UI across different screen sizes and resolutions
+- Proper handling of device permissions (camera, location, notifications)
+- Accurate performance and animation behavior
+- Detection of OS-specific issues
+- Reliable real-world user experience before release
+
+---
+
+## Emulator Setup
+
+### Android Emulator (Android Studio)
+
+Steps followed:
+1. Open **Android Studio**
+2. Navigate to **Device Manager**
+3. Click **Create Virtual Device**
+4. Select a device profile (Pixel 4 / Pixel 6)
+5. Choose a system image (Android 12 or Android 13)
+6. Launch the emulator and wait for it to boot
+7. Run the app using:
